@@ -3,8 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-class GaussianPosterior:
+class GaussianPosterior(nn.Module):
     def __init__(self, mu, rho):
+        super().__init__()
         self.mu = nn.Parameter(mu)
         self.rho = nn.Parameter(rho)
 
@@ -74,11 +75,11 @@ class BayesByBackpropMLP(nn.Module):
     def kl(self):
         return sum([m.kl() for m in self.layers if isinstance(m, BayesianLinear)])
 
-def vi_elbo_step(model, x, y, n_batches, criterion=None):
+def vi_elbo_step(model, x, y, n_batches, criterion=None, kl_weight=1.0):
     if criterion is None:
         criterion = nn.CrossEntropyLoss(reduction="mean")
     logits = model(x, sample=True)
     nll = criterion(logits, y)
     kl = model.kl() / n_batches
-    loss = nll + kl
+    loss = nll + kl_weight * kl
     return loss, nll.detach(), kl.detach()
