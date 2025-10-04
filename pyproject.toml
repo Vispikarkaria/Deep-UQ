@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "deepuq"
+name = "uqdeepnn"
 version = "0.1.0"
 description = "Unified deep learning uncertainty quantification (UQ) toolkit: VI, Laplace, SGLD MCMC, MC Dropout (PyTorch)"
 readme = "README.md"
@@ -29,9 +29,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/deepuq"
-Repository = "https://github.com/yourusername/deepuq"
-Documentation = "https://github.com/yourusername/deepuq#readme"
+Homepage = "https://github.com/yourusername/uqdeepnn"
+Repository = "https://github.com/yourusername/uqdeepnn"
+Documentation = "https://github.com/yourusername/uqdeepnn#readme"
 
 [tool.setuptools.packages.find]
 where = ["src"]
