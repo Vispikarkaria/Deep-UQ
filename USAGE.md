@@ -3,48 +3,64 @@
 This guide shows end-to-end training and uncertainty estimation for the four methods provided by `deepuq`.
 
 ## Data
-The example scripts use MNIST from `torchvision`. Replace with your dataset of choice; you only need tensors `(X, y)`.
+The examples use a synthetic Euler-Bernoulli beam deflection dataset. Replace with your dataset of choice; you only need tensors `(X, y)`.
 
 ## 1) MC Dropout
 ```python
 from deepuq.models import MLP
 from deepuq.methods import MCDropoutWrapper
 
-model = MLP(784, [512,256], 10, p_drop=0.2)
-# ...train with standard CE loss...
-uq = MCDropoutWrapper(model, n_mc=30)
-mean, var = uq.predict(x_batch)  # [B,C] each
+model = MLP(1, [128,128], 1, p_drop=0.15)
+# ...train with MSE loss...
+uq = MCDropoutWrapper(model, n_mc=200, apply_softmax=False)
+mean, var = uq.predict(x_batch)  # [B,1] each
 ```
-Interpretation: `var` is predictive variance from Monte Carlo stochasticity. Calibrate with temperature scaling or increase `n_mc`.
+Interpretation: `var` is predictive variance from Monte Carlo stochasticity. Increase `n_mc` to smooth the uncertainty estimate.
 
 ## 2) Variational Inference (Bayes by Backprop)
 ```python
+import torch.nn as nn
 from deepuq.methods import BayesByBackpropMLP, vi_elbo_step
-model = BayesByBackpropMLP(784, [400,200], 10, prior_sigma=0.1)
+
+model = BayesByBackpropMLP(1, [128,128], 1, prior_sigma=0.2)
+criterion = nn.MSELoss(reduction='mean')
+num_batches = len(train_loader)
+kl_weight = 0.01
 for x,y in train_loader:
-    loss, nll, kl = vi_elbo_step(model, x, y, n_batches=len(train_loader))
+    loss, nll, kl = vi_elbo_step(
+        model,
+        x,
+        y,
+        num_batches=num_batches,
+        criterion=criterion,
+        kl_weight=kl_weight,
+        mc_samples=1,
+    )
     loss.backward(); opt.step()
 ```
-At inference, sample multiple forward passes and average to obtain predictive mean/variance.
+At inference, sample multiple weight draws and average to obtain predictive mean/variance.
+For epoch-to-epoch ELBO comparisons, keep `kl_weight` fixed. Raw ELBO can wiggle due to stochastic sampling; use an EMA trend for reporting.
 
 ## 3) Laplace Approximation
 ```python
 from deepuq.methods import LaplaceWrapper
-la = LaplaceWrapper(trained_model, 'classification', 'diag')
+la = LaplaceWrapper(trained_model, 'regression', 'diag')
 la.fit(train_loader, prior_precision=1.0)
-probs, _ = la.predict(x_batch)
+mean, var = la.predict(x_batch, n_samples=200)
 ```
-`laplace-torch` handles posterior predictive. You can switch `hessian_structure` to `'kron'` or `'full'` if memory allows.
+The diagonal Laplace approximation provides predictive mean and variance for regression.
 
 ## 4) MCMC (SGLD)
 ```python
+import torch.nn as nn
 from deepuq.methods import collect_posterior_samples, predict_with_samples
-samples = collect_posterior_samples(model, train_loader, n_steps=200, lr=1e-4)
-mean, var = predict_with_samples(model, samples, x_batch)
+
+loss_fn = nn.MSELoss(reduction='mean')
+samples = collect_posterior_samples(model, train_loader, n_steps=200, lr=1e-4, loss_fn=loss_fn)
+mean, var = predict_with_samples(model, samples, x_batch, apply_softmax=False)
 ```
 Tune `lr`, `weight_decay`, and `burn_in` for better mixing. Save samples to disk if needed.
 
 ## Calibration and Metrics
-- **NLL**, **Brier score**, **ECE** (expected calibration error) are recommended. Add temperature scaling on validation.
-- For regression, modify losses to MSE and output Gaussian parameters.
-
+- For regression, track **RMSE**, **MAE**, and 95% interval coverage.
+- Adjust `n_mc` or posterior sample counts to stabilize uncertainty bands.

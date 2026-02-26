@@ -25,9 +25,11 @@ class SGLDOptimizer(torch.optim.Optimizer):
                 noise = torch.randn_like(p) * (2 * lr)**0.5
                 p.add_( -lr * grad + noise )
 
-def collect_posterior_samples(model: nn.Module, data_loader, n_steps=1000, lr=1e-4, weight_decay=1e-4, burn_in=0.2, device="cpu"):
+def collect_posterior_samples(model: nn.Module, data_loader, n_steps=1000, lr=1e-4, weight_decay=1e-4, burn_in=0.2, loss_fn=None, device="cpu"):
     model.train()
     opt = SGLDOptimizer(model.parameters(), lr=lr, weight_decay=weight_decay)
+    if loss_fn is None:
+        loss_fn = nn.CrossEntropyLoss()
     samples = []
     step = 0
     for epoch in range(10**6):  # loop until enough steps
@@ -35,7 +37,7 @@ def collect_posterior_samples(model: nn.Module, data_loader, n_steps=1000, lr=1e
             x, y = x.to(device), y.to(device)
             opt.zero_grad(set_to_none=True)
             logits = model(x)
-            loss = nn.CrossEntropyLoss()(logits, y)
+            loss = loss_fn(logits, y)
             loss.backward()
             opt.step()
             step += 1

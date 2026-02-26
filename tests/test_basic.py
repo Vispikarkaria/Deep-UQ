@@ -12,5 +12,5 @@ def test_mc_dropout_shapes():
 def test_vi_step_runs():
     model = BayesByBackpropMLP(8, [8], 3)
     x = torch.randn(5,8); y = torch.tensor([0,1,2,1,0])
-    loss, nll, kl = vi_elbo_step(model, x, y, n_batches=1)
+    loss, nll, kl = vi_elbo_step(model, x, y, num_batches=1)
     assert torch.isfinite(loss)
