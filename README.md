@@ -2,12 +2,13 @@
 
 Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
 
-Implements **four** widely used methods:
+Implements **five** widely used methods:
 
 1. **Variational Inference (VI)** — Bayes by Backprop with BayesianLinear layers.
 2. **Laplace Approximation** — via `laplace-torch` with diagonal/kronecker/full Hessians.
 3. **MCMC (SGLD)** — Stochastic Gradient Langevin Dynamics sampler for NN posteriors.
 4. **MC Dropout** — Keep dropout active at test-time and aggregate Monte Carlo predictions.
+5. **Gaussian Processes (GPs)** — Exact regression with an RBF kernel and closed-form posterior inference.
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/placeholder/uq_table.png" alt="UQ Table" width="600"/>
@@ -44,6 +45,36 @@ See the **examples/** folder for end‑to‑end training scripts on MNIST/Fashio
 - **Laplace**: Fit a Gaussian around a MAP solution using the Hessian; calibrate with a prior precision.
 - **MCMC (SGLD)**: Inject Gaussian noise into SGD steps to sample from the posterior.
 - **MC Dropout**: Use dropout at inference; Monte Carlo average for mean and variance.
+- **Gaussian Processes**: Closed-form posterior inference with RBF kernels for regression and uncertainty-aware interpolation.
+
+### Gaussian Processes
+
+The module `deepuq.models.gaussian_process` provides a lightweight `GaussianProcessRegressor`
+with an accompanying `RBFKernel`.  The API mirrors the familiar scikit-learn interface while
+keeping everything in PyTorch tensors so you can move computation to GPU if desired.
+
+```python
+import torch
+from deepuq.models import GaussianProcessRegressor, RBFKernel
+
+# Training data
+x = torch.linspace(-1.0, 1.0, 40).unsqueeze(-1)
+y = torch.sin(2 * torch.pi * x) + 0.05 * torch.randn_like(x)
+
+# Model setup
+kernel = RBFKernel(lengthscale=0.5, outputscale=1.0)
+gp = GaussianProcessRegressor(kernel=kernel, noise=0.02)
+gp.fit(x, y)
+
+# Posterior predictions
+x_star = torch.linspace(-1.5, 1.5, 200).unsqueeze(-1)
+mean, var = gp.predict(x_star)
+samples = gp.posterior_samples(x_star, n_samples=5)
+```
+
+To see the GP model in action, run the notebook
+`notebooks/GaussianProcess_Tutorial.ipynb`, which visualises the posterior mean,
+credible intervals, and posterior samples on a sinusoidal toy dataset.
 
 ## Documentation
 
