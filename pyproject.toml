@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uqdeepnn"
-version = "0.1.0"
-description = "Unified deep learning uncertainty quantification (UQ) toolkit: VI, Laplace, SGLD MCMC, MC Dropout (PyTorch)"
+version = "0.1.1"
+description = "PyTorch uncertainty quantification toolkit with Bayes-by-Backprop VI, Laplace, SGLD, MC Dropout, and Gaussian Processes."
 readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
@@ -28,9 +28,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/uqdeepnn"
-Repository = "https://github.com/yourusername/uqdeepnn"
-Documentation = "https://github.com/yourusername/uqdeepnn#readme"
+Homepage = "https://github.com/Vispikarkaria/Deep-UQ"
+Repository = "https://github.com/Vispikarkaria/Deep-UQ"
+Documentation = "https://github.com/Vispikarkaria/Deep-UQ#readme"
 
 [tool.setuptools.packages.find]
 where = ["src"]

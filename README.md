@@ -19,12 +19,58 @@ Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regr
 ## Install (local)
 
 ```bash
-git clone https://github.com/yourusername/deepuq.git
-cd deepuq
+git clone https://github.com/Vispikarkaria/Deep-UQ.git
+cd Deep-UQ
 pip install -e .
 ```
 
-> Coming from PyPI? See the section **Publish to PyPI** below.
+## Install (PyPI)
+
+```bash
+pip install uqdeepnn
+```
+
+## Publish / Update PyPI Release
+
+Use this flow whenever you want to publish a new pip version.
+
+1. Bump version in `pyproject.toml`:
+```toml
+[project]
+version = "0.1.1"
+```
+2. Commit and push the version bump:
+```bash
+git add pyproject.toml
+git commit -m "Bump version to 0.1.1"
+git push
+```
+3. Build distributions:
+```bash
+python -m pip install --upgrade build twine
+python -m build
+```
+4. Validate package metadata:
+```bash
+python -m twine check dist/*
+```
+5. Upload to TestPyPI (recommended first):
+```bash
+python -m twine upload --repository testpypi dist/*
+```
+6. Upload to PyPI:
+```bash
+python -m twine upload dist/*
+```
+7. Verify installation:
+```bash
+pip install -U uqdeepnn
+python -c "import deepuq; print('deepuq import ok')"
+```
+
+Notes:
+- Prefer API tokens over passwords for Twine auth.
+- Revoke and rotate any token immediately if it is ever exposed.
 
 ## Quickstart
 
