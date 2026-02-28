@@ -10,6 +10,7 @@ src/deepuq/methods/mc_dropout.py
 src/deepuq/methods/mcmc.py
 src/deepuq/methods/vi.py
 src/deepuq/models/__init__.py
+src/deepuq/models/gaussian_process.py
 src/deepuq/models/simple.py
 src/uqdeepnn.egg-info/PKG-INFO
 src/uqdeepnn.egg-info/SOURCES.txt
@@ -17,3 +18,6 @@ src/uqdeepnn.egg-info/dependency_links.txt
 src/uqdeepnn.egg-info/requires.txt
 src/uqdeepnn.egg-info/top_level.txt
 tests/test_basic.py
+tests/test_gp.py
+tests/test_sparse_gp.py
+tests/test_vi.py
