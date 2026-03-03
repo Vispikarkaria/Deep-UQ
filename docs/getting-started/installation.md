@@ -6,12 +6,6 @@
 pip install uqdeepnn
 ```
 
-Optional dependency for Laplace `kron` and `full` structures:
-
-```bash
-pip install "laplace-torch>=0.1.7"
-```
-
 ## Install from Source
 
 ```bash

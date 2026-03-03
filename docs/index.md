@@ -42,12 +42,6 @@ Build and compare **Bayes by Backprop**, **Laplace**, **SGLD**, **MC Dropout**, 
 pip install uqdeepnn
 ```
 
-For Laplace `kron` and `full` backends:
-
-```bash
-pip install "laplace-torch>=0.1.7"
-```
-
 ## Start Here
 
 - [Installation guide](getting-started/installation.md)

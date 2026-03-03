@@ -6,7 +6,7 @@ Highlights:
 
 - Expanded Laplace support through `LaplaceWrapper`:
   - native `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`
-  - `kron` and `full` via `laplace-torch`
+  - native `kron` and `full` implementations (no `laplace-torch` dependency)
 - Added Laplace notebooks under `notebooks/laplace/`:
   - full-Hessian tutorial
   - multi-structure comparison tutorial

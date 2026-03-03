@@ -59,8 +59,7 @@ la.fit(train_loader, prior_precision=1.0)
 mean, var = la.predict(x_batch, n_samples=200)
 ```
 Notes:
-- `diag`, `fisher_diag`, `lowrank_diag`, `block_diag` are native backends in `deepuq`.
-- `kron` and `full` require `laplace-torch`.
+- `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, and `full` are native backends in `deepuq`.
 - `full` with `subset_of_weights='all'` is guarded by `full_max_params` to avoid infeasible memory usage.
 
 ## 4) MCMC (SGLD)

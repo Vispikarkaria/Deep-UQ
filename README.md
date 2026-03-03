@@ -5,7 +5,7 @@ Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
 Implements **five** widely used methods:
 
 1. **Variational Inference (VI)** — Bayes by Backprop with BayesianLinear layers.
-2. **Laplace Approximation** — native diagonal-family backends (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`) plus `laplace-torch` backends (`kron`, `full`).
+2. **Laplace Approximation** — native backends for all supported structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`).
 3. **MCMC (SGLD)** — Stochastic Gradient Langevin Dynamics sampler for NN posteriors.
 4. **MC Dropout** — Keep dropout active at test-time and aggregate Monte Carlo predictions.
 5. **Gaussian Processes (GPs)** — Exact regression and sparse inducing-point approximations with RBF kernels.
@@ -41,12 +41,6 @@ pip install -e .
 
 ```bash
 pip install uqdeepnn
-```
-
-For `LaplaceWrapper` structures `kron` and `full`, install the optional backend:
-
-```bash
-pip install "laplace-torch>=0.1.7"
 ```
 
 ## Publish / Update PyPI Release
@@ -120,15 +114,14 @@ See the **examples/** folder for end-to-end regression scripts on the Euler-Bern
 - **Gaussian Processes**: Closed-form posterior inference with RBF kernels for regression and uncertainty-aware interpolation.
 
 For Laplace users:
-- Native backends (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`) work without extra runtime dependencies.
-- `kron` and `full` use `laplace-torch` under the hood.
+- All supported structures are implemented natively in `deepuq`.
 
 ## Tutorials
 
 - `notebooks/BayesByBackprop_Tutorial.ipynb`: Variational Inference (Bayes by Backprop) for regression with predictive uncertainty.
 - `notebooks/MC_Dropout_Tutorial.ipynb`: MC Dropout tutorial on a nonlinear beam-style regression case.
 - `notebooks/laplace/Laplace_Tutorial.ipynb`: Core Laplace workflow around a MAP model.
-- `notebooks/laplace/Laplace_FullHessian_Tutorial.ipynb`: Full-Hessian Laplace example (requires `laplace-torch`).
+- `notebooks/laplace/Laplace_FullHessian_Tutorial.ipynb`: Full-Hessian Laplace example.
 - `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb`: Side-by-side comparison of all Hessian structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`) using shared MAP weights and common metrics (RMSE, NLL, coverage, interval width, ID/OOD uncertainty ratio).
 - `notebooks/SGLD_Tutorial.ipynb`: MCMC posterior sampling with SGLD.
 - `notebooks/GaussianProcess_Tutorial.ipynb`: Exact Gaussian Process regression.

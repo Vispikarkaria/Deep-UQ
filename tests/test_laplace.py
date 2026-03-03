@@ -1,12 +1,9 @@
-import importlib.util
-
 import pytest
 import torch
 from torch.utils.data import DataLoader, TensorDataset
 
 from deepuq.methods import LaplaceWrapper
 from deepuq.models import MLP
-import deepuq.methods.laplace as laplace_module
 
 
 def _make_regression_loader(input_dim: int, n_samples: int = 64, batch_size: int = 16):
@@ -64,15 +61,8 @@ def test_supported_hessian_structures_and_validation():
 
 @pytest.mark.parametrize('structure', LaplaceWrapper.supported_hessian_structures())
 def test_regression_predictive_outputs_are_finite(structure):
-    laplace_available = importlib.util.find_spec('laplace') is not None
-
     model, train_loader = _fit_simple_regression_model(input_dim=4)
     wrapper = LaplaceWrapper(model, likelihood='regression', hessian_structure=structure, subset_of_weights='last_layer')
-
-    if structure in {'kron', 'full'} and not laplace_available:
-        with pytest.raises(ImportError, match='laplace-torch'):
-            wrapper.fit(train_loader, prior_precision=1.0)
-        return
 
     wrapper.fit(train_loader, prior_precision=1.0)
     x_query = torch.randn(9, 4)
@@ -88,15 +78,8 @@ def test_regression_predictive_outputs_are_finite(structure):
 
 @pytest.mark.parametrize('structure', LaplaceWrapper.supported_hessian_structures())
 def test_classification_predictive_contract(structure):
-    laplace_available = importlib.util.find_spec('laplace') is not None
-
     model, train_loader = _fit_simple_classification_model(input_dim=5, n_classes=3)
     wrapper = LaplaceWrapper(model, likelihood='classification', hessian_structure=structure, subset_of_weights='last_layer')
-
-    if structure in {'kron', 'full'} and not laplace_available:
-        with pytest.raises(ImportError, match='laplace-torch'):
-            wrapper.fit(train_loader, prior_precision=1.0)
-        return
 
     wrapper.fit(train_loader, prior_precision=1.0)
     x_query = torch.randn(11, 5)
@@ -113,7 +96,7 @@ def test_classification_predictive_contract(structure):
 def test_subset_combinations_work_for_native_structures():
     model, train_loader = _fit_simple_regression_model(input_dim=6)
     for subset in ('last_layer', 'all'):
-        for structure in ('diag', 'fisher_diag', 'lowrank_diag', 'block_diag'):
+        for structure in ('diag', 'fisher_diag', 'lowrank_diag', 'block_diag', 'kron', 'full'):
             wrapper = LaplaceWrapper(
                 model,
                 likelihood='regression',
@@ -159,21 +142,6 @@ def test_lowrank_rank_clipping_and_fallback_path():
     assert var is not None
     assert torch.isfinite(mean).all()
     assert torch.isfinite(var).all()
-
-
-def test_missing_laplace_dependency_path(monkeypatch):
-    model, train_loader = _fit_simple_regression_model(input_dim=4)
-
-    def _raise_import_error():
-        raise ImportError('mocked missing laplace dependency')
-
-    monkeypatch.setattr(laplace_module, '_get_laplace_class', _raise_import_error)
-
-    for structure in ('kron', 'full'):
-        wrapper = LaplaceWrapper(model, likelihood='regression', hessian_structure=structure)
-        with pytest.raises(ImportError, match='mocked missing laplace dependency'):
-            wrapper.fit(train_loader, prior_precision=1.0)
-
 
 def test_backward_compatible_diag_path():
     model, train_loader = _fit_simple_regression_model(input_dim=4)

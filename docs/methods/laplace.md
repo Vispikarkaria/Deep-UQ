@@ -8,8 +8,8 @@
 - `fisher_diag`: explicit empirical Fisher diagonal variant
 - `lowrank_diag`: low-rank + diagonal residual approximation
 - `block_diag`: block-wise curvature approximation
-- `kron`: Kronecker-factored backend (via `laplace-torch`)
-- `full`: dense full Hessian backend (via `laplace-torch`)
+- `kron`: Kronecker-factored approximation for selected `nn.Linear` layers
+- `full`: dense full Hessian backend
 
 ## Subset of Weights
 
@@ -18,8 +18,7 @@
 
 ## Design
 
-- Native implementations: `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`
-- Adapter backend: `kron`, `full` using optional `laplace-torch`
+- Native implementations for all supported structures
 - Predictive contract:
   - regression: `(mean, var)`
   - classification: `(mean_probs, None)`
