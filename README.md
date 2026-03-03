@@ -114,9 +114,9 @@ For Laplace users:
 
 - `notebooks/BayesByBackprop_Tutorial.ipynb`: Variational Inference (Bayes by Backprop) for regression with predictive uncertainty.
 - `notebooks/MC_Dropout_Tutorial.ipynb`: MC Dropout tutorial on a nonlinear beam-style regression case.
-- `notebooks/Laplace_Tutorial.ipynb`: Core Laplace workflow around a MAP model.
-- `notebooks/Laplace_FullHessian_Tutorial.ipynb`: Full-Hessian Laplace example (requires `laplace-torch`).
-- `notebooks/Laplace_HessianComparison_Tutorial.ipynb`: Side-by-side comparison of all Hessian structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`) using shared MAP weights and common metrics (RMSE, NLL, coverage, interval width, ID/OOD uncertainty ratio).
+- `notebooks/laplace/Laplace_Tutorial.ipynb`: Core Laplace workflow around a MAP model.
+- `notebooks/laplace/Laplace_FullHessian_Tutorial.ipynb`: Full-Hessian Laplace example (requires `laplace-torch`).
+- `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb`: Side-by-side comparison of all Hessian structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`) using shared MAP weights and common metrics (RMSE, NLL, coverage, interval width, ID/OOD uncertainty ratio).
 - `notebooks/SGLD_Tutorial.ipynb`: MCMC posterior sampling with SGLD.
 - `notebooks/GaussianProcess_Tutorial.ipynb`: Exact Gaussian Process regression.
 - `notebooks/SparseGaussianProcess_Tutorial.ipynb`: Sparse variational GP with inducing points.
