@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.3 — 2026-03-03
+
+Highlights:
+
+- Removed external `laplace-torch` dependency from package requirements.
+- Added native `kron` and `full` Laplace backends under `LaplaceWrapper`.
+- Updated Laplace docs/usage notes to reflect native support for all Hessian structures.
+- Refreshed Laplace Hessian comparison tutorial updates.
+
 ## 0.1.2 — 2026-03-03
 
 Highlights:
