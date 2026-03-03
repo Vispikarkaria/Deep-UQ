@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 — 2026-03-03
+
+Highlights:
+
+- Fixed homepage rendering behavior for GitHub Pages deployment.
+- Added cache-busted docs assets (`extra-v2.css`, `extra-v2.js`) to avoid stale browser rendering.
+- Removed stale `laplace-torch` language from Laplace notebooks/examples.
+
 ## 0.1.3 — 2026-03-03
 
 Highlights:

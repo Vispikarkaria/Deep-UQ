@@ -50,12 +50,12 @@ Use this flow whenever you want to publish a new pip version.
 1. Bump version in `pyproject.toml`:
 ```toml
 [project]
-version = "0.1.3"
+version = "0.1.4"
 ```
 2. Commit and push the version bump:
 ```bash
 git add pyproject.toml
-git commit -m "Bump version to 0.1.3"
+git commit -m "Bump version to 0.1.4"
 git push
 ```
 3. Build distributions:
