@@ -1,7 +1,8 @@
-import torch
 import torch.nn as nn
 
 class MLP(nn.Module):
+    """Simple feed-forward MLP used across examples and tutorials."""
+
     def __init__(self, input_dim, hidden_dims, output_dim, p_drop=0.0):
         super().__init__()
         dims = [input_dim] + list(hidden_dims) + [output_dim]

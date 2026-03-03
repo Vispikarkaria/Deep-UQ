@@ -1,3 +1,5 @@
+"""Monte-Carlo dropout inference wrappers."""
+
 import torch
 import torch.nn as nn
 
@@ -23,6 +25,7 @@ class MCDropoutWrapper(nn.Module):
 
     @torch.inference_mode()
     def predict(self, x: torch.Tensor):
+        """Run stochastic dropout passes and return predictive mean/variance."""
         self.model.train(True)  # enable dropout
         preds = []
         for _ in range(self.n_mc):

@@ -18,10 +18,16 @@ Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regr
 |---|---|---|---|
 | Variational Inference | Bayes by Backprop | `BayesianLinear`, `vi_elbo_step` | `notebooks/BayesByBackprop_Tutorial.ipynb` |
 | Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| MCMC | Stochastic Gradient Langevin Dynamics | `SGLDSampler` | `notebooks/SGLD_Tutorial.ipynb` |
+| MCMC | Stochastic Gradient Langevin Dynamics | `SGLDOptimizer`, `collect_posterior_samples` | `notebooks/SGLD_Tutorial.ipynb` |
 | MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper` | `notebooks/MC_Dropout_Tutorial.ipynb` |
 | Gaussian Process | Exact GP (`RBFKernel`) | `GaussianProcessRegressor` | `notebooks/GaussianProcess_Tutorial.ipynb` |
 | Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor` | `notebooks/SparseGaussianProcess_Tutorial.ipynb` |
+
+## Documentation Website
+
+- Docs home: https://vispikarkaria.github.io/Deep-UQ/
+- Tutorials: https://vispikarkaria.github.io/Deep-UQ/tutorials/
+- API reference: https://vispikarkaria.github.io/Deep-UQ/api/
 
 ## Install (local)
 
@@ -50,12 +56,12 @@ Use this flow whenever you want to publish a new pip version.
 1. Bump version in `pyproject.toml`:
 ```toml
 [project]
-version = "0.1.1"
+version = "0.1.2"
 ```
 2. Commit and push the version bump:
 ```bash
 git add pyproject.toml
-git commit -m "Bump version to 0.1.1"
+git commit -m "Bump version to 0.1.2"
 git push
 ```
 3. Build distributions:

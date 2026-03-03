@@ -1,11 +1,13 @@
+"""MCMC utilities based on Stochastic Gradient Langevin Dynamics (SGLD)."""
+
 import torch
 from torch import nn
 
 class SGLDOptimizer(torch.optim.Optimizer):
-    """
-    Stochastic Gradient Langevin Dynamics (Welling & Teh, 2011)
+    """Stochastic Gradient Langevin Dynamics optimizer.
 
-    Performs SGD with additive Gaussian noise calibrated by the step size.
+    This optimizer performs an SGD-like update with additive Gaussian noise
+    calibrated by the step size, following Welling & Teh (2011).
     """
     def __init__(self, params, lr=1e-3, weight_decay=0.0):
         defaults = dict(lr=lr, weight_decay=weight_decay)
@@ -13,6 +15,7 @@ class SGLDOptimizer(torch.optim.Optimizer):
 
     @torch.no_grad()
     def step(self):
+        """Apply one SGLD parameter update in-place."""
         for group in self.param_groups:
             lr = group['lr']
             wd = group['weight_decay']
@@ -23,9 +26,31 @@ class SGLDOptimizer(torch.optim.Optimizer):
                 if wd != 0.0:
                     grad = grad + wd * p
                 noise = torch.randn_like(p) * (2 * lr)**0.5
-                p.add_( -lr * grad + noise )
+                p.add_(-lr * grad + noise)
 
-def collect_posterior_samples(model: nn.Module, data_loader, n_steps=1000, lr=1e-4, weight_decay=1e-4, burn_in=0.2, loss_fn=None, device="cpu"):
+def collect_posterior_samples(
+    model: nn.Module,
+    data_loader,
+    n_steps=1000,
+    lr=1e-4,
+    weight_decay=1e-4,
+    burn_in=0.2,
+    loss_fn=None,
+    device="cpu",
+):
+    """Run SGLD and collect posterior parameter snapshots.
+
+    Parameters
+    ----------
+    model:
+        Neural network to sample.
+    data_loader:
+        Iterable of mini-batches.
+    n_steps:
+        Total SGLD updates.
+    burn_in:
+        Fraction of updates to skip before collecting snapshots.
+    """
     model.train()
     opt = SGLDOptimizer(model.parameters(), lr=lr, weight_decay=weight_decay)
     if loss_fn is None:
@@ -50,6 +75,7 @@ def collect_posterior_samples(model: nn.Module, data_loader, n_steps=1000, lr=1e
 
 @torch.inference_mode()
 def predict_with_samples(model: nn.Module, samples, x, apply_softmax=True, device="cpu"):
+    """Predictive mean and variance from stored parameter samples."""
     preds = []
     for s in samples:
         model.load_state_dict(s, strict=True)
