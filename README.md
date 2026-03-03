@@ -12,9 +12,16 @@ Implements **five** widely used methods:
 
 Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regression task to illustrate confidence bounds.
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/placeholder/uq_table.png" alt="UQ Table" width="600"/>
-</p>
+## Method Summary
+
+| Method Family | Implemented Variants | Main Wrapper / Class | Tutorial |
+|---|---|---|---|
+| Variational Inference | Bayes by Backprop | `BayesianLinear`, `vi_elbo_step` | `notebooks/BayesByBackprop_Tutorial.ipynb` |
+| Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
+| MCMC | Stochastic Gradient Langevin Dynamics | `SGLDSampler` | `notebooks/SGLD_Tutorial.ipynb` |
+| MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper` | `notebooks/MC_Dropout_Tutorial.ipynb` |
+| Gaussian Process | Exact GP (`RBFKernel`) | `GaussianProcessRegressor` | `notebooks/GaussianProcess_Tutorial.ipynb` |
+| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor` | `notebooks/SparseGaussianProcess_Tutorial.ipynb` |
 
 ## Install (local)
 
