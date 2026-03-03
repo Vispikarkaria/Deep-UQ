@@ -51,7 +51,7 @@ for epoch in range(200):
 
 # Try other structures:
 #   'fisher_diag', 'lowrank_diag', 'block_diag' (native)
-#   'kron', 'full' (require laplace-torch)
+#   'kron', 'full' (native in deepuq)
 laplace_structure = 'diag'
 la = LaplaceWrapper(
     model,
