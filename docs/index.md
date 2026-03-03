@@ -1,13 +1,15 @@
+---
+hide:
+  - title
+---
+
 <div class="hero-panel reveal">
-
-# Deep-UQ Documentation
-
-Unified uncertainty quantification toolkit in PyTorch.
-Build and compare **Bayes by Backprop**, **Laplace**, **SGLD**, **MC Dropout**, and **Gaussian Process** methods in one package.
-
-[Get Started](getting-started/installation.md){ .md-button .md-button--primary }
-[API Reference](api/index.md){ .md-button }
-
+  <h1>Deep-UQ Documentation</h1>
+  <p>Unified uncertainty quantification toolkit in PyTorch. Build and compare <strong>Bayes by Backprop</strong>, <strong>Laplace</strong>, <strong>SGLD</strong>, <strong>MC Dropout</strong>, and <strong>Gaussian Process</strong> methods in one package.</p>
+  <p>
+    <a href="getting-started/installation/" class="md-button md-button--primary">Get Started</a>
+    <a href="api/" class="md-button">API Reference</a>
+  </p>
 </div>
 
 <div class="card-grid">

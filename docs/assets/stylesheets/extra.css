@@ -91,9 +91,14 @@ pre,
 }
 
 .reveal {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.js-reveal .reveal {
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
 .reveal.visible {
