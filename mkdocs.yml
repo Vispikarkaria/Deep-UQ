@@ -56,6 +56,8 @@ markdown_extensions:
   - md_in_html
   - tables
   - footnotes
+  - pymdownx.arithmatex:
+      generic: true
   - toc:
       permalink: true
   - pymdownx.details
@@ -71,6 +73,8 @@ extra_css:
 
 extra_javascript:
   - assets/javascripts/extra.js
+  - assets/javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
   - Home: index.md

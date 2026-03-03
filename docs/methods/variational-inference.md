@@ -13,9 +13,9 @@ Deep-UQ implements mean-field Bayes by Backprop with Gaussian posteriors over we
 
 For a mini-batch:
 
-\[
+$$
 \mathcal{L}_{ELBO} = \mathbb{E}_{q(w)}[-\log p(y|x,w)] + \beta \cdot \frac{1}{N_b} KL(q(w)\|p(w))
-\]
+$$
 
 - `N_b`: number of optimizer steps per epoch (`len(train_loader)`)
 - `beta` (`kl_weight` in code): KL weighting factor
