@@ -11,8 +11,7 @@ Deep-UQ includes Stochastic Gradient Langevin Dynamics for posterior sampling in
 ## Update Rule
 
 \[
-	heta_{t+1} = 	heta_t - \eta 
-abla_	heta \mathcal{L}(	heta_t) + \sqrt{2\eta}\,\epsilon_t,
+\theta_{t+1} = \theta_t - \eta \nabla_\theta \mathcal{L}(\theta_t) + \sqrt{2\eta}\,\epsilon_t,
 \quad \epsilon_t \sim \mathcal{N}(0, I)
 \]
 
