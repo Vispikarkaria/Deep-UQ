@@ -49,7 +49,16 @@ for epoch in range(200):
         loss.backward()
         optimizer.step()
 
-la = LaplaceWrapper(model, likelihood='regression', hessian_structure='diag')
+# Try other structures:
+#   'fisher_diag', 'lowrank_diag', 'block_diag' (native)
+#   'kron', 'full' (require laplace-torch)
+laplace_structure = 'diag'
+la = LaplaceWrapper(
+    model,
+    likelihood='regression',
+    hessian_structure=laplace_structure,
+    subset_of_weights='last_layer',
+)
 la.fit(train_loader, prior_precision=1.0)
 mean, var = la.predict(x_grid.to(DEVICE), n_samples=200)
 mean = mean.cpu()

@@ -44,11 +44,24 @@ For epoch-to-epoch ELBO comparisons, keep `kl_weight` fixed. Raw ELBO can wiggle
 ## 3) Laplace Approximation
 ```python
 from deepuq.methods import LaplaceWrapper
-la = LaplaceWrapper(trained_model, 'regression', 'diag')
+
+# Available hessian_structure values:
+#   'diag', 'fisher_diag', 'lowrank_diag', 'block_diag', 'kron', 'full'
+la = LaplaceWrapper(
+    trained_model,
+    likelihood='regression',
+    hessian_structure='diag',       # swap for 'kron' or 'full' if needed
+    subset_of_weights='last_layer', # or 'all'
+    lowrank_rank=20,                # used by 'lowrank_diag'
+    damping=1e-6,
+)
 la.fit(train_loader, prior_precision=1.0)
 mean, var = la.predict(x_batch, n_samples=200)
 ```
-The diagonal Laplace approximation provides predictive mean and variance for regression.
+Notes:
+- `diag`, `fisher_diag`, `lowrank_diag`, `block_diag` are native backends in `deepuq`.
+- `kron` and `full` require `laplace-torch`.
+- `full` with `subset_of_weights='all'` is guarded by `full_max_params` to avoid infeasible memory usage.
 
 ## 4) MCMC (SGLD)
 ```python

@@ -1,4 +1,7 @@
-from typing import Iterable, List, Optional
+from __future__ import annotations
+
+import inspect
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import torch
 from torch import nn
@@ -15,54 +18,94 @@ def _find_last_linear_layer(model: nn.Module) -> nn.Module:
     return last_linear
 
 
-class _SimpleDiagonalLaplace:
-    """Diagonal Laplace approximation with optional last-layer restriction."""
+def _select_parameters(model: nn.Module, subset_of_weights: str) -> List[nn.Parameter]:
+    if subset_of_weights not in {'last_layer', 'all'}:
+        raise ValueError('subset_of_weights must be "last_layer" or "all".')
 
-    def __init__(self, model: nn.Module, likelihood: str = 'regression', subset_of_weights: str = 'last_layer') -> None:
+    if subset_of_weights == 'last_layer':
+        params = list(_find_last_linear_layer(model).parameters())
+    else:
+        params = list(model.parameters())
+
+    if len(params) == 0:
+        raise ValueError('No parameters selected for the Laplace approximation.')
+    return params
+
+
+def _safe_cholesky(matrix: torch.Tensor, damping: float) -> torch.Tensor:
+    eye = torch.eye(matrix.size(-1), device=matrix.device, dtype=matrix.dtype)
+    jitter = float(max(damping, 1e-12))
+    last_error: Optional[RuntimeError] = None
+    for _ in range(7):
+        try:
+            return torch.linalg.cholesky(matrix + jitter * eye)
+        except RuntimeError as exc:  # pragma: no cover - exercised only on ill-conditioned cases
+            last_error = exc
+            jitter *= 10.0
+    raise RuntimeError('Cholesky decomposition failed even after jitter escalation.') from last_error
+
+
+def _ensure_iterable_train_loader(train_loader: Iterable) -> None:
+    if not hasattr(train_loader, '__iter__'):
+        raise TypeError('train_loader must be an iterable over (input, target) pairs.')
+
+
+def _get_laplace_class():
+    try:
+        from laplace import Laplace  # type: ignore
+    except Exception as exc:  # pragma: no cover - depends on optional dependency
+        raise ImportError(
+            'laplace-torch is required for hessian_structure="kron" and "full". '
+            'Install it via: pip install laplace-torch>=0.1.7'
+        ) from exc
+    return Laplace
+
+
+class _NativeLaplaceBase:
+    """Shared functionality for native Laplace approximations."""
+
+    def __init__(
+        self,
+        model: nn.Module,
+        likelihood: str = 'regression',
+        subset_of_weights: str = 'last_layer',
+        damping: float = 1e-6,
+    ) -> None:
         if likelihood not in {'regression', 'classification'}:
             raise ValueError(f'Unsupported likelihood "{likelihood}". Use "regression" or "classification".')
-        if subset_of_weights not in {'last_layer', 'all'}:
-            raise ValueError('subset_of_weights must be "last_layer" or "all".')
 
         self.model = model
         self.likelihood = likelihood
         self.subset_of_weights = subset_of_weights
+        self.damping = float(max(damping, 0.0))
 
-        if subset_of_weights == 'last_layer':
-            self._parameter_modules = list(_find_last_linear_layer(model).parameters())
-        else:
-            self._parameter_modules = list(model.parameters())
-
-        if len(self._parameter_modules) == 0:
-            raise ValueError('No parameters selected for the Laplace approximation.')
-
+        self._parameter_modules = _select_parameters(model, subset_of_weights)
         self.device = next(model.parameters()).device
         self._param_dim = parameters_to_vector(self._parameter_modules).numel()
 
         self.mean_vector: Optional[torch.Tensor] = None
-        self.hessian_diag: Optional[torch.Tensor] = None
         self.prior_precision: Optional[torch.Tensor] = None
-        self.posterior_variance_diag: Optional[torch.Tensor] = None
-        self.posterior_precision_diag: Optional[torch.Tensor] = None
         self.empirical_noise_variance: Optional[torch.Tensor] = None
 
-    def fit(self, train_loader: Iterable, prior_precision: Optional[float] = 1.0) -> '_SimpleDiagonalLaplace':
+    def _compute_batch_statistics(
+        self,
+        train_loader: Iterable,
+    ) -> Tuple[torch.Tensor, torch.Tensor, int, float, int]:
+        _ensure_iterable_train_loader(train_loader)
+
         self.model.eval()
-        param_vector = parameters_to_vector(self._parameter_modules).detach().clone()
-
-        diag_accumulator = torch.zeros_like(param_vector)
-        residual_sum_squares = 0.0
-        count_outputs = 0
-
         mse_loss = nn.MSELoss(reduction='sum')
         ce_loss = nn.CrossEntropyLoss(reduction='sum')
 
-        if not hasattr(train_loader, '__iter__'):
-            raise TypeError('train_loader must be an iterable over (input, target) pairs.')
+        batch_grads: List[torch.Tensor] = []
+        diag_accumulator = torch.zeros(self._param_dim, device=self.device)
+        residual_sum_squares = 0.0
+        count_outputs = 0
 
         for batch in train_loader:
-            if not isinstance(batch, (list, tuple)) or len(batch) != 2:
+            if not isinstance(batch, (tuple, list)) or len(batch) != 2:
                 raise ValueError('Each batch must be a tuple of (inputs, targets).')
+
             inputs, targets = batch
             inputs = inputs.to(self.device)
             targets = targets.to(self.device)
@@ -84,69 +127,58 @@ class _SimpleDiagonalLaplace:
 
             gradients = torch.autograd.grad(loss, self._parameter_modules, retain_graph=False)
             grad_vector = torch.cat([g.detach().reshape(-1) for g in gradients])
+            batch_grads.append(grad_vector)
             diag_accumulator += grad_vector.pow(2)
+
+        if len(batch_grads) == 0:
+            raise ValueError('train_loader produced zero batches; cannot fit Laplace approximation.')
 
         num_datapoints = len(getattr(train_loader, 'dataset', []))
         if num_datapoints == 0:
-            num_datapoints = 1
-        diag = diag_accumulator / float(num_datapoints)
+            num_datapoints = len(batch_grads)
 
-        self.hessian_diag = diag
-        self.mean_vector = param_vector
+        grad_matrix = torch.stack(batch_grads, dim=0)
+        return grad_matrix, diag_accumulator, num_datapoints, residual_sum_squares, count_outputs
 
-        if prior_precision is None:
-            prior_precision = 1.0
-        prior_tensor = torch.full_like(diag, float(prior_precision))
+    def _finalize_common_fit(
+        self,
+        param_vector: torch.Tensor,
+        prior_precision: Optional[float],
+        residual_sum_squares: float,
+        count_outputs: int,
+    ) -> torch.Tensor:
+        self.mean_vector = param_vector.detach().clone()
+
+        prior_value = 1.0 if prior_precision is None else float(prior_precision)
+        prior_tensor = torch.full((self._param_dim,), prior_value, device=self.device, dtype=param_vector.dtype)
         self.prior_precision = prior_tensor
 
-        eps = torch.tensor(1e-12, device=self.device, dtype=diag.dtype)
-        self.posterior_precision_diag = diag + prior_tensor + eps
-        self.posterior_variance_diag = 1.0 / self.posterior_precision_diag
-
         if self.likelihood == 'regression':
-            if count_outputs == 0:
-                count_outputs = 1
-            noise_var = residual_sum_squares / float(count_outputs)
-            self.empirical_noise_variance = torch.tensor(noise_var, device=self.device, dtype=diag.dtype)
+            denom = max(count_outputs, 1)
+            noise_var = residual_sum_squares / float(denom)
+            self.empirical_noise_variance = torch.tensor(noise_var, device=self.device, dtype=param_vector.dtype)
         else:
             self.empirical_noise_variance = None
 
-        return self
+        return prior_tensor
 
-    def optimize_prior_precision(self, value: float = 1.0) -> None:
-        if self.posterior_variance_diag is None or self.hessian_diag is None:
-            raise RuntimeError('Call fit() before optimising the prior precision.')
-        prior_tensor = torch.full_like(self.hessian_diag, float(value))
-        self.prior_precision = prior_tensor
-        eps = torch.tensor(1e-12, device=self.device, dtype=self.hessian_diag.dtype)
-        self.posterior_precision_diag = self.hessian_diag + prior_tensor + eps
-        self.posterior_variance_diag = 1.0 / self.posterior_precision_diag
-
-    def predictive(self, x: torch.Tensor, n_samples: int = 50) -> tuple:
-        if self.posterior_variance_diag is None or self.mean_vector is None:
-            raise RuntimeError('Laplace approximation not fitted yet.')
-        if n_samples <= 0:
-            raise ValueError('n_samples must be positive.')
-
+    def _forward_parameter_samples(self, x: torch.Tensor, sample_vectors: torch.Tensor) -> torch.Tensor:
         x = x.to(self.device)
-        std_vector = torch.sqrt(self.posterior_variance_diag.clamp_min(1e-12))
-        mean_vector = self.mean_vector.to(self.device)
-
         originals = parameters_to_vector(self._parameter_modules).detach().clone()
-        samples = mean_vector.unsqueeze(0) + torch.randn(n_samples, mean_vector.numel(), device=self.device) * std_vector.unsqueeze(0)
 
         outputs: List[torch.Tensor] = []
         with torch.no_grad():
-            for sample_vec in samples:
+            for sample_vec in sample_vectors:
                 vector_to_parameters(sample_vec, self._parameter_modules)
                 outputs.append(self.model(x).detach())
             vector_to_parameters(originals, self._parameter_modules)
 
-        stacked = torch.stack(outputs, dim=0)
+        return torch.stack(outputs, dim=0)
 
+    def _predict_from_outputs(self, stacked: torch.Tensor) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         if self.likelihood == 'regression':
             mean = stacked.mean(dim=0)
-            var = stacked.var(dim=0, unbiased=False)
+            var = stacked.var(dim=0, unbiased=False).clamp_min(0.0)
             if self.empirical_noise_variance is not None:
                 var = var + self.empirical_noise_variance
             return mean, var
@@ -156,35 +188,448 @@ class _SimpleDiagonalLaplace:
         return mean_probs, None
 
 
-class LaplaceWrapper:
-    """
-    Fit a Laplace approximation around a MAP-trained model using a diagonal covariance.
+class _SimpleDiagonalLaplace(_NativeLaplaceBase):
+    """Diagonal Laplace approximation with optional last-layer restriction."""
 
-    Example:
-        la = LaplaceWrapper(model, 'classification')
-        la.fit(dataloader, prior_precision=1.0)
-        probs, var = la.predict(x)
-    """
+    def __init__(self, model: nn.Module, likelihood: str = 'regression', subset_of_weights: str = 'last_layer', damping: float = 1e-6) -> None:
+        super().__init__(model=model, likelihood=likelihood, subset_of_weights=subset_of_weights, damping=damping)
+        self.posterior_precision_diag: Optional[torch.Tensor] = None
+        self.posterior_variance_diag: Optional[torch.Tensor] = None
+        self.hessian_diag: Optional[torch.Tensor] = None
 
-    def __init__(self, model: nn.Module, likelihood: str = 'classification', hessian_structure: str = 'diag', subset_of_weights: str = 'last_layer') -> None:
-        if hessian_structure != 'diag':
-            raise ValueError('Only diagonal Hessian structure is supported by this implementation.')
+    def fit(self, train_loader: Iterable, prior_precision: Optional[float] = 1.0) -> '_SimpleDiagonalLaplace':
+        grad_matrix, diag_accumulator, num_datapoints, residual_sum_squares, count_outputs = self._compute_batch_statistics(train_loader)
+        del grad_matrix  # Only diagonal stats are needed for this backend.
+
+        param_vector = parameters_to_vector(self._parameter_modules).detach().clone()
+        prior_tensor = self._finalize_common_fit(param_vector, prior_precision, residual_sum_squares, count_outputs)
+
+        hessian_diag = diag_accumulator / float(num_datapoints)
+        self.hessian_diag = hessian_diag
+
+        self.posterior_precision_diag = hessian_diag + prior_tensor + self.damping
+        self.posterior_variance_diag = 1.0 / self.posterior_precision_diag.clamp_min(1e-12)
+        return self
+
+    def optimize_prior_precision(self, value: float = 1.0) -> None:
+        if self.hessian_diag is None:
+            raise RuntimeError('Call fit() before optimising the prior precision.')
+
+        prior_tensor = torch.full_like(self.hessian_diag, float(value))
+        self.prior_precision = prior_tensor
+        self.posterior_precision_diag = self.hessian_diag + prior_tensor + self.damping
+        self.posterior_variance_diag = 1.0 / self.posterior_precision_diag.clamp_min(1e-12)
+
+    def predictive(self, x: torch.Tensor, n_samples: int = 50) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        if self.posterior_variance_diag is None or self.mean_vector is None:
+            raise RuntimeError('Laplace approximation not fitted yet.')
+        if n_samples <= 0:
+            raise ValueError('n_samples must be positive.')
+
+        std = torch.sqrt(self.posterior_variance_diag.clamp_min(1e-12))
+        noise = torch.randn(n_samples, std.numel(), device=self.device)
+        samples = self.mean_vector.unsqueeze(0) + noise * std.unsqueeze(0)
+
+        outputs = self._forward_parameter_samples(x, samples)
+        return self._predict_from_outputs(outputs)
+
+
+class _EmpiricalFisherDiagonalLaplace(_SimpleDiagonalLaplace):
+    """Explicit diagonal empirical Fisher variant (same estimator family as diag)."""
+
+
+class _LowRankDiagonalLaplace(_NativeLaplaceBase):
+    """Low-rank plus diagonal precision approximation."""
+
+    def __init__(
+        self,
+        model: nn.Module,
+        likelihood: str = 'regression',
+        subset_of_weights: str = 'last_layer',
+        lowrank_rank: int = 20,
+        damping: float = 1e-6,
+    ) -> None:
+        super().__init__(model=model, likelihood=likelihood, subset_of_weights=subset_of_weights, damping=damping)
+        self.lowrank_rank = int(max(lowrank_rank, 0))
+        self.posterior_precision_diag: Optional[torch.Tensor] = None
+        self.posterior_variance_diag: Optional[torch.Tensor] = None
+        self.lowrank_u: Optional[torch.Tensor] = None
+        self.lowrank_lam: Optional[torch.Tensor] = None
+
+    def fit(self, train_loader: Iterable, prior_precision: Optional[float] = 1.0) -> '_LowRankDiagonalLaplace':
+        grad_matrix, diag_accumulator, num_datapoints, residual_sum_squares, count_outputs = self._compute_batch_statistics(train_loader)
+
+        param_vector = parameters_to_vector(self._parameter_modules).detach().clone()
+        prior_tensor = self._finalize_common_fit(param_vector, prior_precision, residual_sum_squares, count_outputs)
+
+        diag_total = diag_accumulator / float(num_datapoints)
+        scaled_grads = grad_matrix / float(num_datapoints) ** 0.5
+
+        rank_cap = min(self.lowrank_rank, scaled_grads.shape[0], scaled_grads.shape[1])
+        if rank_cap <= 0:
+            self.lowrank_u = None
+            self.lowrank_lam = None
+            diag_residual = diag_total
+        else:
+            _, singular_vals, v_t = torch.linalg.svd(scaled_grads, full_matrices=False)
+            lam = singular_vals[:rank_cap].pow(2)
+            keep = lam > 1e-12
+
+            if keep.any():
+                self.lowrank_u = v_t[:rank_cap, :].transpose(0, 1)[:, keep]
+                self.lowrank_lam = lam[keep]
+                diag_lowrank = self.lowrank_u.pow(2).matmul(self.lowrank_lam)
+                diag_residual = (diag_total - diag_lowrank).clamp_min(0.0)
+            else:
+                self.lowrank_u = None
+                self.lowrank_lam = None
+                diag_residual = diag_total
+
+        self.posterior_precision_diag = prior_tensor + diag_residual + self.damping
+        self.posterior_variance_diag = 1.0 / self.posterior_precision_diag.clamp_min(1e-12)
+        return self
+
+    def _sample_lowrank_noise(self, n_samples: int) -> torch.Tensor:
+        assert self.posterior_precision_diag is not None
+        assert self.mean_vector is not None
+
+        d = self.posterior_precision_diag.clamp_min(1e-12)
+        inv_sqrt_d = d.rsqrt()
+
+        if self.lowrank_u is None or self.lowrank_lam is None or self.lowrank_lam.numel() == 0:
+            z = torch.randn(n_samples, self._param_dim, device=self.device)
+            return z * inv_sqrt_d.unsqueeze(0)
+
+        u_scaled = self.lowrank_u * torch.sqrt(self.lowrank_lam).unsqueeze(0)
+        b = inv_sqrt_d.unsqueeze(1) * u_scaled
+
+        if b.numel() == 0 or b.shape[1] == 0:
+            z = torch.randn(n_samples, self._param_dim, device=self.device)
+            return z * inv_sqrt_d.unsqueeze(0)
+
+        u_b, singular_vals, _ = torch.linalg.svd(b, full_matrices=False)
+        coeff = 1.0 - 1.0 / torch.sqrt(1.0 + singular_vals.pow(2))
+
+        z = torch.randn(n_samples, self._param_dim, device=self.device)
+        proj = z @ u_b
+        adjusted = z - (proj * coeff.unsqueeze(0)) @ u_b.transpose(0, 1)
+        return adjusted * inv_sqrt_d.unsqueeze(0)
+
+    def predictive(self, x: torch.Tensor, n_samples: int = 50) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        if self.posterior_precision_diag is None or self.mean_vector is None:
+            raise RuntimeError('Laplace approximation not fitted yet.')
+        if n_samples <= 0:
+            raise ValueError('n_samples must be positive.')
+
+        noise = self._sample_lowrank_noise(n_samples)
+        samples = self.mean_vector.unsqueeze(0) + noise
+
+        outputs = self._forward_parameter_samples(x, samples)
+        return self._predict_from_outputs(outputs)
+
+
+class _BlockDiagonalLaplace(_NativeLaplaceBase):
+    """Block-diagonal Laplace approximation over selected parameter groups."""
+
+    def __init__(self, model: nn.Module, likelihood: str = 'regression', subset_of_weights: str = 'last_layer', damping: float = 1e-6) -> None:
+        super().__init__(model=model, likelihood=likelihood, subset_of_weights=subset_of_weights, damping=damping)
+
+        if subset_of_weights == 'last_layer':
+            self._blocks: List[List[nn.Parameter]] = [self._parameter_modules]
+        else:
+            self._blocks = [[param] for param in self._parameter_modules]
+
+        self._block_sizes = [parameters_to_vector(block).numel() for block in self._blocks]
+        self._block_offsets: List[Tuple[int, int]] = []
+        start = 0
+        for size in self._block_sizes:
+            end = start + size
+            self._block_offsets.append((start, end))
+            start = end
+
+        self.block_precision_cholesky: List[torch.Tensor] = []
+
+    def fit(self, train_loader: Iterable, prior_precision: Optional[float] = 1.0) -> '_BlockDiagonalLaplace':
+        _ensure_iterable_train_loader(train_loader)
+
+        self.model.eval()
+        mse_loss = nn.MSELoss(reduction='sum')
+        ce_loss = nn.CrossEntropyLoss(reduction='sum')
+
+        block_accumulators = [
+            torch.zeros(size, size, device=self.device)
+            for size in self._block_sizes
+        ]
+
+        residual_sum_squares = 0.0
+        count_outputs = 0
+
+        for batch in train_loader:
+            if not isinstance(batch, (tuple, list)) or len(batch) != 2:
+                raise ValueError('Each batch must be a tuple of (inputs, targets).')
+
+            inputs, targets = batch
+            inputs = inputs.to(self.device)
+            targets = targets.to(self.device)
+
+            self.model.zero_grad(set_to_none=True)
+            outputs = self.model(inputs)
+
+            if self.likelihood == 'regression':
+                if targets.dim() < outputs.dim():
+                    targets = targets.unsqueeze(-1)
+                loss = 0.5 * mse_loss(outputs, targets)
+                residual_sum_squares += torch.sum((outputs.detach() - targets.detach()) ** 2).item()
+                count_outputs += targets.numel()
+            else:
+                if targets.dim() != 1:
+                    raise ValueError('Classification targets must be a 1D tensor of class indices.')
+                loss = ce_loss(outputs, targets)
+                count_outputs += targets.size(0)
+
+            grads = torch.autograd.grad(loss, self._parameter_modules, retain_graph=False)
+
+            if self.subset_of_weights == 'last_layer':
+                grad_vec = torch.cat([g.detach().reshape(-1) for g in grads])
+                block_accumulators[0] += torch.outer(grad_vec, grad_vec)
+            else:
+                for idx, grad in enumerate(grads):
+                    grad_vec = grad.detach().reshape(-1)
+                    block_accumulators[idx] += torch.outer(grad_vec, grad_vec)
+
+        num_datapoints = len(getattr(train_loader, 'dataset', []))
+        if num_datapoints == 0:
+            num_datapoints = 1
+
+        param_vector = parameters_to_vector(self._parameter_modules).detach().clone()
+        prior_tensor = self._finalize_common_fit(param_vector, prior_precision, residual_sum_squares, count_outputs)
+
+        prior_scalar = float(prior_tensor[0].item())
+        self.block_precision_cholesky = []
+        for acc in block_accumulators:
+            curvature = acc / float(num_datapoints)
+            precision = curvature + (prior_scalar + self.damping) * torch.eye(curvature.shape[0], device=self.device, dtype=curvature.dtype)
+            chol = _safe_cholesky(precision, self.damping)
+            self.block_precision_cholesky.append(chol)
+
+        return self
+
+    def predictive(self, x: torch.Tensor, n_samples: int = 50) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+        if self.mean_vector is None or len(self.block_precision_cholesky) == 0:
+            raise RuntimeError('Laplace approximation not fitted yet.')
+        if n_samples <= 0:
+            raise ValueError('n_samples must be positive.')
+
+        samples = torch.zeros(n_samples, self._param_dim, device=self.device, dtype=self.mean_vector.dtype)
+        for (start, end), chol in zip(self._block_offsets, self.block_precision_cholesky):
+            block_size = end - start
+            z = torch.randn(block_size, n_samples, device=self.device, dtype=self.mean_vector.dtype)
+            # Solve L^T x = z so Cov[x] = (L L^T)^-1.
+            x_block = torch.linalg.solve_triangular(chol.transpose(-2, -1), z, upper=True).transpose(0, 1)
+            samples[:, start:end] = self.mean_vector[start:end].unsqueeze(0) + x_block
+
+        outputs = self._forward_parameter_samples(x, samples)
+        return self._predict_from_outputs(outputs)
+
+
+class _LaplaceTorchBackend:
+    """Adapter around optional `laplace-torch` backends for kron/full structures."""
+
+    def __init__(
+        self,
+        model: nn.Module,
+        likelihood: str,
+        hessian_structure: str,
+        subset_of_weights: str,
+    ) -> None:
         self.model = model
         self.likelihood = likelihood
         self.hessian_structure = hessian_structure
         self.subset_of_weights = subset_of_weights
-        self.la: Optional[_SimpleDiagonalLaplace] = None
+        self.device = next(model.parameters()).device
+        self._laplace = None
 
-    def fit(self, train_loader: Iterable, prior_precision: Optional[float] = 1.0, **_) -> _SimpleDiagonalLaplace:
+    def fit(self, train_loader: Iterable, prior_precision: Optional[float] = 1.0):
+        Laplace = _get_laplace_class()
+
         self.model.eval()
-        la = _SimpleDiagonalLaplace(
+        self._laplace = Laplace(
             self.model,
             likelihood=self.likelihood,
             subset_of_weights=self.subset_of_weights,
+            hessian_structure=self.hessian_structure,
         )
-        la.fit(train_loader, prior_precision=prior_precision)
-        self.la = la
-        return la
+        self._laplace.fit(train_loader)
+
+        if prior_precision is not None:
+            updated = False
+            if hasattr(self._laplace, 'optimize_prior_precision'):
+                optimize = self._laplace.optimize_prior_precision
+                try:
+                    sig = inspect.signature(optimize)
+                    if 'prior_precision' in sig.parameters:
+                        optimize(prior_precision=prior_precision)
+                    elif len(sig.parameters) == 0:
+                        optimize()
+                    else:
+                        optimize(prior_precision)
+                    updated = True
+                except Exception:
+                    updated = False
+            if not updated and hasattr(self._laplace, 'prior_precision'):
+                try:
+                    self._laplace.prior_precision = float(prior_precision)
+                except Exception:
+                    pass
+
+        return self
+
+    def predictive(self, x: torch.Tensor, n_samples: int = 50):
+        if self._laplace is None:
+            raise RuntimeError('Laplace approximation not fitted yet.')
+        if n_samples <= 0:
+            raise ValueError('n_samples must be positive.')
+
+        x = x.to(self.device)
+
+        if hasattr(self._laplace, 'predictive_samples'):
+            samples = self._laplace.predictive_samples(x, n_samples=n_samples)
+            if self.likelihood == 'regression':
+                mean = samples.mean(dim=0)
+                var = samples.var(dim=0, unbiased=False).clamp_min(0.0)
+                return mean, var
+            probs = torch.softmax(samples, dim=-1).mean(dim=0)
+            return probs, None
+
+        try:
+            out = self._laplace(x, n_samples=n_samples)
+        except TypeError:
+            out = self._laplace(x)
+
+        if isinstance(out, tuple) and len(out) == 2:
+            mean, var = out
+            if self.likelihood == 'classification':
+                return mean, None
+            return mean, var
+
+        if isinstance(out, torch.Tensor):
+            if self.likelihood == 'classification':
+                return torch.softmax(out, dim=-1), None
+            return out, torch.zeros_like(out)
+
+        raise RuntimeError('Unsupported prediction output from laplace-torch backend.')
+
+
+class LaplaceWrapper:
+    """
+    Fit a Laplace approximation around a MAP-trained model.
+
+    Supported Hessian structures:
+      - diag
+      - fisher_diag
+      - lowrank_diag
+      - block_diag
+      - kron (requires laplace-torch)
+      - full (requires laplace-torch)
+
+    Example:
+        la = LaplaceWrapper(model, likelihood='classification', hessian_structure='diag')
+        la.fit(dataloader, prior_precision=1.0)
+        probs, var = la.predict(x)
+    """
+
+    _SUPPORTED_STRUCTURES = (
+        'diag',
+        'fisher_diag',
+        'lowrank_diag',
+        'block_diag',
+        'kron',
+        'full',
+    )
+
+    def __init__(
+        self,
+        model: nn.Module,
+        likelihood: str = 'classification',
+        hessian_structure: str = 'diag',
+        subset_of_weights: str = 'last_layer',
+        lowrank_rank: int = 20,
+        damping: float = 1e-6,
+        full_max_params: int = 20000,
+    ) -> None:
+        if hessian_structure not in self._SUPPORTED_STRUCTURES:
+            supported = ', '.join(self._SUPPORTED_STRUCTURES)
+            raise ValueError(f'Unsupported hessian_structure "{hessian_structure}". Supported: {supported}.')
+
+        self.model = model
+        self.likelihood = likelihood
+        self.hessian_structure = hessian_structure
+        self.subset_of_weights = subset_of_weights
+        self.lowrank_rank = int(max(lowrank_rank, 0))
+        self.damping = float(max(damping, 0.0))
+        self.full_max_params = int(max(full_max_params, 1))
+        self.la = None
+
+    @staticmethod
+    def supported_hessian_structures() -> Tuple[str, ...]:
+        return LaplaceWrapper._SUPPORTED_STRUCTURES
+
+    def _build_backend(self):
+        if self.hessian_structure == 'diag':
+            return _SimpleDiagonalLaplace(
+                self.model,
+                likelihood=self.likelihood,
+                subset_of_weights=self.subset_of_weights,
+                damping=self.damping,
+            )
+        if self.hessian_structure == 'fisher_diag':
+            return _EmpiricalFisherDiagonalLaplace(
+                self.model,
+                likelihood=self.likelihood,
+                subset_of_weights=self.subset_of_weights,
+                damping=self.damping,
+            )
+        if self.hessian_structure == 'lowrank_diag':
+            return _LowRankDiagonalLaplace(
+                self.model,
+                likelihood=self.likelihood,
+                subset_of_weights=self.subset_of_weights,
+                lowrank_rank=self.lowrank_rank,
+                damping=self.damping,
+            )
+        if self.hessian_structure == 'block_diag':
+            return _BlockDiagonalLaplace(
+                self.model,
+                likelihood=self.likelihood,
+                subset_of_weights=self.subset_of_weights,
+                damping=self.damping,
+            )
+
+        # hessian_structure in {'kron', 'full'}
+        return _LaplaceTorchBackend(
+            self.model,
+            likelihood=self.likelihood,
+            hessian_structure=self.hessian_structure,
+            subset_of_weights=self.subset_of_weights,
+        )
+
+    def fit(self, train_loader: Iterable, prior_precision: Optional[float] = 1.0, **_) -> object:
+        # Guardrail: dense full Hessian over all parameters can become intractable.
+        if self.hessian_structure == 'full' and self.subset_of_weights == 'all':
+            param_count = sum(param.numel() for param in self.model.parameters())
+            if param_count > self.full_max_params:
+                raise ValueError(
+                    f'full Hessian over all parameters selected {param_count} parameters, '
+                    f'exceeding full_max_params={self.full_max_params}. '
+                    'Use subset_of_weights="last_layer" or choose hessian_structure '
+                    'in {"kron", "block_diag", "lowrank_diag", "diag"}.'
+                )
+
+        self.model.eval()
+        backend = self._build_backend()
+        backend.fit(train_loader, prior_precision=prior_precision)
+        self.la = backend
+        return backend
 
     def predict(self, x: torch.Tensor, **predict_kwargs):
         if self.la is None:
