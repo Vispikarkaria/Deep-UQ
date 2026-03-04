@@ -3,6 +3,9 @@
 import torch
 import torch.nn as nn
 
+from deepuq.types import UQResult
+
+
 class MCDropoutWrapper(nn.Module):
     """
     Wrap any model with dropout to perform MC Dropout at inference.
@@ -38,3 +41,23 @@ class MCDropoutWrapper(nn.Module):
         var = preds.var(dim=0, unbiased=False)
         self.model.eval()
         return mean, var
+
+    @torch.inference_mode()
+    def predict_uq(self, x: torch.Tensor) -> UQResult:
+        """Return standardized uncertainty fields."""
+        mean, var = self.predict(x)
+        probs = mean if self.apply_softmax else None
+        probs_var = var if self.apply_softmax else None
+        return UQResult(
+            mean=mean,
+            epistemic_var=var,
+            aleatoric_var=None,
+            total_var=var,
+            probs=probs,
+            probs_var=probs_var,
+            metadata={
+                "method": "mc_dropout",
+                "n_mc": int(self.n_mc),
+                "apply_softmax": bool(self.apply_softmax),
+            },
+        )

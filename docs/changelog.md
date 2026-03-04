@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+Highlights:
+
+- Added CI workflows for tests (`tests.yml`) and quality checks (`lint.yml`).
+- Added tag-driven PyPI release workflow (`release.yml`) with trusted publishing.
+- Introduced standardized uncertainty container `deepuq.UQResult`.
+- Added non-breaking `predict_uq` APIs across methods and GP models.
+- Added manual multi-dataset benchmark suite under `benchmarks/`.
+- Added tracked-data policy docs and large-file guard script.
+- Added packaging extras in `pyproject.toml` (`dev`, `tests`, `docs`, `benchmarks`, `notebooks`).
+- Updated docs links and usage/examples for the unified uncertainty API.
+
 ## 0.1.4 — 2026-03-03
 
 Highlights:

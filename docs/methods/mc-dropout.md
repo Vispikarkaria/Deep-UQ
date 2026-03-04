@@ -105,6 +105,20 @@ $$
 - MC Dropout is computationally light relative to many full Bayesian alternatives.
 - It is an approximation and may miss multimodal posterior behavior.
 
+## UQResult Field Mapping
+
+`MCDropoutWrapper.predict_uq(...)` returns:
+
+| Field | Regression (`apply_softmax=False`) | Classification (`apply_softmax=True`) |
+|---|---|---|
+| `mean` | Predictive mean | Mean class probabilities |
+| `epistemic_var` | MC variance across dropout passes | Probability variance across passes |
+| `aleatoric_var` | `None` | `None` |
+| `total_var` | Same as `epistemic_var` | Same as `epistemic_var` |
+| `probs` | `None` | Mean class probabilities |
+| `probs_var` | `None` | Probability variance |
+| `metadata` | Method/sample/dropout info | Method/sample/dropout info |
+
 ## 7) References
 
 1. Srivastava, N., Hinton, G., Krizhevsky, A., Sutskever, I., & Salakhutdinov, R. (2014). *Dropout: A Simple Way to Prevent Neural Networks from Overfitting*. Journal of Machine Learning Research, 15, 1929-1958. [JMLR](https://jmlr.org/papers/v15/srivastava14a.html)

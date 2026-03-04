@@ -19,3 +19,6 @@ site/
 .venv/
 venv/
 env/
+
+# Benchmark cache artifacts
+benchmarks/cache/

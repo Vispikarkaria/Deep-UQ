@@ -14,3 +14,5 @@ Auto-generated API docs from source code and docstrings.
   - [Gaussian Process API](models/gaussian_process.md)
 - Utilities
   - [Utils API](utils.md)
+- Shared Types
+  - [Types API](types.md)

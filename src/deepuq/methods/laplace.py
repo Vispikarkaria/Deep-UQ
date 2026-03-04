@@ -6,6 +6,8 @@ import torch
 from torch import nn
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
 
+from deepuq.types import UQResult
+
 
 def _find_last_linear_layer(model: nn.Module) -> nn.Module:
     last_linear: Optional[nn.Module] = None
@@ -818,3 +820,51 @@ class LaplaceWrapper:
         if self.la is None:
             raise RuntimeError('Call fit() before predict().')
         return self.la.predictive(x, **predict_kwargs)
+
+    def predict_uq(self, x: torch.Tensor, **predict_kwargs) -> UQResult:
+        """Return standardized uncertainty fields without changing legacy predict()."""
+        if self.la is None:
+            raise RuntimeError('Call fit() before predict_uq().')
+
+        mean_or_probs, var = self.la.predictive(x, **predict_kwargs)
+        if self.likelihood == 'classification':
+            return UQResult(
+                mean=mean_or_probs,
+                epistemic_var=None,
+                aleatoric_var=None,
+                total_var=None,
+                probs=mean_or_probs,
+                probs_var=var,
+                metadata={
+                    "method": "laplace",
+                    "hessian_structure": self.hessian_structure,
+                    "likelihood": self.likelihood,
+                    "subset_of_weights": self.subset_of_weights,
+                },
+            )
+
+        if var is None:
+            raise RuntimeError("Regression Laplace backend must return predictive variance.")
+
+        noise_var = getattr(self.la, "empirical_noise_variance", None)
+        if noise_var is not None:
+            aleatoric = noise_var.to(var.device, var.dtype).expand_as(var)
+            epistemic = (var - aleatoric).clamp_min(0.0)
+        else:
+            aleatoric = None
+            epistemic = var
+
+        return UQResult(
+            mean=mean_or_probs,
+            epistemic_var=epistemic,
+            aleatoric_var=aleatoric,
+            total_var=var.clamp_min(0.0),
+            probs=None,
+            probs_var=None,
+            metadata={
+                "method": "laplace",
+                "hessian_structure": self.hessian_structure,
+                "likelihood": self.likelihood,
+                "subset_of_weights": self.subset_of_weights,
+            },
+        )

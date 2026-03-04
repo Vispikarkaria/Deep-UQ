@@ -2,6 +2,10 @@
 
 Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
 
+![tests](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/tests.yml/badge.svg)
+![lint](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/lint.yml/badge.svg)
+![docs](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/docs.yml/badge.svg)
+
 Implements **five** widely used methods:
 
 1. **Variational Inference (VI)** — Bayes by Backprop with BayesianLinear layers.
@@ -16,12 +20,12 @@ Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regr
 
 | Method Family | Implemented Variants | Main Wrapper / Class | Tutorial |
 |---|---|---|---|
-| Variational Inference | Bayes by Backprop | `BayesianLinear`, `vi_elbo_step` | `notebooks/BayesByBackprop_Tutorial.ipynb` |
-| Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| MCMC | Stochastic Gradient Langevin Dynamics | `SGLDOptimizer`, `collect_posterior_samples` | `notebooks/SGLD_Tutorial.ipynb` |
-| MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper` | `notebooks/MC_Dropout_Tutorial.ipynb` |
-| Gaussian Process | Exact GP (`RBFKernel`) | `GaussianProcessRegressor` | `notebooks/GaussianProcess_Tutorial.ipynb` |
-| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor` | `notebooks/SparseGaussianProcess_Tutorial.ipynb` |
+| Variational Inference | Bayes by Backprop | `BayesianLinear`, `vi_elbo_step`, `predict_vi_uq` | `notebooks/BayesByBackprop_Tutorial.ipynb` |
+| Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper`, `predict_uq` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
+| MCMC | Stochastic Gradient Langevin Dynamics | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | `notebooks/SGLD_Tutorial.ipynb` |
+| MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper`, `predict_uq` | `notebooks/MC_Dropout_Tutorial.ipynb` |
+| Gaussian Process | Exact GP (`RBFKernel`) | `GaussianProcessRegressor`, `predict_uq` | `notebooks/GaussianProcess_Tutorial.ipynb` |
+| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor`, `predict_uq` | `notebooks/SparseGaussianProcess_Tutorial.ipynb` |
 
 ## Documentation Website
 
@@ -45,45 +49,22 @@ pip install uqdeepnn
 
 ## Publish / Update PyPI Release
 
-Use this flow whenever you want to publish a new pip version.
+Releases are tag-driven via `.github/workflows/release.yml` and PyPI trusted publishing.
 
-1. Bump version in `pyproject.toml`:
-```toml
-[project]
-version = "0.1.4"
-```
-2. Commit and push the version bump:
+1. Bump version in `pyproject.toml`.
+2. Commit and push to `master`.
+3. Tag and push:
 ```bash
-git add pyproject.toml
-git commit -m "Bump version to 0.1.4"
-git push
+git tag v0.1.5
+git push origin v0.1.5
 ```
-3. Build distributions:
-```bash
-python -m pip install --upgrade build twine
-python -m build
-```
-4. Validate package metadata:
-```bash
-python -m twine check dist/*
-```
-5. Upload to TestPyPI (recommended first):
-```bash
-python -m twine upload --repository testpypi dist/*
-```
-6. Upload to PyPI:
-```bash
-python -m twine upload dist/*
-```
-7. Verify installation:
+4. Verify package on PyPI:
 ```bash
 pip install -U uqdeepnn
-python -c "import deepuq; print('deepuq import ok')"
+python -c "import deepuq; print(deepuq.__version__)"
 ```
 
-Notes:
-- Prefer API tokens over passwords for Twine auth.
-- Revoke and rotate any token immediately if it is ever exposed.
+Detailed release checklist: `RELEASING.md`.
 
 ## Quickstart
 
@@ -99,11 +80,31 @@ x = torch.linspace(0.0, L, 200).unsqueeze(-1)
 # After training an MLP, enable MC Dropout for uncertainty estimates
 model = MLP(input_dim=1, hidden_dims=[128, 128], output_dim=1, p_drop=0.15)
 uq = MCDropoutWrapper(model, n_mc=200, apply_softmax=False)
-mean, var = uq.predict(x)
-print(mean.shape, var.shape)
+result = uq.predict_uq(x)
+print(result.mean.shape, result.total_var.shape)
 ```
 
 See the **examples/** folder for end-to-end regression scripts on the Euler-Bernoulli beam deflection problem.
+
+## Common UQResult API
+
+All methods now expose a standardized uncertainty container through `predict_uq(...)` (or method-specific helper functions):
+
+- `mean`: predictive mean (or class probability mean for classification)
+- `epistemic_var`: model uncertainty
+- `aleatoric_var`: noise/data uncertainty when available
+- `total_var`: combined predictive uncertainty
+- `probs`, `probs_var`: classification probability moments
+- `metadata`: method-specific context
+
+```python
+from deepuq.methods import LaplaceWrapper
+
+la = LaplaceWrapper(model, likelihood="regression", hessian_structure="diag")
+la.fit(train_loader)
+uq = la.predict_uq(x_batch, n_samples=100)
+print(uq.mean.shape, uq.total_var.shape)
+```
 
 ## Methods
 
@@ -185,6 +186,26 @@ datasets.
 
 - API docs are in each module and the README sections below.
 - Run `pydoc deepuq.methods.vi` etc., or open the examples.
+
+## Benchmarks
+
+Multi-dataset benchmark scripts are under `benchmarks/`.
+
+```bash
+python benchmarks/run_benchmarks.py --preset quick
+```
+
+Outputs:
+
+- `benchmarks/results/results.csv`
+- `benchmarks/results/summary.md`
+
+## Data Policy
+
+- Tracked tutorial datasets remain under `data/` and `notebooks/data/`.
+- Provenance and usage notes are documented in:
+  - `data/README.md`
+  - `notebooks/data/README.md`
 
 ## Contributing
 

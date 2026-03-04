@@ -138,6 +138,20 @@ $$
 - Kernel choice determines smoothness, extrapolation behavior, and uncertainty shape.
 - Inducing locations and $M$ strongly affect sparse-GP fidelity.
 
+## UQResult Field Mapping
+
+`GaussianProcessRegressor.predict_uq(...)` and `SparseGaussianProcessRegressor.predict_uq(...)` return:
+
+| Field | Exact GP | Sparse GP |
+|---|---|---|
+| `mean` | Posterior mean | Variational posterior mean |
+| `epistemic_var` | Latent function posterior variance | Latent function posterior variance |
+| `aleatoric_var` | Observation noise term | Observation noise contribution |
+| `total_var` | `epistemic_var + aleatoric_var` | `epistemic_var + aleatoric_var` |
+| `probs` | `None` | `None` |
+| `probs_var` | `None` | `None` |
+| `metadata` | Method details | Method + inducing-point details |
+
 ## 7) References
 
 1. Rasmussen, C. E., & Williams, C. K. I. (2006). *Gaussian Processes for Machine Learning*. MIT Press. [Book](https://gaussianprocess.org/gpml/)

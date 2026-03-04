@@ -111,5 +111,6 @@ nav:
           - MLP API: api/models/simple.md
           - Gaussian Process API: api/models/gaussian_process.md
       - Utils API: api/utils.md
+      - Types API: api/types.md
   - Changelog: changelog.md
   - Contributing: contributing.md

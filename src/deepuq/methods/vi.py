@@ -15,6 +15,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from deepuq.types import UQResult
+
 
 class GaussianPosterior(nn.Module):
     """Diagonal Gaussian variational posterior over one parameter tensor.
@@ -221,3 +223,70 @@ def vi_elbo_step(
     kl = kl_acc / float(mc_samples)
     loss = nll + kl_weight * kl
     return loss, nll.detach(), kl.detach()
+
+
+@torch.inference_mode()
+def predict_vi_uq(
+    model: nn.Module,
+    x: torch.Tensor,
+    n_samples: int = 50,
+    apply_softmax: bool = False,
+    aleatoric_var: Optional[torch.Tensor] = None,
+) -> UQResult:
+    """Monte Carlo predictive summary for Bayes-by-Backprop models.
+
+    Parameters
+    ----------
+    model:
+        Bayesian model supporting ``forward(sample=True)``.
+    x:
+        Inputs.
+    n_samples:
+        Number of stochastic weight samples.
+    apply_softmax:
+        If True, treat outputs as logits and return probability moments.
+    aleatoric_var:
+        Optional additive aleatoric variance term for regression.
+    """
+    if not isinstance(n_samples, int) or n_samples <= 0:
+        raise ValueError(f"n_samples must be a positive integer, got {n_samples!r}.")
+
+    model.eval()
+    draws = []
+    for _ in range(n_samples):
+        out = model(x, sample=True)
+        if apply_softmax:
+            out = torch.softmax(out, dim=-1)
+        draws.append(out.unsqueeze(0))
+
+    stacked = torch.cat(draws, dim=0)
+    mean = stacked.mean(dim=0)
+    epistemic = stacked.var(dim=0, unbiased=False).clamp_min(0.0)
+
+    if apply_softmax:
+        return UQResult(
+            mean=mean,
+            epistemic_var=epistemic,
+            aleatoric_var=None,
+            total_var=epistemic,
+            probs=mean,
+            probs_var=epistemic,
+            metadata={"method": "vi", "n_samples": int(n_samples), "task": "classification"},
+        )
+
+    if aleatoric_var is not None:
+        aleatoric = aleatoric_var.to(mean.device, mean.dtype)
+        total_var = (epistemic + aleatoric).clamp_min(0.0)
+    else:
+        aleatoric = None
+        total_var = epistemic
+
+    return UQResult(
+        mean=mean,
+        epistemic_var=epistemic,
+        aleatoric_var=aleatoric,
+        total_var=total_var,
+        probs=None,
+        probs_var=None,
+        metadata={"method": "vi", "n_samples": int(n_samples), "task": "regression"},
+    )

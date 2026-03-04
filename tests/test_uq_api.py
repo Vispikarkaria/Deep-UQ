@@ -1,0 +1,142 @@
+import torch
+from torch.utils.data import DataLoader, TensorDataset
+
+from deepuq.methods import (
+    BayesByBackpropMLP,
+    LaplaceWrapper,
+    MCDropoutWrapper,
+    predict_vi_uq,
+    predict_with_samples,
+    predict_with_samples_uq,
+)
+from deepuq.models import GaussianProcessRegressor, MLP, SparseGaussianProcessRegressor
+from deepuq.types import UQResult
+
+
+def test_mc_dropout_predict_uq_matches_legacy_shapes():
+    model = MLP(4, [8], 1, p_drop=0.2)
+    wrapper = MCDropoutWrapper(model, n_mc=8, apply_softmax=False)
+    x = torch.randn(6, 4)
+
+    legacy_mean, legacy_var = wrapper.predict(x)
+    uq = wrapper.predict_uq(x)
+
+    assert isinstance(uq, UQResult)
+    assert uq.mean.shape == legacy_mean.shape
+    assert uq.epistemic_var is not None
+    assert uq.epistemic_var.shape == legacy_var.shape
+    assert uq.total_var is not None
+    assert uq.total_var.shape == legacy_var.shape
+
+
+def test_mc_dropout_predict_uq_classification_probs():
+    model = MLP(3, [8], 4, p_drop=0.25)
+    wrapper = MCDropoutWrapper(model, n_mc=6, apply_softmax=True)
+    x = torch.randn(5, 3)
+
+    uq = wrapper.predict_uq(x)
+    assert uq.probs is not None
+    assert uq.probs_var is not None
+    assert uq.probs.shape == (5, 4)
+    assert uq.probs_var.shape == (5, 4)
+    row_sums = uq.probs.sum(dim=1)
+    assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-4)
+
+
+def test_laplace_predict_uq_regression_shapes():
+    x = torch.randn(32, 3)
+    y = (x[:, :1] * 0.7) + 0.05 * torch.randn(32, 1)
+    loader = DataLoader(TensorDataset(x, y), batch_size=8, shuffle=True)
+
+    model = MLP(3, [12], 1, p_drop=0.0)
+    opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+    for _ in range(10):
+        for xb, yb in loader:
+            opt.zero_grad(set_to_none=True)
+            loss = torch.nn.functional.mse_loss(model(xb), yb)
+            loss.backward()
+            opt.step()
+
+    la = LaplaceWrapper(model, likelihood="regression", hessian_structure="diag", subset_of_weights="last_layer")
+    la.fit(loader, prior_precision=1.0)
+    uq = la.predict_uq(torch.randn(5, 3), n_samples=10)
+
+    assert isinstance(uq, UQResult)
+    assert uq.mean.shape == (5, 1)
+    assert uq.total_var is not None and uq.total_var.shape == (5, 1)
+    assert uq.epistemic_var is not None and uq.epistemic_var.shape == (5, 1)
+    if uq.aleatoric_var is not None:
+        assert torch.all(uq.total_var >= uq.epistemic_var)
+
+
+def test_laplace_predict_uq_classification_fields():
+    x = torch.randn(48, 4)
+    y = torch.randint(0, 3, (48,))
+    loader = DataLoader(TensorDataset(x, y), batch_size=12, shuffle=True)
+
+    model = MLP(4, [10], 3, p_drop=0.0)
+    opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+    for _ in range(8):
+        for xb, yb in loader:
+            opt.zero_grad(set_to_none=True)
+            loss = torch.nn.functional.cross_entropy(model(xb), yb)
+            loss.backward()
+            opt.step()
+
+    la = LaplaceWrapper(model, likelihood="classification", hessian_structure="diag", subset_of_weights="last_layer")
+    la.fit(loader, prior_precision=1.0)
+    uq = la.predict_uq(torch.randn(6, 4), n_samples=8)
+    assert uq.probs is not None
+    assert uq.mean.shape == (6, 3)
+    assert torch.allclose(uq.probs.sum(dim=1), torch.ones(6), atol=1e-3)
+    assert uq.total_var is None
+
+
+def test_mcmc_predict_with_samples_uq():
+    model = MLP(2, [4], 1, p_drop=0.0)
+    x = torch.randn(4, 2)
+
+    samples = []
+    for _ in range(3):
+        with torch.no_grad():
+            for p in model.parameters():
+                p.add_(0.01 * torch.randn_like(p))
+        samples.append({k: v.detach().cpu().clone() for k, v in model.state_dict().items()})
+
+    legacy_mean, legacy_var = predict_with_samples(model, samples, x, apply_softmax=False)
+    uq = predict_with_samples_uq(model, samples, x, apply_softmax=False)
+
+    assert isinstance(uq, UQResult)
+    assert uq.mean.shape == legacy_mean.shape
+    assert uq.epistemic_var is not None
+    assert uq.epistemic_var.shape == legacy_var.shape
+
+
+def test_vi_predict_uq_shapes():
+    model = BayesByBackpropMLP(3, [8], 1)
+    x = torch.randn(7, 3)
+
+    uq = predict_vi_uq(model, x, n_samples=6, apply_softmax=False)
+    assert isinstance(uq, UQResult)
+    assert uq.mean.shape == (7, 1)
+    assert uq.epistemic_var is not None and uq.epistemic_var.shape == (7, 1)
+    assert uq.total_var is not None and uq.total_var.shape == (7, 1)
+
+
+def test_gp_predict_uq_shapes():
+    x = torch.linspace(-1.0, 1.0, 24).unsqueeze(-1)
+    y = torch.sin(2 * torch.pi * x)
+
+    exact = GaussianProcessRegressor(noise=1e-4)
+    exact.fit(x, y)
+    exact_uq = exact.predict_uq(x[:5])
+    assert isinstance(exact_uq, UQResult)
+    assert exact_uq.mean.shape == (5,)
+    assert exact_uq.total_var is not None and exact_uq.total_var.shape == (5,)
+
+    sparse = SparseGaussianProcessRegressor(num_inducing=8, num_iterations=5, verbose=False)
+    sparse.fit(x, y)
+    sparse_uq = sparse.predict_uq(x[:5])
+    assert isinstance(sparse_uq, UQResult)
+    assert sparse_uq.mean.shape == (5,)
+    assert sparse_uq.total_var is not None and sparse_uq.total_var.shape == (5,)

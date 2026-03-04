@@ -235,6 +235,20 @@ Numerical and safety controls in `deepuq` include:
 - parameter-count guard for expensive full-structure settings,
 - structure checks for Kronecker-factorized assumptions.
 
+## UQResult Field Mapping
+
+`LaplaceWrapper.predict_uq(...)` returns:
+
+| Field | Regression | Classification |
+|---|---|---|
+| `mean` | Predictive mean | Mean class probabilities |
+| `epistemic_var` | Posterior-sampling variance (noise removed when available) | `None` |
+| `aleatoric_var` | Empirical residual-noise term (if estimated) | `None` |
+| `total_var` | Predictive variance | `None` |
+| `probs` | `None` | Mean class probabilities |
+| `probs_var` | `None` | Optional probability variance (backend-dependent) |
+| `metadata` | Method/structure/likelihood details | Method/structure/likelihood details |
+
 ## 7) References
 
 1. MacKay, D. J. C. (1992). *A Practical Bayesian Framework for Backpropagation Networks*. Neural Computation, 4(3), 448-472. DOI: [10.1162/neco.1992.4.3.448](https://doi.org/10.1162/neco.1992.4.3.448)

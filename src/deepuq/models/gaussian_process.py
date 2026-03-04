@@ -17,6 +17,8 @@ from typing import Optional, Tuple
 import torch
 from torch import nn, optim
 
+from deepuq.types import UQResult
+
 
 @dataclass
 class RBFKernel:
@@ -148,6 +150,21 @@ class GaussianProcessRegressor:
         mean, cov = self.predict(x_star, return_cov=True)
         dist = torch.distributions.MultivariateNormal(mean, covariance_matrix=cov)
         return dist.rsample((n_samples,))
+
+    def predict_uq(self, x_star: torch.Tensor) -> UQResult:
+        """Return standardized UQ fields for exact GP regression."""
+        mean, epistemic = self.predict(x_star, return_cov=False, return_var=True)
+        aleatoric = torch.full_like(epistemic, float(self.noise))
+        total = (epistemic + aleatoric).clamp_min(0.0)
+        return UQResult(
+            mean=mean,
+            epistemic_var=epistemic,
+            aleatoric_var=aleatoric,
+            total_var=total,
+            probs=None,
+            probs_var=None,
+            metadata={"method": "exact_gp"},
+        )
 
     def log_marginal_likelihood(self) -> float:
         """Return the log marginal likelihood under the current training data."""
@@ -366,3 +383,18 @@ class SparseGaussianProcessRegressor:
         mean, cov = self.predict(x_star, return_cov=True, include_noise=True)
         dist = torch.distributions.MultivariateNormal(mean, covariance_matrix=cov)
         return dist.rsample((n_samples,))
+
+    def predict_uq(self, x_star: torch.Tensor) -> UQResult:
+        """Return standardized UQ fields for sparse variational GP regression."""
+        mean, total = self.predict(x_star, return_cov=False, include_noise=True)
+        _, epistemic = self.predict(x_star, return_cov=False, include_noise=False)
+        aleatoric = (total - epistemic).clamp_min(0.0)
+        return UQResult(
+            mean=mean,
+            epistemic_var=epistemic,
+            aleatoric_var=aleatoric,
+            total_var=total,
+            probs=None,
+            probs_var=None,
+            metadata={"method": "sparse_gp", "num_inducing": int(self.inducing_points_.shape[0])},
+        )

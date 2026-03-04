@@ -96,6 +96,20 @@ $$
 - Strong sample autocorrelation reduces effective posterior sample quality.
 - Compared with VI/Laplace, SGLD can represent richer posterior geometry but usually costs more wall-clock time.
 
+## UQResult Field Mapping
+
+`predict_with_samples_uq(...)` returns:
+
+| Field | Regression | Classification (`apply_softmax=True`) |
+|---|---|---|
+| `mean` | Predictive mean | Mean class probabilities |
+| `epistemic_var` | Variance across posterior samples | Probability variance across samples |
+| `aleatoric_var` | `None` | `None` |
+| `total_var` | Same as `epistemic_var` | Same as `epistemic_var` |
+| `probs` | `None` | Mean class probabilities |
+| `probs_var` | `None` | Probability variance |
+| `metadata` | Method/sample/task info | Method/sample/task info |
+
 ## 7) References
 
 1. Welling, M., & Teh, Y. W. (2011). *Bayesian Learning via Stochastic Gradient Langevin Dynamics*. ICML. [Paper](https://www.cs.utoronto.ca/~duvenaud/courses/csc2541/readings/welling-teh-2011.pdf)

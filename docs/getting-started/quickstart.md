@@ -13,6 +13,7 @@ x = torch.linspace(-3, 3, 200).unsqueeze(-1)
 model = MLP(input_dim=1, hidden_dims=[64, 64], output_dim=1, p_drop=0.1)
 uq = MCDropoutWrapper(model, n_mc=200, apply_softmax=False)
 mean, var = uq.predict(x)
+uq_result = uq.predict_uq(x)
 ```
 
 ## 2) Bayes by Backprop ELBO step
@@ -45,6 +46,7 @@ la = LaplaceWrapper(
 )
 la.fit(train_loader, prior_precision=30.0)
 mean, var = la.predict(x_test, n_samples=200)
+uq_result = la.predict_uq(x_test, n_samples=200)
 ```
 
 ## 4) Exact GP baseline
@@ -55,6 +57,7 @@ from deepuq.models import GaussianProcessRegressor, RBFKernel
 gp = GaussianProcessRegressor(kernel=RBFKernel(lengthscale=0.5, outputscale=1.0), noise=0.02)
 gp.fit(x_train, y_train)
 mean, var = gp.predict(x_test)
+uq_result = gp.predict_uq(x_test)
 ```
 
 ## Next Steps

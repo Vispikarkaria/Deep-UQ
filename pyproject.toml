@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uqdeepnn"
-version = "0.1.4"
+version = "0.1.5"
 description = "PyTorch uncertainty quantification toolkit with Bayes-by-Backprop VI, Laplace, SGLD, MC Dropout, and Gaussian Processes."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -29,7 +29,64 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/Vispikarkaria/Deep-UQ"
 Repository = "https://github.com/Vispikarkaria/Deep-UQ"
-Documentation = "https://github.com/Vispikarkaria/Deep-UQ#readme"
+Documentation = "https://vispikarkaria.github.io/Deep-UQ/"
+
+[project.optional-dependencies]
+dev = [
+    "black>=24,<25",
+    "mypy>=1.11,<2",
+    "pre-commit>=3.8,<4",
+    "ruff>=0.6.9,<1",
+]
+tests = [
+    "pytest>=8,<9",
+]
+docs = [
+    "mkdocs>=1.6,<2",
+    "mkdocs-git-revision-date-localized-plugin>=1.2,<2",
+    "mkdocs-material>=9.5,<10",
+    "mkdocs-minify-plugin>=0.8,<1",
+    "mkdocs-section-index>=0.3,<1",
+    "mkdocstrings[python]>=0.25,<1",
+]
+benchmarks = [
+    "pandas>=2.0,<3",
+]
+notebooks = [
+    "ipykernel>=6,<7",
+    "jupyter>=1.0,<2",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.9"
+pretty = true
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+files = [
+    "src/deepuq/methods",
+    "src/deepuq/models/gaussian_process.py",
+    "src/deepuq/types.py",
+]
+exclude = "(^examples/|^notebooks/|^docs/|^data/)"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

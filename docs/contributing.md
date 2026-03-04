@@ -7,20 +7,30 @@ Thanks for contributing to Deep-UQ.
 ```bash
 git clone https://github.com/Vispikarkaria/Deep-UQ.git
 cd Deep-UQ
-pip install -e .
+pip install -e ".[dev,tests]"
+pre-commit install
 ```
 
 ## Run Tests
 
 ```bash
 pytest -q
+ruff check .
+black --check .
+mypy
 ```
 
 ## Optional Docs Build
 
 ```bash
-pip install -r docs/requirements.txt
+pip install -e ".[docs]"
 mkdocs build --strict
+```
+
+## Optional Benchmarks
+
+```bash
+python benchmarks/run_benchmarks.py --preset quick
 ```
 
 ## Pull Request Checklist

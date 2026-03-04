@@ -118,6 +118,20 @@ $$
 - Mean-field VI is scalable but cannot represent full posterior correlations.
 - Monitoring NLL and KL separately helps diagnose underfitting vs over-regularization.
 
+## UQResult Field Mapping
+
+`predict_vi_uq(...)` returns:
+
+| Field | Regression | Classification (`apply_softmax=True`) |
+|---|---|---|
+| `mean` | Predictive mean | Mean class probabilities |
+| `epistemic_var` | MC variance across weight samples | Probability variance across samples |
+| `aleatoric_var` | Optional user-supplied additive term | `None` |
+| `total_var` | `epistemic_var + aleatoric_var` (if provided) | Probability variance |
+| `probs` | `None` | Mean class probabilities |
+| `probs_var` | `None` | Probability variance |
+| `metadata` | Method/sample/task info | Method/sample/task info |
+
 ## 7) References
 
 1. Graves, A. (2011). *Practical Variational Inference for Neural Networks*. NeurIPS. [Proceedings](https://papers.nips.cc/paper/2011/hash/7eb3c8be3d411e8ebfab08eba5f49632-Abstract.html)

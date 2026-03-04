@@ -3,6 +3,9 @@
 import torch
 from torch import nn
 
+from deepuq.types import UQResult
+
+
 class SGLDOptimizer(torch.optim.Optimizer):
     """Stochastic Gradient Langevin Dynamics optimizer.
 
@@ -85,3 +88,28 @@ def predict_with_samples(model: nn.Module, samples, x, apply_softmax=True, devic
         preds.append(out.unsqueeze(0).cpu())
     preds = torch.cat(preds, dim=0)
     return preds.mean(0), preds.var(0, unbiased=False)
+
+
+@torch.inference_mode()
+def predict_with_samples_uq(model: nn.Module, samples, x, apply_softmax=True, device="cpu") -> UQResult:
+    """Predictive uncertainty summary from posterior samples."""
+    mean, var = predict_with_samples(
+        model=model,
+        samples=samples,
+        x=x,
+        apply_softmax=apply_softmax,
+        device=device,
+    )
+    return UQResult(
+        mean=mean,
+        epistemic_var=var,
+        aleatoric_var=None,
+        total_var=var,
+        probs=mean if apply_softmax else None,
+        probs_var=var if apply_softmax else None,
+        metadata={
+            "method": "sgld",
+            "num_samples": int(len(samples)),
+            "apply_softmax": bool(apply_softmax),
+        },
+    )
