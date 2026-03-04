@@ -1,6 +1,6 @@
 # Laplace Approximation (LLA) in `deepuq`
 
-This page documents all Laplace/LLA backends implemented by `LaplaceWrapper`:
+This page explains the six Laplace/LLA backends implemented in `LaplaceWrapper`:
 
 - `diag`
 - `fisher_diag`
@@ -9,74 +9,63 @@ This page documents all Laplace/LLA backends implemented by `LaplaceWrapper`:
 - `kron`
 - `full`
 
-The goal is practical: what problem this solves, what uncertainty it gives you, and exactly how each backend is formed and sampled.
+It is written in stable plain-text equation format so it renders correctly on all clients.
 
 ## Why this method is useful
 
-Neural networks usually return point predictions without reliable confidence.  
-Laplace approximation adds a posterior over weights around a trained MAP model, so predictions include uncertainty.
+Neural networks usually output one prediction without confidence.
+Laplace approximation adds uncertainty by building a Gaussian posterior around a MAP solution.
 
-This is useful when:
+This helps when:
 
-- data are sparse or noisy,
-- predictions are used for decisions,
-- you care about out-of-distribution behavior,
-- you need confidence bounds, not only mean predictions.
+- training data are limited,
+- decisions require confidence bounds,
+- extrapolation / OOD behavior matters,
+- model-risk awareness is important.
 
 ## What uncertainty it quantifies
 
-`deepuq` Laplace methods mainly quantify **epistemic uncertainty** (uncertainty in parameters due to finite data).
+`deepuq` Laplace mainly captures epistemic uncertainty (uncertainty in parameters).
 
-For regression, `deepuq` returns:
+For regression, returned variance includes:
 
-$$
-\sigma^2_{\mathrm{pred}}(x)
-=
-\sigma^2_{\mathrm{epi}}(x) + \hat\sigma^2_{\mathrm{noise}}
-$$
+```text
+sigma_pred^2(x) = sigma_epi^2(x) + sigma_noise_hat^2
+```
 
 where:
 
-- \(\sigma^2_{\mathrm{epi}}\): spread from posterior weight samples,
-- \(\hat\sigma^2_{\mathrm{noise}}\): empirical residual-noise term estimated during fit.
+- `sigma_epi^2`: spread from posterior weight samples
+- `sigma_noise_hat^2`: residual noise estimate from fit
 
-For classification, `deepuq` returns Monte Carlo averaged class probabilities.
+For classification, `deepuq` returns MC-averaged class probabilities.
 
 ## Notation
 
-- Dataset: \(\mathcal{D}=\{(x_i,y_i)\}_{i=1}^N\)
-- Parameters: \(\theta\in\mathbb{R}^P\)
-- MAP point: \(\theta^*\)
-- Prior precision: \(\lambda>0\) with \(p(\theta)=\mathcal{N}(0,\lambda^{-1}I)\)
-- Damping: \(\epsilon>0\)
-- Posterior precision approximation: \(\Lambda\)
+- Dataset: `D = {(x_i, y_i)}_{i=1}^N`
+- Parameters: `theta in R^P`
+- MAP point: `theta*`
+- Prior precision: `lambda > 0`, prior `p(theta) = N(0, lambda^-1 I)`
+- Damping: `epsilon > 0`
+- Posterior precision approximation: `Lambda`
 
 ## Canonical Laplace formulation
 
-Posterior approximation around \(\theta^*\):
+```text
+q(theta | D) = N(theta*, Lambda^-1)
+Lambda ~ H(theta*) + lambda I
+```
 
-$$
-q(\theta\mid\mathcal D)
-=
-\mathcal N\left(\theta^*,\Lambda^{-1}\right)
-$$
-
-with precision approximately:
-
-$$
-\Lambda \approx H(\theta^*) + \lambda I
-$$
-
-where \(H(\theta^*)\) is a Hessian-like local curvature matrix (or PSD surrogate such as empirical Fisher/GGN family).
+`H(theta*)` is a local curvature matrix (or PSD surrogate such as empirical Fisher / GGN family).
 
 ## How `deepuq` builds curvature
 
 Across backends, `deepuq` uses batch gradients from:
 
-- regression objective: \(\frac{1}{2}\sum (f_\theta(x)-y)^2\),
-- classification objective: summed cross-entropy.
+- regression objective: `0.5 * sum((f_theta(x) - y)^2)`
+- classification objective: summed cross-entropy
 
-Then each backend builds a different structured approximation of \(\Lambda\), always adding prior precision and damping.
+Then each backend builds a structured approximation of `Lambda`, always adding prior precision and damping.
 
 ## Backend-by-backend details
 
@@ -84,42 +73,38 @@ Then each backend builds a different structured approximation of \(\Lambda\), al
 
 ### Canonical equation
 
-$$
-\Lambda_{\mathrm{diag}} = \mathrm{diag}(H) + \lambda I
-$$
+```text
+Lambda_diag = diag(H) + lambda I
+```
 
 ### Implementation-faithful equation
 
-With batch gradients \(g_b\):
+With batch gradients `g_b`:
 
-$$
-d = \frac{1}{N}\sum_b g_b\odot g_b
-$$
-
-$$
-\Lambda_{\mathrm{diag}} = d + \lambda\mathbf{1} + \epsilon\mathbf{1}
-$$
+```text
+d = (1/N) * sum_b (g_b ⊙ g_b)
+Lambda_diag = d + lambda*1 + epsilon*1
+```
 
 Sampling:
 
-$$
-\theta^{(s)} = \theta^* + \xi^{(s)}\odot\Lambda_{\mathrm{diag}}^{-1/2},
-\quad
-\xi^{(s)}\sim\mathcal N(0,I)
-$$
+```text
+theta^(s) = theta* + xi^(s) ⊙ Lambda_diag^(-1/2)
+xi^(s) ~ N(0, I)
+```
 
 ### Cost
 
-- Fit: \(O(BP)\)
-- Memory: \(O(P)\)
+- Fit: `O(BP)`
+- Memory: `O(P)`
 
 ## `fisher_diag`
 
 ### Canonical equation
 
-$$
-\Lambda_{\mathrm{fdiag}} = \mathrm{diag}(F_{\mathrm{emp}}) + \lambda I
-$$
+```text
+Lambda_fdiag = diag(F_emp) + lambda I
+```
 
 ### Implementation-faithful equation
 
@@ -133,176 +118,151 @@ Same as `diag`.
 
 ### Canonical equation
 
-$$
-H \approx U_r\Sigma_rU_r^\top + \mathrm{diag}(r)
-$$
-
-$$
-\Lambda \approx \lambda I + U_r\Sigma_rU_r^\top + \mathrm{diag}(r)
-$$
+```text
+H ~ U_r * Sigma_r * U_r^T + diag(r)
+Lambda ~ lambda I + U_r * Sigma_r * U_r^T + diag(r)
+```
 
 ### Implementation-faithful equation
 
-With scaled gradient matrix \(\widetilde G = G/\sqrt{N}\) and SVD \(\widetilde G = USV^\top\):
+With scaled gradient matrix `G_tilde = G / sqrt(N)` and SVD `G_tilde = U S V^T`:
 
-$$
-U_r\leftarrow V_{:,1:r},
-\quad
-\Lambda_r\leftarrow S_{1:r}^2
-$$
+```text
+U_r <- V[:, 1:r]
+Lambda_r <- S[1:r]^2
 
-$$
-d_{\mathrm{total}} = \frac{1}{N}\sum_b g_b\odot g_b,
-\quad
-d_{\mathrm{lr}} = (U_r\odot U_r)\Lambda_r,
-\quad
-d_{\mathrm{res}} = \max(d_{\mathrm{total}} - d_{\mathrm{lr}},0)
-$$
+d_total = (1/N) * sum_b (g_b ⊙ g_b)
+d_lr    = (U_r ⊙ U_r) * Lambda_r
+d_res   = max(d_total - d_lr, 0)
 
-$$
-D = \lambda I + \mathrm{diag}(d_{\mathrm{res}}) + \epsilon I
-$$
+D = lambda I + diag(d_res) + epsilon I
+```
 
 Sampling uses a Woodbury-style low-rank-plus-diagonal transform.
 
 ### Cost
 
-- Fit: approximately \(O(\min(B^2P, BP^2))\)
-- Memory: \(O(BP + Pr)\)
+- Fit: approx `O(min(B^2 P, B P^2))`
+- Memory: `O(BP + Pr)`
 
 ## `block_diag`
 
 ### Canonical equation
 
-$$
-\Lambda \approx \mathrm{blockdiag}(\Lambda_1,\dots,\Lambda_K),
-\quad
-\Lambda_k \approx H_k + \lambda I_k
-$$
+```text
+Lambda ~ blockdiag(Lambda_1, ..., Lambda_K)
+Lambda_k ~ H_k + lambda I_k
+```
 
 ### Implementation-faithful equation
 
-For each block \(k\):
+For each block `k`:
 
-$$
-C_k = \frac{1}{N}\sum_b g_{b,k}g_{b,k}^\top
-$$
+```text
+C_k = (1/N) * sum_b (g_{b,k} g_{b,k}^T)
+Lambda_k = C_k + (lambda + epsilon) I_k
+```
 
-$$
-\Lambda_k = C_k + (\lambda+\epsilon)I_k
-$$
+Sampling with Cholesky `Lambda_k = L_k L_k^T`:
 
-Sampling per block using Cholesky \(\Lambda_k=L_kL_k^\top\):
-
-$$
-\theta_k^{(s)} = \theta_k^* + L_k^{-\top}\xi_k^{(s)},
-\quad
-\xi_k^{(s)}\sim\mathcal N(0,I_k)
-$$
+```text
+theta_k^(s) = theta_k* + L_k^{-T} xi_k^(s)
+xi_k^(s) ~ N(0, I_k)
+```
 
 ### Cost
 
-- Fit: \(O\!\left(B\sum_k p_k^2\right)\)
-- Memory: \(O\!\left(\sum_k p_k^2\right)\)
+- Fit: `O(B * sum_k p_k^2)`
+- Memory: `O(sum_k p_k^2)`
 
 ## `kron`
 
 ### Canonical equation
 
-For layer \(l\):
-
-$$
-H_l \approx A_l\otimes G_l
-$$
+```text
+For layer l:
+H_l ~ A_l ⊗ G_l
+```
 
 ### Implementation-faithful equation
 
-For selected `nn.Linear` layers, `deepuq` captures activations \(a\) and output gradients \(g\):
+For selected `nn.Linear` layers, `deepuq` captures activations `a` and output gradients `g`:
 
-$$
-A_l = \frac{1}{B}\sum_b \frac{\bar a_b^\top\bar a_b}{m_b},
-\quad
-G_l = \frac{1}{B}\sum_b \frac{g_b^\top g_b}{m_b}
-$$
+```text
+A_l = (1/B) * sum_b ((a_bar_b^T a_bar_b) / m_b)
+G_l = (1/B) * sum_b ((g_b^T g_b) / m_b)
+```
 
-where \(\bar a\) includes a bias-augmentation term when bias is present.
+`a_bar` includes bias augmentation when bias exists.
 
 Then:
 
-$$
-A_l=U_a\,\mathrm{diag}(s_a)\,U_a^\top,
-\quad
-G_l=U_g\,\mathrm{diag}(s_g)\,U_g^\top
-$$
+```text
+A_l = U_a diag(s_a) U_a^T
+G_l = U_g diag(s_g) U_g^T
+```
 
-Sampling uses denominator:
+Sampling denominator:
 
-$$
-s_a\otimes s_g + (\lambda+\epsilon)
-$$
+```text
+s_a ⊗ s_g + (lambda + epsilon)
+```
 
 ### Cost
 
-- Factor accumulation: \(O\!\left(B\sum_l(n'_{\mathrm{in},l}{}^2+n_{\mathrm{out},l}^2)\right)\)
-- Eigendecomposition: \(O\!\left(\sum_l(n'_{\mathrm{in},l}{}^3+n_{\mathrm{out},l}^3)\right)\)
-- Memory: \(O\!\left(\sum_l(n'_{\mathrm{in},l}{}^2+n_{\mathrm{out},l}^2)\right)\)
+- Factor accumulation: `O(B * sum_l (n_in'_l^2 + n_out_l^2))`
+- Eigendecomposition: `O(sum_l (n_in'_l^3 + n_out_l^3))`
+- Memory: `O(sum_l (n_in'_l^2 + n_out_l^2))`
 
 ## `full`
 
 ### Canonical equation
 
-$$
-\Lambda_{\mathrm{full}} = H + \lambda I
-$$
+```text
+Lambda_full = H + lambda I
+```
 
 ### Implementation-faithful equation
 
-With stacked gradient matrix \(G\in\mathbb R^{B\times P}\):
+With stacked gradient matrix `G in R^(B x P)`:
 
-$$
-C = \frac{1}{N}G^\top G
-$$
+```text
+C = (1/N) * G^T G
+Lambda_full = C + (lambda + epsilon) I
+```
 
-$$
-\Lambda_{\mathrm{full}} = C + (\lambda+\epsilon)I
-$$
+If `Lambda_full = L L^T`, sampling is:
 
-If \(\Lambda_{\mathrm{full}}=LL^\top\), sampling is:
-
-$$
-\theta^{(s)} = \theta^* + L^{-\top}\xi^{(s)},
-\quad
-\xi^{(s)}\sim\mathcal N(0,I)
-$$
+```text
+theta^(s) = theta* + L^{-T} xi^(s)
+xi^(s) ~ N(0, I)
+```
 
 ### Cost
 
-- Fit: \(O(BP^2 + P^3)\)
-- Memory: \(O(P^2)\)
+- Fit: `O(BP^2 + P^3)`
+- Memory: `O(P^2)`
 
 ## Predictive formulas used in `deepuq`
 
-For posterior samples \(\{\theta^{(s)}\}_{s=1}^S\):
+For posterior samples `{theta^(s)}_{s=1}^S`:
 
-$$
-\mu(x)=\frac{1}{S}\sum_s f(x;\theta^{(s)})
-$$
-
-$$
-\sigma^2_{\mathrm{epi}}(x)=\frac{1}{S}\sum_s\left(f(x;\theta^{(s)})-\mu(x)\right)^2
-$$
+```text
+mu(x) = (1/S) * sum_s f(x; theta^(s))
+sigma_epi^2(x) = (1/S) * sum_s (f(x; theta^(s)) - mu(x))^2
+```
 
 Regression return:
 
-$$
-\sigma^2_{\mathrm{pred}}(x)=\sigma^2_{\mathrm{epi}}(x)+\hat\sigma^2_{\mathrm{noise}}
-$$
+```text
+sigma_pred^2(x) = sigma_epi^2(x) + sigma_noise_hat^2
+```
 
 Classification return:
 
-$$
-\bar p(y\mid x)=\frac{1}{S}\sum_s \mathrm{softmax}(z^{(s)}(x))
-$$
+```text
+p_bar(y|x) = (1/S) * sum_s softmax(z^(s)(x))
+```
 
 ## Practical comparison table
 
