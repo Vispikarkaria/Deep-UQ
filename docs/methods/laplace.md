@@ -22,16 +22,19 @@ For experiments, see the [Laplace comparison tutorial](../tutorials/laplace-comp
 - Dataset: $\mathcal{D}=\{(x_i,y_i)\}_{i=1}^N$
 - Parameters: $\theta \in \mathbb{R}^P$
 - MAP solution: $\theta^\*$
-- Negative log-posterior objective:
-  $$
-  \mathcal{J}(\theta)
-  =
-  - \log p(\mathcal{D}\mid\theta)
-  - \log p(\theta)
-  $$
+- Negative log-posterior objective symbol: $\mathcal{J}(\theta)$
 - Prior precision (isotropic Gaussian prior): $\lambda > 0$, so $p(\theta)=\mathcal{N}(0,\lambda^{-1}I)$
 - Damping/jitter used for numerical stability: $\epsilon > 0$
 - Posterior precision approximation: $\Lambda$
+
+We use:
+
+$$
+\mathcal{J}(\theta)
+=
+- \log p(\mathcal{D}\mid\theta)
+- \log p(\theta)
+$$
 
 ## Laplace Approximation: Canonical Form
 
