@@ -61,6 +61,7 @@ mean, var = la.predict(x_batch, n_samples=200)
 Notes:
 - `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, and `full` are native backends in `deepuq`.
 - `full` with `subset_of_weights='all'` is guarded by `full_max_params` to avoid infeasible memory usage.
+- Theory reference (equations and citations): `https://vispikarkaria.github.io/Deep-UQ/methods/laplace/`
 
 ## 4) MCMC (SGLD)
 ```python

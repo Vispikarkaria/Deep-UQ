@@ -25,6 +25,11 @@ Compare all Laplace Hessian structures on one shared MAP model and dataset.
 - 95% coverage and interval width
 - ID vs OOD predictive standard deviation ratio
 
+## Scientific Details
+
+- Equations, derivations, and references for all six Hessian structures:
+  - [Laplace method scientific reference](../methods/laplace.md)
+
 ## Related Notebooks
 
 - [Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/laplace/Laplace_Tutorial.ipynb)

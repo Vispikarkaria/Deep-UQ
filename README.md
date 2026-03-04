@@ -115,6 +115,7 @@ See the **examples/** folder for end-to-end regression scripts on the Euler-Bern
 
 For Laplace users:
 - All supported structures are implemented natively in `deepuq`.
+- Scientific details and equations: `https://vispikarkaria.github.io/Deep-UQ/methods/laplace/`
 
 ## Tutorials
 
