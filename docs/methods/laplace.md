@@ -1,6 +1,6 @@
 # Laplace Approximation (LLA) in `deepuq`
 
-This page explains the six Laplace/LLA backends implemented in `LaplaceWrapper`:
+This page explains all six Laplace/LLA backends implemented in `LaplaceWrapper`:
 
 - `diag`
 - `fisher_diag`
@@ -9,63 +9,70 @@ This page explains the six Laplace/LLA backends implemented in `LaplaceWrapper`:
 - `kron`
 - `full`
 
-It is written in stable plain-text equation format so it renders correctly on all clients.
+The style here is practical: motivation, uncertainty meaning, and equations that match the implementation.
 
 ## Why this method is useful
 
-Neural networks usually output one prediction without confidence.
-Laplace approximation adds uncertainty by building a Gaussian posterior around a MAP solution.
+A deterministic neural network gives a single prediction, but not a reliable confidence estimate.
+Laplace approximation adds uncertainty by building a Gaussian posterior around the MAP weights.
 
-This helps when:
+This is useful when:
 
-- training data are limited,
-- decisions require confidence bounds,
-- extrapolation / OOD behavior matters,
-- model-risk awareness is important.
+- data are limited,
+- predictions affect decisions,
+- OOD behavior matters,
+- confidence bounds are required.
 
 ## What uncertainty it quantifies
 
-`deepuq` Laplace mainly captures epistemic uncertainty (uncertainty in parameters).
+For Laplace in `deepuq`, the dominant uncertainty is epistemic (parameter uncertainty).
 
-For regression, returned variance includes:
+Regression variance returned by the package:
 
-```text
+$$
 sigma_pred^2(x) = sigma_epi^2(x) + sigma_noise_hat^2
-```
+$$
 
 where:
 
-- `sigma_epi^2`: spread from posterior weight samples
-- `sigma_noise_hat^2`: residual noise estimate from fit
+- `sigma_epi^2`: uncertainty from posterior weight samples
+- `sigma_noise_hat^2`: residual noise estimate from training data
 
-For classification, `deepuq` returns MC-averaged class probabilities.
+For classification, `deepuq` returns Monte Carlo averaged class probabilities.
 
 ## Notation
 
-- Dataset: `D = {(x_i, y_i)}_{i=1}^N`
-- Parameters: `theta in R^P`
-- MAP point: `theta*`
-- Prior precision: `lambda > 0`, prior `p(theta) = N(0, lambda^-1 I)`
-- Damping: `epsilon > 0`
-- Posterior precision approximation: `Lambda`
+- `D = {(x_i, y_i)}_{i=1}^N`
+- `theta in R^P`
+- `theta_star`: MAP point
+- `lambda > 0`: prior precision
+- `epsilon > 0`: damping
+- `Lambda`: posterior precision approximation
 
 ## Canonical Laplace formulation
 
-```text
-q(theta | D) = N(theta*, Lambda^-1)
-Lambda ~ H(theta*) + lambda I
-```
+Posterior approximation around MAP:
 
-`H(theta*)` is a local curvature matrix (or PSD surrogate such as empirical Fisher / GGN family).
+$$
+q(theta | D) = N(theta_star, Lambda^{-1})
+$$
+
+Local precision model:
+
+$$
+Lambda approx H(theta_star) + lambda I
+$$
+
+`H(theta_star)` is a local curvature matrix (or PSD surrogate such as empirical Fisher / GGN family).
 
 ## How `deepuq` builds curvature
 
 Across backends, `deepuq` uses batch gradients from:
 
-- regression objective: `0.5 * sum((f_theta(x) - y)^2)`
-- classification objective: summed cross-entropy
+- regression loss: `0.5 * sum((f_theta(x) - y)^2)`
+- classification loss: summed cross-entropy
 
-Then each backend builds a structured approximation of `Lambda`, always adding prior precision and damping.
+Then each backend builds a structured approximation of `Lambda`, and adds prior + damping.
 
 ## Backend-by-backend details
 
@@ -73,196 +80,194 @@ Then each backend builds a structured approximation of `Lambda`, always adding p
 
 ### Canonical equation
 
-```text
+$$
 Lambda_diag = diag(H) + lambda I
-```
+$$
 
 ### Implementation-faithful equation
 
 With batch gradients `g_b`:
 
-```text
-d = (1/N) * sum_b (g_b ⊙ g_b)
+$$
+d = (1/N) * sum_b (g_b elementwise_square)
+$$
+
+$$
 Lambda_diag = d + lambda*1 + epsilon*1
-```
+$$
 
 Sampling:
 
-```text
-theta^(s) = theta* + xi^(s) ⊙ Lambda_diag^(-1/2)
-xi^(s) ~ N(0, I)
-```
-
-### Cost
-
-- Fit: `O(BP)`
-- Memory: `O(P)`
+$$
+theta^(s) = theta_star + xi^(s) * Lambda_diag^(-1/2)
+$$
 
 ## `fisher_diag`
 
 ### Canonical equation
 
-```text
+$$
 Lambda_fdiag = diag(F_emp) + lambda I
-```
+$$
 
 ### Implementation-faithful equation
 
-In `deepuq`, `fisher_diag` is an explicit diagonal empirical-Fisher option in the same estimator family as `diag`.
-
-### Cost
-
-Same as `diag`.
+In `deepuq`, this is an explicit empirical-Fisher diagonal option in the same estimator family as `diag`.
 
 ## `lowrank_diag`
 
 ### Canonical equation
 
-```text
-H ~ U_r * Sigma_r * U_r^T + diag(r)
-Lambda ~ lambda I + U_r * Sigma_r * U_r^T + diag(r)
-```
+$$
+H approx U_r * Sigma_r * U_r^T + diag(r)
+$$
+
+$$
+Lambda approx lambda I + U_r * Sigma_r * U_r^T + diag(r)
+$$
 
 ### Implementation-faithful equation
 
-With scaled gradient matrix `G_tilde = G / sqrt(N)` and SVD `G_tilde = U S V^T`:
+Using `G_tilde = G / sqrt(N)` and SVD `G_tilde = U S V^T`:
 
-```text
-U_r <- V[:, 1:r]
-Lambda_r <- S[1:r]^2
+$$
+U_r = V[:, 1:r],   Lambda_r = S[1:r]^2
+$$
 
-d_total = (1/N) * sum_b (g_b ⊙ g_b)
-d_lr    = (U_r ⊙ U_r) * Lambda_r
-d_res   = max(d_total - d_lr, 0)
+$$
+d_total = (1/N) * sum_b (g_b elementwise_square)
+$$
 
+$$
+d_lr = (U_r elementwise_square) * Lambda_r
+$$
+
+$$
+d_res = max(d_total - d_lr, 0)
+$$
+
+$$
 D = lambda I + diag(d_res) + epsilon I
-```
+$$
 
-Sampling uses a Woodbury-style low-rank-plus-diagonal transform.
-
-### Cost
-
-- Fit: approx `O(min(B^2 P, B P^2))`
-- Memory: `O(BP + Pr)`
+Sampling uses a Woodbury-style low-rank + diagonal transform.
 
 ## `block_diag`
 
 ### Canonical equation
 
-```text
-Lambda ~ blockdiag(Lambda_1, ..., Lambda_K)
-Lambda_k ~ H_k + lambda I_k
-```
+$$
+Lambda approx blockdiag(Lambda_1, ..., Lambda_K)
+$$
+
+$$
+Lambda_k approx H_k + lambda I_k
+$$
 
 ### Implementation-faithful equation
 
 For each block `k`:
 
-```text
-C_k = (1/N) * sum_b (g_{b,k} g_{b,k}^T)
+$$
+C_k = (1/N) * sum_b (g_{b,k} * g_{b,k}^T)
+$$
+
+$$
 Lambda_k = C_k + (lambda + epsilon) I_k
-```
+$$
 
-Sampling with Cholesky `Lambda_k = L_k L_k^T`:
+Sampling uses Cholesky per block:
 
-```text
-theta_k^(s) = theta_k* + L_k^{-T} xi_k^(s)
-xi_k^(s) ~ N(0, I_k)
-```
-
-### Cost
-
-- Fit: `O(B * sum_k p_k^2)`
-- Memory: `O(sum_k p_k^2)`
+$$
+if   Lambda_k = L_k L_k^T,
+then theta_k^(s) = theta_k_star + L_k^{-T} xi_k^(s)
+$$
 
 ## `kron`
 
 ### Canonical equation
 
-```text
-For layer l:
-H_l ~ A_l ⊗ G_l
-```
+For layer `l`:
+
+$$
+H_l approx A_l kron G_l
+$$
 
 ### Implementation-faithful equation
 
-For selected `nn.Linear` layers, `deepuq` captures activations `a` and output gradients `g`:
+For selected `nn.Linear` layers:
 
-```text
-A_l = (1/B) * sum_b ((a_bar_b^T a_bar_b) / m_b)
-G_l = (1/B) * sum_b ((g_b^T g_b) / m_b)
-```
+$$
+A_l = (1/B) * sum_b ((a_bar_b^T a_bar_b)/m_b)
+$$
 
-`a_bar` includes bias augmentation when bias exists.
+$$
+G_l = (1/B) * sum_b ((g_b^T g_b)/m_b)
+$$
 
-Then:
+Then eigendecompose:
 
-```text
-A_l = U_a diag(s_a) U_a^T
+$$
+A_l = U_a diag(s_a) U_a^T,
 G_l = U_g diag(s_g) U_g^T
-```
+$$
 
 Sampling denominator:
 
-```text
-s_a ⊗ s_g + (lambda + epsilon)
-```
-
-### Cost
-
-- Factor accumulation: `O(B * sum_l (n_in'_l^2 + n_out_l^2))`
-- Eigendecomposition: `O(sum_l (n_in'_l^3 + n_out_l^3))`
-- Memory: `O(sum_l (n_in'_l^2 + n_out_l^2))`
+$$
+(s_a kron s_g) + (lambda + epsilon)
+$$
 
 ## `full`
 
 ### Canonical equation
 
-```text
+$$
 Lambda_full = H + lambda I
-```
+$$
 
 ### Implementation-faithful equation
 
 With stacked gradient matrix `G in R^(B x P)`:
 
-```text
+$$
 C = (1/N) * G^T G
+$$
+
+$$
 Lambda_full = C + (lambda + epsilon) I
-```
+$$
 
-If `Lambda_full = L L^T`, sampling is:
+Sampling:
 
-```text
-theta^(s) = theta* + L^{-T} xi^(s)
-xi^(s) ~ N(0, I)
-```
+$$
+if   Lambda_full = L L^T,
+then theta^(s) = theta_star + L^{-T} xi^(s)
+$$
 
-### Cost
-
-- Fit: `O(BP^2 + P^3)`
-- Memory: `O(P^2)`
-
-## Predictive formulas used in `deepuq`
+## Predictive equations used in `deepuq`
 
 For posterior samples `{theta^(s)}_{s=1}^S`:
 
-```text
+$$
 mu(x) = (1/S) * sum_s f(x; theta^(s))
+$$
+
+$$
 sigma_epi^2(x) = (1/S) * sum_s (f(x; theta^(s)) - mu(x))^2
-```
+$$
 
 Regression return:
 
-```text
+$$
 sigma_pred^2(x) = sigma_epi^2(x) + sigma_noise_hat^2
-```
+$$
 
 Classification return:
 
-```text
+$$
 p_bar(y|x) = (1/S) * sum_s softmax(z^(s)(x))
-```
+$$
 
 ## Practical comparison table
 
@@ -278,8 +283,8 @@ p_bar(y|x) = (1/S) * sum_s softmax(z^(s)(x))
 ## Stability and guardrails in this package
 
 - `damping` is added before inversion/Cholesky.
-- `full_max_params` guards expensive `full` + `subset_of_weights='all'` settings.
-- `kron` checks that selected parameters match selected `nn.Linear` groups.
+- `full_max_params` guards expensive `full` + `subset_of_weights='all'`.
+- `kron` checks selected parameters match selected `nn.Linear` groups.
 
 ## References
 
