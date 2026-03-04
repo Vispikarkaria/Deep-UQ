@@ -13,7 +13,7 @@ The practical idea is simple: optimize once for a MAP point, then approximate th
 
 The method primarily quantifies **epistemic uncertainty** via posterior weight uncertainty.
 
-With parameter samples \(\{\theta^{(s)}\}_{s=1}^S\):
+With parameter samples $\{\theta^{(s)}\}_{s=1}^S$:
 
 $$
 \mu(x)=\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)})
@@ -30,7 +30,7 @@ $$
 \sigma^2_{\mathrm{pred}}(x)=\sigma^2_{\mathrm{epi}}(x)+\hat\sigma^2_{\varepsilon}
 $$
 
-where \(\hat\sigma^2_{\varepsilon}\) is an empirical residual-noise estimate.
+where $\hat\sigma^2_{\varepsilon}$ is an empirical residual-noise estimate.
 
 For classification, predictive probabilities are Monte Carlo averaged:
 
@@ -73,7 +73,7 @@ $$
 \Lambda\approx H(\theta^*)+\lambda I+\epsilon I
 $$
 
-where \(H(\theta^*)\) is a local curvature surrogate and \(\epsilon>0\) is damping.
+where $H(\theta^*)$ is a local curvature surrogate and $\epsilon>0$ is damping.
 
 ## 4) Core Method Equations
 
@@ -83,7 +83,7 @@ $$
 \Lambda_{\mathrm{diag}}=\mathrm{diag}(H)+\lambda I+\epsilon I
 $$
 
-Using empirical batch gradients \(g_b=\nabla_{\theta}\ell_b(\theta^*)\):
+Using empirical batch gradients $g_b=\nabla_{\theta}\ell_b(\theta^*)$:
 
 $$
 d=\frac{1}{N}\sum_b g_b\odot g_b,
@@ -119,7 +119,7 @@ $$
 \Lambda\approx U_r\Sigma_r U_r^{\top}+D_r+(\lambda+\epsilon)I
 $$
 
-If \(\widetilde G=G/\sqrt N\) with SVD \(\widetilde G=USV^{\top}\), then
+If $\widetilde G=G/\sqrt N$ with SVD $\widetilde G=USV^{\top}$, then
 
 $$
 U_r=V_{:,1:r},
@@ -135,7 +135,7 @@ $$
 
 ### 4.4 Block Diagonal (`block_diag`)
 
-Partition parameters into \(K\) blocks:
+Partition parameters into $K$ blocks:
 
 $$
 \Lambda\approx\mathrm{blkdiag}(\Lambda_1,\ldots,\Lambda_K)
@@ -151,7 +151,7 @@ $$
 
 ### 4.5 Kronecker-Factored (`kron`)
 
-For linear layer \(\ell\):
+For linear layer $\ell$:
 
 $$
 H_{\ell}\approx A_{\ell}\otimes G_{\ell}
@@ -185,7 +185,7 @@ $$
 \Lambda_{\mathrm{full}}=H+(\lambda+\epsilon)I
 $$
 
-With stacked gradients \(G\in\mathbb R^{B\times P}\):
+With stacked gradients $G\in\mathbb R^{B\times P}$:
 
 $$
 C=\frac{1}{N}G^{\top}G,
@@ -195,7 +195,7 @@ $$
 
 ## 5) Inference / Prediction Equations
 
-Given \(\theta\sim q(\theta\mid\mathcal D)\), Monte Carlo prediction uses:
+Given $\theta\sim q(\theta\mid\mathcal D)$, Monte Carlo prediction uses:
 
 $$
 \mu(x)\approx\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)})
@@ -223,15 +223,15 @@ $$
 
 Curvature expressivity increases from `diag` to `full`, and cost rises accordingly.
 
-- `diag` / `fisher_diag`: memory \(\mathcal O(P)\), cheapest, weakest coupling.
-- `lowrank_diag`: memory \(\mathcal O(Pr)\), captures dominant directions.
-- `block_diag`: memory \(\mathcal O(\sum_k m_k^2)\), captures within-block coupling.
+- `diag` / `fisher_diag`: memory $\mathcal O(P)$, cheapest, weakest coupling.
+- `lowrank_diag`: memory $\mathcal O(Pr)$, captures dominant directions.
+- `block_diag`: memory $\mathcal O(\sum_k m_k^2)$, captures within-block coupling.
 - `kron`: layerwise factorized coupling with favorable scaling for linear layers.
-- `full`: memory \(\mathcal O(P^2)\), highest fidelity and highest cost.
+- `full`: memory $\mathcal O(P^2)$, highest fidelity and highest cost.
 
 Numerical and safety controls in `deepuq` include:
 
-- damping \(\epsilon\) before inversion/factorization,
+- damping $\epsilon$ before inversion/factorization,
 - parameter-count guard for expensive full-structure settings,
 - structure checks for Kronecker-factorized assumptions.
 

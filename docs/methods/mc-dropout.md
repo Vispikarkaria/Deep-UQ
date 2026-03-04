@@ -12,7 +12,7 @@ This provides a low-friction uncertainty baseline for deep models.
 
 MC Dropout primarily approximates **epistemic uncertainty** through stochastic subnetworks.
 
-With \(T\) stochastic forward passes:
+With $T$ stochastic forward passes:
 
 $$
 \mu(x)=\frac{1}{T}\sum_{t=1}^{T} f_t(x)
@@ -32,7 +32,7 @@ $$
 
 ## 3) Mathematical Setup / Notation
 
-For layer \(\ell\), let mask entries follow Bernoulli sampling:
+For layer $\ell$, let mask entries follow Bernoulli sampling:
 
 $$
 m_{\ell,j}\sim\mathrm{Bernoulli}(1-p_{\ell})
@@ -44,7 +44,7 @@ $$
 f_t(x)=f\!\left(x;\theta,m^{(t)}\right)
 $$
 
-where \(m^{(t)}\) is the mask sample at pass \(t\).
+where $m^{(t)}$ is the mask sample at pass $t$.
 
 A standard variational interpretation uses a Bernoulli family over effective weights and approximates model averaging via Monte Carlo over masks.
 
@@ -68,7 +68,7 @@ $$
 \widehat{\mathbb E}[f(x)^2]-\hat\mu(x)^2
 $$
 
-For class probabilities \(P_t(x)\in[0,1]^C\):
+For class probabilities $P_t(x)\in[0,1]^C$:
 
 $$
 \hat P(x)=\frac{1}{T}\sum_{t=1}^{T} P_t(x)
@@ -101,7 +101,7 @@ $$
 ## 6) Practical Implications
 
 - `n_mc` controls Monte Carlo error; larger values stabilize uncertainty estimates.
-- Dropout rate \(p_{\ell}\) affects both fit and uncertainty amplitude.
+- Dropout rate $p_{\ell}$ affects both fit and uncertainty amplitude.
 - MC Dropout is computationally light relative to many full Bayesian alternatives.
 - It is an approximation and may miss multimodal posterior behavior.
 

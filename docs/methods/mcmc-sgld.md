@@ -38,11 +38,11 @@ $$
 d\theta_t=-\nabla_{\theta}U(\theta_t)\,dt+\sqrt{2}\,dW_t
 $$
 
-where \(W_t\) is standard Brownian motion.
+where $W_t$ is standard Brownian motion.
 
 ## 4) Core Method Equations
 
-SGLD Euler-Maruyama discretization with stochastic gradient \(\widehat\nabla U(\theta_t)\):
+SGLD Euler-Maruyama discretization with stochastic gradient $\widehat\nabla U(\theta_t)$:
 
 $$
 \theta_{t+1}=
@@ -57,7 +57,7 @@ Posterior sampling uses:
 
 - burn-in period before retaining samples,
 - optional thinning to reduce autocorrelation,
-- multiple retained states \(\{\theta^{(s)}\}_{s=1}^{S}\) for prediction.
+- multiple retained states $\{\theta^{(s)}\}_{s=1}^{S}$ for prediction.
 
 A useful efficiency diagnostic is effective sample size:
 
@@ -66,7 +66,7 @@ $$
 \frac{S}{1+2\sum_{k=1}^{\infty}\rho_k}
 $$
 
-where \(\rho_k\) is lag-\(k\) autocorrelation.
+where $\rho_k$ is lag-$k$ autocorrelation.
 
 ## 5) Inference / Prediction Equations
 
@@ -91,7 +91,7 @@ $$
 
 ## 6) Practical Implications
 
-- Step-size schedule \(\eta_t\) controls the bias-variance tradeoff of samples.
+- Step-size schedule $\eta_t$ controls the bias-variance tradeoff of samples.
 - Too-short burn-in yields biased uncertainty estimates.
 - Strong sample autocorrelation reduces effective posterior sample quality.
 - Compared with VI/Laplace, SGLD can represent richer posterior geometry but usually costs more wall-clock time.

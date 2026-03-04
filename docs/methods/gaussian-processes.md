@@ -10,7 +10,7 @@ Exact GPs are statistically elegant but cubic in training-set size; sparse varia
 
 ## 2) What Uncertainty Is Quantified
 
-GPs quantify posterior uncertainty over latent functions \(f\). For noisy regression,
+GPs quantify posterior uncertainty over latent functions $f$. For noisy regression,
 
 $$
 y=f(x)+\varepsilon,
@@ -28,7 +28,7 @@ $$
 f(\cdot)\sim\mathcal{GP}\!\left(m(\cdot),k(\cdot,\cdot)\right)
 $$
 
-For training inputs \(X\), targets \(y\), test inputs \(X_\*\):
+For training inputs $X$, targets $y$, test inputs $X_\*$:
 
 $$
 K=K(X,X),
@@ -71,7 +71,7 @@ $$
 
 ### 4.2 Sparse Variational GP
 
-Introduce inducing inputs \(Z\in\mathbb R^{M\times d}\), inducing variables \(u=f(Z)\), and variational posterior:
+Introduce inducing inputs $Z\in\mathbb R^{M\times d}$, inducing variables $u=f(Z)$, and variational posterior:
 
 $$
 q(u)=\mathcal N(m,S)
@@ -105,7 +105,7 @@ $$
 
 ### Exact GP prediction
 
-For a test point \(x_\*\) with \(k_\*=k(X,x_\*)\):
+For a test point $x_\*$ with $k_\*=k(X,x_\*)$:
 
 $$
 \mu_\*(x_\*)=k_\*^{\top}K_y^{-1}y
@@ -115,11 +115,11 @@ $$
 \sigma_{f,\*}^2(x_\*)=k(x_\*,x_\*)-k_\*^{\top}K_y^{-1}k_\*
 $$
 
-Noisy predictive variance adds \(\sigma_n^2\).
+Noisy predictive variance adds $\sigma_n^2$.
 
 ### Sparse variational GP prediction
 
-Using \(q(u)=\mathcal N(m,S)\):
+Using $q(u)=\mathcal N(m,S)$:
 
 $$
 \mu_\*(x_\*)=k_{\*M}K_{MM}^{-1}m
@@ -133,10 +133,10 @@ $$
 
 ## 6) Practical Implications
 
-- Exact GP: strong calibration for small/medium \(N\), cost roughly \(\mathcal O(N^3)\) training and \(\mathcal O(N^2)\) memory.
-- Sparse GP: training cost depends on inducing count \(M\), typically around \(\mathcal O(NM^2)\), with memory \(\mathcal O(NM)\).
+- Exact GP: strong calibration for small/medium $N$, cost roughly $\mathcal O(N^3)$ training and $\mathcal O(N^2)$ memory.
+- Sparse GP: training cost depends on inducing count $M$, typically around $\mathcal O(NM^2)$, with memory $\mathcal O(NM)$.
 - Kernel choice determines smoothness, extrapolation behavior, and uncertainty shape.
-- Inducing locations and \(M\) strongly affect sparse-GP fidelity.
+- Inducing locations and $M$ strongly affect sparse-GP fidelity.
 
 ## 7) References
 

@@ -30,7 +30,7 @@ $$
 
 ## 3) Mathematical Setup / Notation
 
-Let \(\mathcal D=\{(x_i,y_i)\}_{i=1}^N\), prior \(p(w)\), and variational family \(q_{\phi}(w)\).
+Let $\mathcal D=\{(x_i,y_i)\}_{i=1}^N$, prior $p(w)$, and variational family $q_{\phi}(w)$.
 
 Mean-field Gaussian parameterization:
 
@@ -72,7 +72,7 @@ $$
 \beta\,\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
 $$
 
-Mini-batch objective with \(N_b\) optimizer steps per epoch:
+Mini-batch objective with $N_b$ optimizer steps per epoch:
 
 $$
 \widehat{\mathcal L}_{\mathrm{ELBO}}=
@@ -113,7 +113,7 @@ $$
 
 ## 6) Practical Implications
 
-- Fixed \(\beta\) is useful when comparing ELBO trends across epochs.
+- Fixed $\beta$ is useful when comparing ELBO trends across epochs.
 - Larger Monte Carlo sample counts reduce estimator variance but increase compute.
 - Mean-field VI is scalable but cannot represent full posterior correlations.
 - Monitoring NLL and KL separately helps diagnose underfitting vs over-regularization.
