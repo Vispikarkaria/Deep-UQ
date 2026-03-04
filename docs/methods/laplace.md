@@ -1,304 +1,251 @@
-# Laplace Approximation (LLA) in `deepuq`
+# Laplace Approximation
 
-This page explains all six Laplace/LLA backends implemented in `LaplaceWrapper`:
+`deepuq` exposes Laplace methods through `LaplaceWrapper` with six Hessian structures:
+`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, and `full`.
 
-- `diag`
-- `fisher_diag`
-- `lowrank_diag`
-- `block_diag`
-- `kron`
-- `full`
+## 1) Motivation
 
-The style here is practical: motivation, uncertainty meaning, and equations that match the implementation.
+Modern neural networks are often accurate in-domain but can be confidently wrong away from training support. Laplace approximation adds a Bayesian posterior layer on top of a trained MAP network, so predictions include both central tendency and confidence.
 
-## Why this method is useful
+The practical idea is simple: optimize once for a MAP point, then approximate the local posterior geometry around that point.
 
-A deterministic neural network gives a single prediction, but not a reliable confidence estimate.
-Laplace approximation adds uncertainty by building a Gaussian posterior around the MAP weights.
+## 2) What Uncertainty Is Quantified
 
-This is useful when:
+The method primarily quantifies **epistemic uncertainty** via posterior weight uncertainty.
 
-- data are limited,
-- predictions affect decisions,
-- OOD behavior matters,
-- confidence bounds are required.
+With parameter samples \(\{\theta^{(s)}\}_{s=1}^S\):
 
-## What uncertainty it quantifies
-
-For Laplace in `deepuq`, the dominant uncertainty is epistemic (parameter uncertainty).
-
-Regression variance returned by the package:
-
 $$
-sigma_pred^2(x) = sigma_epi^2(x) + sigma_noise_hat^2
+\mu(x)=\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)})
 $$
-
-where:
-
-- `sigma_epi^2`: uncertainty from posterior weight samples
-- `sigma_noise_hat^2`: residual noise estimate from training data
-
-For classification, `deepuq` returns Monte Carlo averaged class probabilities.
-
-## Notation
-
-- `D = {(x_i, y_i)}_{i=1}^N`
-- `theta in R^P`
-- `theta_star`: MAP point
-- `lambda > 0`: prior precision
-- `epsilon > 0`: damping
-- `Lambda`: posterior precision approximation
-
-## Canonical Laplace formulation
-
-Posterior approximation around MAP:
 
 $$
-q(theta | D) = N(theta_star, Lambda^{-1})
+\sigma^2_{\mathrm{epi}}(x)=
+\frac{1}{S}\sum_{s=1}^S\left(f(x;\theta^{(s)})-\mu(x)\right)^2
 $$
 
-Local precision model:
+For regression, the predictive variance returned by `deepuq` is:
 
 $$
-Lambda approx H(theta_star) + lambda I
+\sigma^2_{\mathrm{pred}}(x)=\sigma^2_{\mathrm{epi}}(x)+\hat\sigma^2_{\varepsilon}
 $$
 
-`H(theta_star)` is a local curvature matrix (or PSD surrogate such as empirical Fisher / GGN family).
+where \(\hat\sigma^2_{\varepsilon}\) is an empirical residual-noise estimate.
 
-## How `deepuq` builds curvature
+For classification, predictive probabilities are Monte Carlo averaged:
 
-Across backends, `deepuq` uses batch gradients from:
-
-- regression loss: `0.5 * sum((f_theta(x) - y)^2)`
-- classification loss: summed cross-entropy
-
-Then each backend builds a structured approximation of `Lambda`, and adds prior + damping.
-
-## Backend-by-backend details
-
-## `diag`
-
-### Canonical equation
-
 $$
-Lambda_diag = diag(H) + lambda I
+\bar p(y\mid x)=
+\frac{1}{S}\sum_{s=1}^S p(y\mid x,\theta^{(s)})
 $$
-
-### Implementation-faithful equation
 
-With batch gradients `g_b`:
+## 3) Mathematical Setup / Notation
 
-$$
-d = (1/N) * sum_b (g_b elementwise_square)
-$$
+Dataset and parameters:
 
 $$
-Lambda_diag = d + lambda*1 + epsilon*1
+\mathcal D=\{(x_i,y_i)\}_{i=1}^N,
+\qquad
+\theta\in\mathbb R^P
 $$
 
-Sampling:
+MAP estimator:
 
 $$
-theta^(s) = theta_star + xi^(s) * Lambda_diag^(-1/2)
+\theta^*=\arg\min_{\theta}\,\mathcal J(\theta),
+\qquad
+\mathcal J(\theta)=-\log p(\mathcal D\mid\theta)-\log p(\theta)
 $$
-
-## `fisher_diag`
 
-### Canonical equation
+With isotropic Gaussian prior:
 
 $$
-Lambda_fdiag = diag(F_emp) + lambda I
+p(\theta)=\mathcal N(0,\lambda^{-1}I),\qquad \lambda>0
 $$
 
-### Implementation-faithful equation
+Canonical Laplace posterior:
 
-In `deepuq`, this is an explicit empirical-Fisher diagonal option in the same estimator family as `diag`.
-
-## `lowrank_diag`
-
-### Canonical equation
-
 $$
-H approx U_r * Sigma_r * U_r^T + diag(r)
+q(\theta\mid\mathcal D)=\mathcal N\!\left(\theta^*,\Lambda^{-1}\right)
 $$
 
 $$
-Lambda approx lambda I + U_r * Sigma_r * U_r^T + diag(r)
+\Lambda\approx H(\theta^*)+\lambda I+\epsilon I
 $$
 
-### Implementation-faithful equation
+where \(H(\theta^*)\) is a local curvature surrogate and \(\epsilon>0\) is damping.
 
-Using `G_tilde = G / sqrt(N)` and SVD `G_tilde = U S V^T`:
+## 4) Core Method Equations
 
-$$
-U_r = V[:, 1:r],   Lambda_r = S[1:r]^2
-$$
+### 4.1 Diagonal (`diag`)
 
 $$
-d_total = (1/N) * sum_b (g_b elementwise_square)
+\Lambda_{\mathrm{diag}}=\mathrm{diag}(H)+\lambda I+\epsilon I
 $$
 
-$$
-d_lr = (U_r elementwise_square) * Lambda_r
-$$
+Using empirical batch gradients \(g_b=\nabla_{\theta}\ell_b(\theta^*)\):
 
 $$
-d_res = max(d_total - d_lr, 0)
+d=\frac{1}{N}\sum_b g_b\odot g_b,
+\qquad
+\Lambda_{\mathrm{diag}}=\mathrm{diag}(d)+(\lambda+\epsilon)I
 $$
 
+### 4.2 Empirical Fisher Diagonal (`fisher_diag`)
+
 $$
-D = lambda I + diag(d_res) + epsilon I
+\Lambda_{\mathrm{fdiag}}=\mathrm{diag}(F_{\mathrm{emp}})+(\lambda+\epsilon)I
 $$
-
-Sampling uses a Woodbury-style low-rank + diagonal transform.
-
-## `block_diag`
 
-### Canonical equation
+with
 
 $$
-Lambda approx blockdiag(Lambda_1, ..., Lambda_K)
+F_{\mathrm{emp}}\approx\frac{1}{N}\sum_b g_b g_b^{\top}
 $$
 
-$$
-Lambda_k approx H_k + lambda I_k
-$$
+and only the diagonal retained.
 
-### Implementation-faithful equation
+### 4.3 Low-Rank + Diagonal (`lowrank_diag`)
 
-For each block `k`:
+Curvature decomposition:
 
 $$
-C_k = (1/N) * sum_b (g_{b,k} * g_{b,k}^T)
+H\approx U_r\Sigma_r U_r^{\top}+D_r
 $$
 
+Posterior precision:
+
 $$
-Lambda_k = C_k + (lambda + epsilon) I_k
+\Lambda\approx U_r\Sigma_r U_r^{\top}+D_r+(\lambda+\epsilon)I
 $$
 
-Sampling uses Cholesky per block:
+If \(\widetilde G=G/\sqrt N\) with SVD \(\widetilde G=USV^{\top}\), then
 
 $$
-if   Lambda_k = L_k L_k^T,
-then theta_k^(s) = theta_k_star + L_k^{-T} xi_k^(s)
+U_r=V_{:,1:r},
+\qquad
+\Sigma_r=\mathrm{diag}(S_{1:r}^2)
 $$
-
-## `kron`
-
-### Canonical equation
 
-For layer `l`:
+and a diagonal residual form is
 
 $$
-H_l approx A_l kron G_l
+D_r=\mathrm{diag}\!\left(\max\left(d_{\mathrm{tot}}-d_{\mathrm{lr}},0\right)\right)
 $$
 
-### Implementation-faithful equation
+### 4.4 Block Diagonal (`block_diag`)
 
-For selected `nn.Linear` layers:
+Partition parameters into \(K\) blocks:
 
 $$
-A_l = (1/B) * sum_b ((a_bar_b^T a_bar_b)/m_b)
+\Lambda\approx\mathrm{blkdiag}(\Lambda_1,\ldots,\Lambda_K)
 $$
 
+Block curvature and precision:
+
 $$
-G_l = (1/B) * sum_b ((g_b^T g_b)/m_b)
+C_k=\frac{1}{N}\sum_b g_{b,k}g_{b,k}^{\top},
+\qquad
+\Lambda_k=C_k+(\lambda+\epsilon)I_k
 $$
 
-Then eigendecompose:
+### 4.5 Kronecker-Factored (`kron`)
 
+For linear layer \(\ell\):
+
 $$
-A_l = U_a diag(s_a) U_a^T,
-G_l = U_g diag(s_g) U_g^T
+H_{\ell}\approx A_{\ell}\otimes G_{\ell}
 $$
 
-Sampling denominator:
+with activation and output-gradient factors:
 
 $$
-(s_a kron s_g) + (lambda + epsilon)
+A_{\ell}=\mathbb E\left[a_{\ell}a_{\ell}^{\top}\right],
+\qquad
+G_{\ell}=\mathbb E\left[g_{\ell}g_{\ell}^{\top}\right]
 $$
-
-## `full`
 
-### Canonical equation
+A standard eigenbasis view is
 
 $$
-Lambda_full = H + lambda I
+A_{\ell}=U_A S_A U_A^{\top},
+\qquad
+G_{\ell}=U_G S_G U_G^{\top}
 $$
 
-### Implementation-faithful equation
+so the layer precision spectrum is approximated by
 
-With stacked gradient matrix `G in R^(B x P)`:
-
 $$
-C = (1/N) * G^T G
+S_A\otimes S_G+(\lambda+\epsilon)I
 $$
 
+### 4.6 Full (`full`)
+
 $$
-Lambda_full = C + (lambda + epsilon) I
+\Lambda_{\mathrm{full}}=H+(\lambda+\epsilon)I
 $$
 
-Sampling:
+With stacked gradients \(G\in\mathbb R^{B\times P}\):
 
 $$
-if   Lambda_full = L L^T,
-then theta^(s) = theta_star + L^{-T} xi^(s)
+C=\frac{1}{N}G^{\top}G,
+\qquad
+\Lambda_{\mathrm{full}}=C+(\lambda+\epsilon)I
 $$
 
-## Predictive equations used in `deepuq`
+## 5) Inference / Prediction Equations
 
-For posterior samples `{theta^(s)}_{s=1}^S`:
+Given \(\theta\sim q(\theta\mid\mathcal D)\), Monte Carlo prediction uses:
 
 $$
-mu(x) = (1/S) * sum_s f(x; theta^(s))
+\mu(x)\approx\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)})
 $$
 
 $$
-sigma_epi^2(x) = (1/S) * sum_s (f(x; theta^(s)) - mu(x))^2
+\mathrm{Var}[f(x)]\approx
+\frac{1}{S}\sum_{s=1}^S\left(f(x;\theta^{(s)})-\mu(x)\right)^2
 $$
 
-Regression return:
+Regression total predictive variance:
 
 $$
-sigma_pred^2(x) = sigma_epi^2(x) + sigma_noise_hat^2
+\sigma^2_{\mathrm{pred}}(x)=\mathrm{Var}[f(x)]+\hat\sigma^2_{\varepsilon}
 $$
 
-Classification return:
+Classification predictive probability:
 
 $$
-p_bar(y|x) = (1/S) * sum_s softmax(z^(s)(x))
+\bar p(y\mid x)\approx
+\frac{1}{S}\sum_{s=1}^S \mathrm{softmax}\!\left(z(x;\theta^{(s)})\right)
 $$
+
+## 6) Practical Implications
 
-## Practical comparison table
+Curvature expressivity increases from `diag` to `full`, and cost rises accordingly.
 
-| Structure | Curvature captured | Runtime/Memory | Typical usage |
-|---|---|---|---|
-| `diag` | parameter-wise only | lowest | fast baseline UQ |
-| `fisher_diag` | parameter-wise empirical Fisher family | lowest | explicit Fisher-diagonal choice |
-| `lowrank_diag` | dominant directions + residual diagonal | medium | better geometry with bounded memory |
-| `block_diag` | within-block coupling | medium | richer than diagonal, cheaper than full |
-| `kron` | layerwise Kronecker structure | medium-high | scalable structured curvature |
-| `full` | full local coupling | highest | small models / last-layer high fidelity |
+- `diag` / `fisher_diag`: memory \(\mathcal O(P)\), cheapest, weakest coupling.
+- `lowrank_diag`: memory \(\mathcal O(Pr)\), captures dominant directions.
+- `block_diag`: memory \(\mathcal O(\sum_k m_k^2)\), captures within-block coupling.
+- `kron`: layerwise factorized coupling with favorable scaling for linear layers.
+- `full`: memory \(\mathcal O(P^2)\), highest fidelity and highest cost.
 
-## Stability and guardrails in this package
+Numerical and safety controls in `deepuq` include:
 
-- `damping` is added before inversion/Cholesky.
-- `full_max_params` guards expensive `full` + `subset_of_weights='all'`.
-- `kron` checks selected parameters match selected `nn.Linear` groups.
+- damping \(\epsilon\) before inversion/factorization,
+- parameter-count guard for expensive full-structure settings,
+- structure checks for Kronecker-factorized assumptions.
 
-## References
+## 7) References
 
-1. MacKay, D. J. C. (1992). *A Practical Bayesian Framework for Backpropagation Networks*. Neural Computation, 4(3), 448–472. DOI: [10.1162/neco.1992.4.3.448](https://doi.org/10.1162/neco.1992.4.3.448)
-2. Tierney, L., & Kadane, J. B. (1986). *Accurate Approximations for Posterior Moments and Marginal Densities*. JASA, 81(393), 82–86. DOI: [10.1080/01621459.1986.10478240](https://doi.org/10.1080/01621459.1986.10478240)
-3. Martens, J. (2020). *New Insights and Perspectives on the Natural Gradient Method*. JMLR, 21(146), 1–76. [JMLR](https://jmlr.org/papers/v21/17-678.html)
-4. Kunstner, F., Hennig, P., & Balles, L. (2019). *Limitations of the empirical Fisher approximation for natural gradient descent*. NeurIPS 2019. [Proceedings](https://papers.nips.cc/paper/8669-limitations-of-the-empirical-fisher-approximation-for-natural-gradient-descent)
-5. Martens, J., & Grosse, R. (2015). *Optimizing Neural Networks with Kronecker-factored Approximate Curvature*. ICML 2015 (PMLR 37). [PMLR](https://proceedings.mlr.press/v37/martens15.html)
-6. Botev, A., Ritter, H., & Barber, D. (2017). *Practical Gauss-Newton Optimisation for Deep Learning*. ICML 2017 (PMLR 70). [PMLR](https://proceedings.mlr.press/v70/botev17a.html)
-7. Ritter, H., Botev, A., & Barber, D. (2018). *A Scalable Laplace Approximation for Neural Networks*. ICLR 2018. [Conference entry](https://iclr.cc/virtual/2018/poster/224)
-8. Daxberger, E., Kristiadi, A., Immer, A., Eschenhagen, R., Bauer, M., & Hennig, P. (2021). *Laplace Redux — Effortless Bayesian Deep Learning*. NeurIPS 2021. [Proceedings](https://papers.nips.cc/paper/2021/hash/a7c9585703d275249f30a088cebba0ad-Abstract.html)
-9. Maddox, W. J., Izmailov, P., Garipov, T., Vetrov, D. P., & Wilson, A. G. (2019). *A Simple Baseline for Bayesian Uncertainty in Deep Learning*. NeurIPS 2019. [Proceedings](https://papers.nips.cc/paper/9472-a-simple-baseline-for-bayesian-uncertainty-in-deep-learning)
+1. MacKay, D. J. C. (1992). *A Practical Bayesian Framework for Backpropagation Networks*. Neural Computation, 4(3), 448-472. DOI: [10.1162/neco.1992.4.3.448](https://doi.org/10.1162/neco.1992.4.3.448)
+2. Tierney, L., & Kadane, J. B. (1986). *Accurate Approximations for Posterior Moments and Marginal Densities*. Journal of the American Statistical Association, 81(393), 82-86. DOI: [10.1080/01621459.1986.10478240](https://doi.org/10.1080/01621459.1986.10478240)
+3. Martens, J., & Grosse, R. (2015). *Optimizing Neural Networks with Kronecker-factored Approximate Curvature*. ICML (PMLR 37). [Proceedings](https://proceedings.mlr.press/v37/martens15.html)
+4. Botev, A., Ritter, H., & Barber, D. (2017). *Practical Gauss-Newton Optimisation for Deep Learning*. ICML (PMLR 70). [Proceedings](https://proceedings.mlr.press/v70/botev17a.html)
+5. Ritter, H., Botev, A., & Barber, D. (2018). *A Scalable Laplace Approximation for Neural Networks*. ICLR. [Conference entry](https://iclr.cc/virtual/2018/poster/224)
+6. Daxberger, E., Kristiadi, A., Immer, A., Eschenhagen, R., Bauer, M., & Hennig, P. (2021). *Laplace Redux: Effortless Bayesian Deep Learning*. NeurIPS. [Proceedings](https://papers.nips.cc/paper/2021/hash/a7c9585703d275249f30a088cebba0ad-Abstract.html)
+7. Kunstner, F., Hennig, P., & Balles, L. (2019). *Limitations of the empirical Fisher approximation for natural gradient descent*. NeurIPS. [Proceedings](https://papers.nips.cc/paper/8669-limitations-of-the-empirical-fisher-approximation-for-natural-gradient-descent)
 
 ## Related docs
 
-- [Laplace API](../api/methods/laplace.md)
 - [Laplace Hessian Comparison Tutorial](../tutorials/laplace-comparison.md)
+- [Laplace API](../api/methods/laplace.md)
