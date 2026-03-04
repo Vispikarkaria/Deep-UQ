@@ -19,49 +19,49 @@ For experiments, see the [Laplace comparison tutorial](../tutorials/laplace-comp
 
 ## Notation
 
-- Dataset: \(\mathcal{D}=\{(x_i,y_i)\}_{i=1}^N\)
-- Parameters: \(\theta \in \mathbb{R}^P\)
-- MAP solution: \(\theta^\*\)
+- Dataset: $\mathcal{D}=\{(x_i,y_i)\}_{i=1}^N$
+- Parameters: $\theta \in \mathbb{R}^P$
+- MAP solution: $\theta^\*$
 - Negative log-posterior objective:
-  \[
+  $$
   \mathcal{J}(\theta)
   =
   - \log p(\mathcal{D}\mid\theta)
   - \log p(\theta)
-  \]
-- Prior precision (isotropic Gaussian prior): \(\lambda > 0\), so \(p(\theta)=\mathcal{N}(0,\lambda^{-1}I)\)
-- Damping/jitter used for numerical stability: \(\epsilon > 0\)
-- Posterior precision approximation: \(\Lambda\)
+  $$
+- Prior precision (isotropic Gaussian prior): $\lambda > 0$, so $p(\theta)=\mathcal{N}(0,\lambda^{-1}I)$
+- Damping/jitter used for numerical stability: $\epsilon > 0$
+- Posterior precision approximation: $\Lambda$
 
 ## Laplace Approximation: Canonical Form
 
-The posterior is locally approximated around \(\theta^\*\) by a Gaussian:
+The posterior is locally approximated around $\theta^\*$ by a Gaussian:
 
-\[
+$$
 p(\theta \mid \mathcal{D})
 \approx
 q(\theta)
 =
 \mathcal{N}(\theta^\*, \Lambda^{-1})
-\]
+$$
 
 with
 
-\[
+$$
 \Lambda
 \approx
 H(\theta^\*) + \lambda I
-\]
+$$
 
-where \(H(\theta^\*)\) is typically the Hessian (or a positive-semidefinite surrogate such as GGN/Fisher).
+where $H(\theta^\*)$ is typically the Hessian (or a positive-semidefinite surrogate such as GGN/Fisher).
 
-In practice, `deepuq` uses structure-specific approximations to \(\Lambda\) for scalability.
+In practice, `deepuq` uses structure-specific approximations to $\Lambda$ for scalability.
 
 ## Likelihood Details Used in `deepuq`
 
 The implementation computes batch gradients of:
 
-- Regression: \( \frac{1}{2}\sum (f_\theta(x)-y)^2 \)
+- Regression: $ \frac{1}{2}\sum (f_\theta(x)-y)^2 $
 - Classification: summed cross-entropy over the batch
 
 This yields empirical curvature surrogates built from gradient outer products or squares.
@@ -74,60 +74,60 @@ This yields empirical curvature surrogates built from gradient outer products or
 
 Diagonal Laplace keeps only per-parameter curvature:
 
-\[
+$$
 \Lambda_{\text{diag}}
 =
 \mathrm{diag}(H) + \lambda I
-\]
+$$
 
 Common PSD substitute:
 
-\[
+$$
 \mathrm{diag}(H)
 \approx
 \mathrm{diag}(F)
-\]
+$$
 
-where \(F\) is the Fisher/GGN-style curvature.
+where $F$ is the Fisher/GGN-style curvature.
 
 ### Implementation in `deepuq`
 
-Let \(g_b = \nabla_\theta \ell_b(\theta^\*)\) for each batch \(b\). The code accumulates:
+Let $g_b = \nabla_\theta \ell_b(\theta^\*)$ for each batch $b$. The code accumulates:
 
-\[
+$$
 d
 =
 \frac{1}{N}
 \sum_b g_b \odot g_b
-\]
+$$
 
 then constructs:
 
-\[
+$$
 \Lambda_{\text{diag}}
 =
 d + \lambda \mathbf{1} + \epsilon \mathbf{1}
-\]
+$$
 
 and samples each parameter independently:
 
-\[
+$$
 \theta^{(s)}
 =
 \theta^\* + \xi^{(s)} \odot \Lambda_{\text{diag}}^{-1/2},
 \quad
 \xi^{(s)}\sim\mathcal{N}(0,I)
-\]
+$$
 
 ### Complexity
 
-- Fit time: \(O(BP)\)
-- Memory: \(O(P)\)
+- Fit time: $O(BP)$
+- Memory: $O(P)$
 
 ### Safeguards
 
 - Positive clamps on precision terms
-- Damping \(\epsilon\) added to avoid near-singular precision
+- Damping $\epsilon$ added to avoid near-singular precision
 
 ## `fisher_diag`
 
@@ -135,11 +135,11 @@ and samples each parameter independently:
 
 Diagonal empirical Fisher variant:
 
-\[
+$$
 \Lambda_{\text{fdiag}}
 =
 \mathrm{diag}(F_{\text{emp}}) + \lambda I
-\]
+$$
 
 ### Implementation in `deepuq`
 
@@ -156,34 +156,34 @@ Same as `diag`.
 
 Low-rank + diagonal decomposition:
 
-\[
+$$
 H \approx U_r \Sigma_r U_r^\top + \mathrm{diag}(r)
-\]
+$$
 
-\[
+$$
 \Lambda
 \approx
 \lambda I + U_r \Sigma_r U_r^\top + \mathrm{diag}(r)
-\]
+$$
 
 This preserves dominant curvature directions while keeping memory manageable.
 
 ### Implementation in `deepuq`
 
-1. Build gradient matrix \(G \in \mathbb{R}^{B\times P}\), scaled as \(\widetilde{G}=G/\sqrt{N}\).
-2. Compute SVD: \(\widetilde{G}=U S V^\top\).
-3. Keep top rank \(r\) singular values and set \(U_r \leftarrow V_{:,1:r}\), \(\Lambda_r \leftarrow S_{1:r}^2\).
-4. Diagonal total curvature from gradient squares: \(d_{\text{total}} = \frac{1}{N}\sum_b g_b\odot g_b\).
-5. Low-rank diagonal contribution: \(d_{\text{lr}} = (U_r \odot U_r)\Lambda_r\).
-6. Residual diagonal (clipped): \(d_{\text{res}} = \max(d_{\text{total}} - d_{\text{lr}}, 0)\).
-7. Stored diagonal precision part: \(D = \lambda I + \mathrm{diag}(d_{\text{res}}) + \epsilon I\).
+1. Build gradient matrix $G \in \mathbb{R}^{B\times P}$, scaled as $\widetilde{G}=G/\sqrt{N}$.
+2. Compute SVD: $\widetilde{G}=U S V^\top$.
+3. Keep top rank $r$ singular values and set $U_r \leftarrow V_{:,1:r}$, $\Lambda_r \leftarrow S_{1:r}^2$.
+4. Diagonal total curvature from gradient squares: $d_{\text{total}} = \frac{1}{N}\sum_b g_b\odot g_b$.
+5. Low-rank diagonal contribution: $d_{\text{lr}} = (U_r \odot U_r)\Lambda_r$.
+6. Residual diagonal (clipped): $d_{\text{res}} = \max(d_{\text{total}} - d_{\text{lr}}, 0)$.
+7. Stored diagonal precision part: $D = \lambda I + \mathrm{diag}(d_{\text{res}}) + \epsilon I$.
 
-Sampling uses a Woodbury-style transform with \(D\) and low-rank factors.
+Sampling uses a Woodbury-style transform with $D$ and low-rank factors.
 
 ### Complexity
 
-- Fit time: SVD-dominated, approximately \(O(\min(B^2P,\;BP^2))\)
-- Memory: \(O(BP + Pr)\)
+- Fit time: SVD-dominated, approximately $O(\min(B^2P,\;BP^2))$
+- Memory: $O(BP + Pr)$
 
 ### Safeguards
 
@@ -195,19 +195,19 @@ Sampling uses a Woodbury-style transform with \(D\) and low-rank factors.
 
 ### Canonical
 
-Partition parameters into blocks \(\{\theta_k\}\) and assume:
+Partition parameters into blocks $\{\theta_k\}$ and assume:
 
-\[
+$$
 \Lambda
 \approx
 \mathrm{blockdiag}(\Lambda_1,\dots,\Lambda_K)
-\]
+$$
 
 with
 
-\[
+$$
 \Lambda_k \approx H_k + \lambda I_k
-\]
+$$
 
 ### Implementation in `deepuq`
 
@@ -216,28 +216,28 @@ Blocks are chosen as:
 - `last_layer`: one block containing all selected last-layer parameters
 - `all`: one block per selected parameter tensor
 
-For each block \(k\), accumulate batch outer products:
+For each block $k$, accumulate batch outer products:
 
-\[
+$$
 C_k = \frac{1}{N}\sum_b g_{b,k}g_{b,k}^\top
-\]
+$$
 
 then:
 
-\[
+$$
 \Lambda_k = C_k + (\lambda+\epsilon)I_k
-\]
+$$
 
-Cholesky factors \(L_k\) of \(\Lambda_k\) are used for block-wise sampling:
+Cholesky factors $L_k$ of $\Lambda_k$ are used for block-wise sampling:
 
-\[
+$$
 \theta_k^{(s)} = \theta_k^\* + L_k^{-\top}\xi_k^{(s)},\quad \xi_k^{(s)}\sim\mathcal{N}(0,I_k)
-\]
+$$
 
 ### Complexity
 
-- Fit time: \(O\!\left(B\sum_k p_k^2\right)\)
-- Memory: \(O\!\left(\sum_k p_k^2\right)\)
+- Fit time: $O\!\left(B\sum_k p_k^2\right)$
+- Memory: $O\!\left(\sum_k p_k^2\right)$
 
 ### Safeguards
 
@@ -247,36 +247,36 @@ Cholesky factors \(L_k\) of \(\Lambda_k\) are used for block-wise sampling:
 
 ### Canonical
 
-For layer \(l\), approximate curvature as Kronecker-factored:
+For layer $l$, approximate curvature as Kronecker-factored:
 
-\[
+$$
 H_l \approx A_l \otimes G_l
-\]
+$$
 
 where:
 
-- \(A_l\): input/activation covariance factor
-- \(G_l\): output-gradient covariance factor
+- $A_l$: input/activation covariance factor
+- $G_l$: output-gradient covariance factor
 
 ### Implementation in `deepuq`
 
 For selected `nn.Linear` layers only:
 
-1. Capture layer inputs \(a\) and output gradients \(g\) via hooks.
-2. If bias exists, augment input with ones: \(\bar{a}=[a;1]\).
-3. Per-layer factor estimates: \(A_l = \frac{1}{B}\sum_b \frac{\bar{a}_b^\top \bar{a}_b}{m_b}\), \(G_l = \frac{1}{B}\sum_b \frac{g_b^\top g_b}{m_b}\).
-4. Add damping and eigendecompose: \(A_l = U_a \operatorname{diag}(s_a) U_a^\top\), \(G_l = U_g \operatorname{diag}(s_g) U_g^\top\).
-5. Use Kronecker eigenbasis sampling denominator \(s_a \otimes s_g + (\lambda + \epsilon)\).
+1. Capture layer inputs $a$ and output gradients $g$ via hooks.
+2. If bias exists, augment input with ones: $\bar{a}=[a;1]$.
+3. Per-layer factor estimates: $A_l = \frac{1}{B}\sum_b \frac{\bar{a}_b^\top \bar{a}_b}{m_b}$, $G_l = \frac{1}{B}\sum_b \frac{g_b^\top g_b}{m_b}$.
+4. Add damping and eigendecompose: $A_l = U_a \operatorname{diag}(s_a) U_a^\top$, $G_l = U_g \operatorname{diag}(s_g) U_g^\top$.
+5. Use Kronecker eigenbasis sampling denominator $s_a \otimes s_g + (\lambda + \epsilon)$.
 
 This yields layer-wise matrix-normal style weight perturbations.
 
 ### Complexity
 
-- Factor accumulation: \(O\!\left(B\sum_l(n_{in,l}'^2+n_{out,l}^2)\right)\)
-- Eigendecomposition: \(O\!\left(\sum_l(n_{in,l}'^3+n_{out,l}^3)\right)\)
-- Memory: \(O\!\left(\sum_l(n_{in,l}'^2+n_{out,l}^2)\right)\)
+- Factor accumulation: $O\!\left(B\sum_l(n_{in,l}'^2+n_{out,l}^2)\right)$
+- Eigendecomposition: $O\!\left(\sum_l(n_{in,l}'^3+n_{out,l}^3)\right)$
+- Memory: $O\!\left(\sum_l(n_{in,l}'^2+n_{out,l}^2)\right)$
 
-where \(n_{in,l}'=n_{in,l}+1\) when bias is included.
+where $n_{in,l}'=n_{in,l}+1$ when bias is included.
 
 ### Safeguards / constraints
 
@@ -290,37 +290,37 @@ where \(n_{in,l}'=n_{in,l}+1\) when bias is included.
 
 Dense precision:
 
-\[
+$$
 \Lambda_{\text{full}}
 =
 H + \lambda I
-\]
+$$
 
 ### Implementation in `deepuq`
 
-With stacked batch gradients \(G \in \mathbb{R}^{B\times P}\):
+With stacked batch gradients $G \in \mathbb{R}^{B\times P}$:
 
-\[
+$$
 C = \frac{1}{N}G^\top G
-\]
+$$
 
-\[
+$$
 \Lambda_{\text{full}}
 =
 C + (\lambda+\epsilon)I
-\]
+$$
 
 Sampling uses Cholesky:
 
-\[
+$$
 \Lambda_{\text{full}} = LL^\top,\quad
 \theta^{(s)}=\theta^\* + L^{-\top}\xi^{(s)},\;\xi^{(s)}\sim\mathcal{N}(0,I)
-\]
+$$
 
 ### Complexity
 
-- Fit time: \(O(BP^2 + P^3)\)
-- Memory: \(O(P^2)\)
+- Fit time: $O(BP^2 + P^3)$
+- Memory: $O(P^2)$
 
 ### Safeguards
 
@@ -331,37 +331,37 @@ Sampling uses Cholesky:
 
 ## Regression
 
-From posterior samples \(\{\theta^{(s)}\}_{s=1}^S\):
+From posterior samples $\{\theta^{(s)}\}_{s=1}^S$:
 
-\[
+$$
 \mu(x) = \frac{1}{S}\sum_s f(x;\theta^{(s)})
-\]
+$$
 
-\[
+$$
 \sigma_{\text{epi}}^2(x)
 =
 \frac{1}{S}\sum_s \left(f(x;\theta^{(s)})-\mu(x)\right)^2
-\]
+$$
 
 The returned variance is:
 
-\[
+$$
 \sigma_{\text{pred}}^2(x)
 =
 \sigma_{\text{epi}}^2(x) + \hat{\sigma}_{\text{noise}}^2
-\]
+$$
 
-where \(\hat{\sigma}_{\text{noise}}^2\) is estimated during fit from MAP residuals.
+where $\hat{\sigma}_{\text{noise}}^2$ is estimated during fit from MAP residuals.
 
 ## Classification
 
-For sampled logits \(z^{(s)}(x)\):
+For sampled logits $z^{(s)}(x)$:
 
-\[
+$$
 \bar{p}(y\mid x)
 =
 \frac{1}{S}\sum_s \operatorname{softmax}(z^{(s)}(x))
-\]
+$$
 
 `deepuq` returns `(mean_probs, None)` for classification.
 
@@ -369,12 +369,12 @@ For sampled logits \(z^{(s)}(x)\):
 
 | Structure | Curvature form | Time / Memory profile | Typical use |
 |---|---|---|---|
-| `diag` | Diagonal only | Fastest, \(O(P)\) memory | Baseline uncertainty with minimal overhead |
+| `diag` | Diagonal only | Fastest, $O(P)$ memory | Baseline uncertainty with minimal overhead |
 | `fisher_diag` | Diagonal empirical Fisher family | Same as `diag` | Explicit Fisher-diagonal semantic choice |
 | `lowrank_diag` | Low-rank + diagonal residual | Medium-to-high SVD cost | Capture dominant directions beyond diagonal |
-| `block_diag` | Independent dense blocks | Medium, block-size dependent | Better local coupling without full \(P\times P\) |
+| `block_diag` | Independent dense blocks | Medium, block-size dependent | Better local coupling without full $P\times P$ |
 | `kron` | Layerwise Kronecker factors | Efficient for large linear layers | Scalable structured curvature with richer geometry |
-| `full` | Dense \(P\times P\) precision | Most expensive | Small models or last-layer-only high fidelity |
+| `full` | Dense $P\times P$ precision | Most expensive | Small models or last-layer-only high fidelity |
 
 ## Failure Modes and Stability Notes
 
