@@ -18,13 +18,13 @@ Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regr
 
 ## Method Summary
 
-| Method Family | Implemented Variants | Main Wrapper / Class | Tutorial |
-|---|---|---|---|
-| Variational Inference | Bayes by Backprop | `BayesianLinear`, `vi_elbo_step`, `predict_vi_uq` | `notebooks/BayesByBackprop_Tutorial.ipynb` |
-| Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper`, `predict_uq` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| MCMC | Stochastic Gradient Langevin Dynamics | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | `notebooks/SGLD_Tutorial.ipynb` |
-| MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper`, `predict_uq` | `notebooks/MC_Dropout_Tutorial.ipynb` |
-| Gaussian Processes | Exact, sparse, classification (binary + OvR), heteroscedastic, multi-task ICM, spectral mixture, deep kernel, and kernel composition (`RBF`, Matérn, RQ, Periodic, Linear) | `GaussianProcessRegressor`, `SparseGaussianProcessRegressor`, `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`, `HeteroscedasticGaussianProcessRegressor`, `MultiTaskGaussianProcessRegressor`, `SpectralMixtureGaussianProcessRegressor`, `DeepKernelGaussianProcessRegressor`, kernel classes, `predict_uq` | `notebooks/gp/GP_Model_Comparison.ipynb` (see all under `notebooks/gp/`) |
+| Method Family | Method Name | Implemented Variants | Main Wrapper / Class | Tutorial |
+|---|---|---|---|---|
+| Variational Inference | Bayes by Backprop | Mean-field VI for neural nets | `BayesianLinear`, `vi_elbo_step`, `predict_vi_uq` | `notebooks/BayesByBackprop_Tutorial.ipynb` |
+| Laplace Approximation | Laplace | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper`, `predict_uq` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
+| MCMC | Stochastic Gradient Langevin Dynamics | Posterior sampling with SGLD | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | `notebooks/SGLD_Tutorial.ipynb` |
+| MC Dropout | MC Dropout | Stochastic dropout inference | `MCDropoutWrapper`, `predict_uq` | `notebooks/MC_Dropout_Tutorial.ipynb` |
+| Gaussian Processes | `GaussianProcessRegressor`, `SparseGaussianProcessRegressor`, `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`, `HeteroscedasticGaussianProcessRegressor`, `MultiTaskGaussianProcessRegressor`, `SpectralMixtureGaussianProcessRegressor`, `DeepKernelGaussianProcessRegressor` | Exact, sparse, classification (binary + OvR), heteroscedastic, multi-task ICM, spectral mixture, deep kernel, and kernel composition (`RBF`, Matérn, RQ, Periodic, Linear) | GP kernel classes + `predict_uq` | `notebooks/gp/GP_Model_Comparison.ipynb` (see all under `notebooks/gp/`) |
 
 ## Documentation Website
 
