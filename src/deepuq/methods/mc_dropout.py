@@ -15,6 +15,7 @@ class MCDropoutWrapper(nn.Module):
         n_mc: number of stochastic forward passes
         apply_softmax: whether to convert logits to probabilities
     """
+
     def __init__(self, model: nn.Module, n_mc: int = 20, apply_softmax: bool = True):
         super().__init__()
         self.model = model

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from deepuq.methods import BayesByBackpropMLP, vi_elbo_step
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Beam parameters (SI units)
 L = 2.0
@@ -84,7 +84,7 @@ x_grid = torch.linspace(0, L, 200).unsqueeze(-1)
 y_grid_true = beam_deflection_mm(x_grid)
 
 model = BayesByBackpropMLP(1, [128, 128], 1, prior_sigma=0.2).to(DEVICE)
-criterion = nn.MSELoss(reduction='mean')
+criterion = nn.MSELoss(reduction="mean")
 optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
 
 n_epochs = 180
@@ -92,13 +92,13 @@ num_batches = len(train_loader)
 kl_weight = 0.01
 
 history = {
-    'epoch': [],
-    'train_elbo': [],
-    'val_elbo': [],
-    'train_nll': [],
-    'val_nll': [],
-    'train_kl': [],
-    'val_kl': [],
+    "epoch": [],
+    "train_elbo": [],
+    "val_elbo": [],
+    "train_nll": [],
+    "val_nll": [],
+    "train_kl": [],
+    "val_kl": [],
 }
 
 for epoch in range(n_epochs):
@@ -137,13 +137,13 @@ for epoch in range(n_epochs):
         mc_samples=8,
     )
 
-    history['epoch'].append(epoch + 1)
-    history['train_elbo'].append(train_elbo)
-    history['val_elbo'].append(val_elbo)
-    history['train_nll'].append(train_nll)
-    history['val_nll'].append(val_nll)
-    history['train_kl'].append(train_kl)
-    history['val_kl'].append(val_kl)
+    history["epoch"].append(epoch + 1)
+    history["train_elbo"].append(train_elbo)
+    history["val_elbo"].append(val_elbo)
+    history["train_nll"].append(train_nll)
+    history["val_nll"].append(val_nll)
+    history["train_kl"].append(train_kl)
+    history["val_kl"].append(val_kl)
 
     if (epoch + 1) % 25 == 0:
         print(
@@ -166,35 +166,55 @@ lower = mean - 1.96 * std
 upper = mean + 1.96 * std
 
 plt.figure(figsize=(7, 4))
-plt.scatter(x_train.numpy(), y_train.numpy(), s=14, alpha=0.5, label='Noisy train samples')
-plt.plot(x_grid.numpy(), y_grid_true.numpy(), color='black', linewidth=2, label='True deflection')
-plt.plot(x_grid.numpy(), mean.numpy(), color='tab:blue', label='Posterior mean')
+plt.scatter(
+    x_train.numpy(), y_train.numpy(), s=14, alpha=0.5, label="Noisy train samples"
+)
+plt.plot(
+    x_grid.numpy(),
+    y_grid_true.numpy(),
+    color="black",
+    linewidth=2,
+    label="True deflection",
+)
+plt.plot(x_grid.numpy(), mean.numpy(), color="tab:blue", label="Posterior mean")
 plt.fill_between(
     x_grid.squeeze().numpy(),
     lower.squeeze().numpy(),
     upper.squeeze().numpy(),
     alpha=0.2,
-    color='tab:blue',
-    label='95% interval',
+    color="tab:blue",
+    label="95% interval",
 )
-plt.xlabel('Position x (m)')
-plt.ylabel('Deflection y (mm)')
-plt.title('Bayes-by-Backprop predictive interval')
+plt.xlabel("Position x (m)")
+plt.ylabel("Deflection y (mm)")
+plt.title("Bayes-by-Backprop predictive interval")
 plt.legend(frameon=False)
 plt.tight_layout()
 plt.show()
 
 plt.figure(figsize=(7, 4))
-train_ema = ema(history['train_elbo'], alpha=0.2)
-val_ema = ema(history['val_elbo'], alpha=0.2)
-plt.plot(history['epoch'], history['train_elbo'], color='tab:blue', alpha=0.25, label='Train ELBO (raw)')
-plt.plot(history['epoch'], history['val_elbo'], color='tab:orange', alpha=0.25, label='Val ELBO (raw)')
-plt.plot(history['epoch'], train_ema, color='tab:blue', label='Train ELBO (EMA)')
-plt.plot(history['epoch'], val_ema, color='tab:orange', label='Val ELBO (EMA)')
-plt.xlabel('Epoch')
-plt.ylabel('ELBO')
-plt.title('ELBO trend (fixed objective)')
-plt.grid(True, linestyle='--', linewidth=0.5, alpha=0.4)
+train_ema = ema(history["train_elbo"], alpha=0.2)
+val_ema = ema(history["val_elbo"], alpha=0.2)
+plt.plot(
+    history["epoch"],
+    history["train_elbo"],
+    color="tab:blue",
+    alpha=0.25,
+    label="Train ELBO (raw)",
+)
+plt.plot(
+    history["epoch"],
+    history["val_elbo"],
+    color="tab:orange",
+    alpha=0.25,
+    label="Val ELBO (raw)",
+)
+plt.plot(history["epoch"], train_ema, color="tab:blue", label="Train ELBO (EMA)")
+plt.plot(history["epoch"], val_ema, color="tab:orange", label="Val ELBO (EMA)")
+plt.xlabel("Epoch")
+plt.ylabel("ELBO")
+plt.title("ELBO trend (fixed objective)")
+plt.grid(True, linestyle="--", linewidth=0.5, alpha=0.4)
 plt.legend(frameon=False)
 plt.tight_layout()
 plt.show()

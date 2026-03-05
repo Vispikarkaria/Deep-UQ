@@ -25,7 +25,9 @@ def _set_seed(seed: int) -> None:
     np.random.seed(seed)
 
 
-def _loader(x: torch.Tensor, y: torch.Tensor, batch_size: int, shuffle: bool = True) -> DataLoader:
+def _loader(
+    x: torch.Tensor, y: torch.Tensor, batch_size: int, shuffle: bool = True
+) -> DataLoader:
     return DataLoader(TensorDataset(x, y), batch_size=batch_size, shuffle=shuffle)
 
 
@@ -56,9 +58,13 @@ def _train_mlp_regression(
             opt.step()
 
 
-def run_mc_dropout(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, object]:
+def run_mc_dropout(
+    dataset: RegressionDataset, cfg: BenchmarkConfig
+) -> Dict[str, object]:
     _set_seed(cfg.seed)
-    x_train, y_train = _subset_train_data(dataset.x_train, dataset.y_train, cfg.max_train_points)
+    x_train, y_train = _subset_train_data(
+        dataset.x_train, dataset.y_train, cfg.max_train_points
+    )
     train_loader = _loader(x_train, y_train, cfg.batch_size)
     model = MLP(dataset.x_train.shape[1], cfg.hidden_dims, 1, p_drop=0.1)
 
@@ -82,13 +88,20 @@ def run_mc_dropout(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str
 
 def run_laplace(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, object]:
     _set_seed(cfg.seed)
-    x_train, y_train = _subset_train_data(dataset.x_train, dataset.y_train, cfg.max_train_points)
+    x_train, y_train = _subset_train_data(
+        dataset.x_train, dataset.y_train, cfg.max_train_points
+    )
     train_loader = _loader(x_train, y_train, cfg.batch_size)
     model = MLP(dataset.x_train.shape[1], cfg.hidden_dims, 1, p_drop=0.0)
 
     t0 = time.perf_counter()
     _train_mlp_regression(model, train_loader, cfg.train_epochs, cfg.lr)
-    la = LaplaceWrapper(model, likelihood="regression", hessian_structure="diag", subset_of_weights="last_layer")
+    la = LaplaceWrapper(
+        model,
+        likelihood="regression",
+        hessian_structure="diag",
+        subset_of_weights="last_layer",
+    )
     la.fit(train_loader, prior_precision=1.0)
     train_time = time.perf_counter() - t0
 
@@ -106,9 +119,13 @@ def run_laplace(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, o
 
 def run_vi(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, object]:
     _set_seed(cfg.seed)
-    x_train, y_train = _subset_train_data(dataset.x_train, dataset.y_train, cfg.max_train_points)
+    x_train, y_train = _subset_train_data(
+        dataset.x_train, dataset.y_train, cfg.max_train_points
+    )
     train_loader = _loader(x_train, y_train, cfg.batch_size)
-    model = BayesByBackpropMLP(dataset.x_train.shape[1], cfg.hidden_dims, 1, prior_sigma=0.5)
+    model = BayesByBackpropMLP(
+        dataset.x_train.shape[1], cfg.hidden_dims, 1, prior_sigma=0.5
+    )
     opt = torch.optim.Adam(model.parameters(), lr=cfg.lr)
     criterion = nn.MSELoss(reduction="mean")
     num_batches = len(train_loader)
@@ -133,7 +150,9 @@ def run_vi(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, object
     train_time = time.perf_counter() - t0
 
     t1 = time.perf_counter()
-    uq = predict_vi_uq(model, dataset.x_test, n_samples=cfg.num_samples, apply_softmax=False)
+    uq = predict_vi_uq(
+        model, dataset.x_test, n_samples=cfg.num_samples, apply_softmax=False
+    )
     infer_time = time.perf_counter() - t1
     return {
         "method": "vi_bayes_by_backprop",
@@ -146,7 +165,9 @@ def run_vi(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, object
 
 def run_exact_gp(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, object]:
     _set_seed(cfg.seed)
-    x_train, y_train = _subset_train_data(dataset.x_train, dataset.y_train, cfg.max_train_points)
+    x_train, y_train = _subset_train_data(
+        dataset.x_train, dataset.y_train, cfg.max_train_points
+    )
     if x_train.shape[0] > cfg.max_exact_gp_train:
         idx = torch.randperm(x_train.shape[0])[: cfg.max_exact_gp_train]
         x_train = x_train[idx]
@@ -163,15 +184,23 @@ def run_exact_gp(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, 
     return {
         "method": "exact_gp",
         "mean": uq.mean.detach().cpu().unsqueeze(-1),
-        "var": uq.total_var.detach().cpu().unsqueeze(-1) if uq.total_var is not None else None,
+        "var": (
+            uq.total_var.detach().cpu().unsqueeze(-1)
+            if uq.total_var is not None
+            else None
+        ),
         "train_time_sec": train_time,
         "infer_time_sec": infer_time,
     }
 
 
-def run_sparse_gp(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str, object]:
+def run_sparse_gp(
+    dataset: RegressionDataset, cfg: BenchmarkConfig
+) -> Dict[str, object]:
     _set_seed(cfg.seed)
-    x_train, y_train = _subset_train_data(dataset.x_train, dataset.y_train, cfg.max_train_points)
+    x_train, y_train = _subset_train_data(
+        dataset.x_train, dataset.y_train, cfg.max_train_points
+    )
     if x_train.shape[0] > cfg.max_sparse_gp_train:
         idx = torch.randperm(x_train.shape[0])[: cfg.max_sparse_gp_train]
         x_train = x_train[idx]
@@ -193,13 +222,19 @@ def run_sparse_gp(dataset: RegressionDataset, cfg: BenchmarkConfig) -> Dict[str,
     return {
         "method": "sparse_gp",
         "mean": uq.mean.detach().cpu().unsqueeze(-1),
-        "var": uq.total_var.detach().cpu().unsqueeze(-1) if uq.total_var is not None else None,
+        "var": (
+            uq.total_var.detach().cpu().unsqueeze(-1)
+            if uq.total_var is not None
+            else None
+        ),
         "train_time_sec": train_time,
         "infer_time_sec": infer_time,
     }
 
 
-def run_all_methods(dataset: RegressionDataset, cfg: BenchmarkConfig) -> List[Dict[str, object]]:
+def run_all_methods(
+    dataset: RegressionDataset, cfg: BenchmarkConfig
+) -> List[Dict[str, object]]:
     runners = [run_mc_dropout, run_laplace, run_vi, run_exact_gp, run_sparse_gp]
     outputs: List[Dict[str, object]] = []
     for run in runners:

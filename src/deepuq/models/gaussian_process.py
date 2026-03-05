@@ -49,7 +49,9 @@ class RBFKernel:
         squared_dist = x1_sq + x2_sq - 2.0 * x1 @ x2.t()
         cov = self.outputscale * torch.exp(-0.5 * squared_dist)
         if x1.shape[0] == x2.shape[0] and torch.equal(x1, x2):
-            cov = cov + self.jitter * torch.eye(x1.shape[0], device=x1.device, dtype=x1.dtype)
+            cov = cov + self.jitter * torch.eye(
+                x1.shape[0], device=x1.device, dtype=x1.dtype
+            )
         return cov
 
 
@@ -130,7 +132,11 @@ class GaussianProcessRegressor:
         if x_star.ndim != 2:
             raise ValueError("x_star must be a 2D tensor of shape [N, D].")
 
-        assert self._x_train is not None and self._chol is not None and self._alpha is not None
+        assert (
+            self._x_train is not None
+            and self._chol is not None
+            and self._alpha is not None
+        )
         k_xs = self.kernel(self._x_train, x_star)
         pred_mean = k_xs.transpose(0, 1) @ self._alpha  # [N*, 1]
         v = torch.cholesky_solve(k_xs, self._chol)
@@ -169,7 +175,11 @@ class GaussianProcessRegressor:
     def log_marginal_likelihood(self) -> float:
         """Return the log marginal likelihood under the current training data."""
         self._check_is_fit()
-        assert self._y_train is not None and self._alpha is not None and self._chol is not None
+        assert (
+            self._y_train is not None
+            and self._alpha is not None
+            and self._chol is not None
+        )
         data_fit = -0.5 * torch.matmul(self._y_train.T, self._alpha)
         log_det = -torch.log(torch.diagonal(self._chol)).sum()
         constant = -0.5 * self._y_train.shape[0] * math.log(2.0 * math.pi)
@@ -213,11 +223,17 @@ class SparseGaussianProcessRegressor:
     def _prepare(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.to(device=self.device, dtype=self.dtype, copy=False)
 
-    def _rbf(self, x1: torch.Tensor, x2: torch.Tensor, lengthscale: torch.Tensor, outputscale: torch.Tensor) -> torch.Tensor:
+    def _rbf(
+        self,
+        x1: torch.Tensor,
+        x2: torch.Tensor,
+        lengthscale: torch.Tensor,
+        outputscale: torch.Tensor,
+    ) -> torch.Tensor:
         x1_scaled = x1 / lengthscale
         x2_scaled = x2 / lengthscale
-        x1_sq = (x1_scaled ** 2).sum(dim=-1, keepdim=True)
-        x2_sq = (x2_scaled ** 2).sum(dim=-1).unsqueeze(0)
+        x1_sq = (x1_scaled**2).sum(dim=-1, keepdim=True)
+        x2_sq = (x2_scaled**2).sum(dim=-1).unsqueeze(0)
         squared_dist = x1_sq + x2_sq - 2.0 * x1_scaled @ x2_scaled.t()
         cov = outputscale * torch.exp(-0.5 * squared_dist)
         return cov
@@ -234,9 +250,15 @@ class SparseGaussianProcessRegressor:
             perm = torch.randperm(n, device=x.device)
             inducing = x[perm[:m]].clone()
         self.inducing = nn.Parameter(inducing)
-        self.log_lengthscale = nn.Parameter(torch.log(torch.tensor(0.5, device=x.device, dtype=x.dtype)))
-        self.log_outputscale = nn.Parameter(torch.log(torch.tensor(1.0, device=x.device, dtype=x.dtype)))
-        self.log_noise = nn.Parameter(torch.log(torch.tensor(1e-2, device=x.device, dtype=x.dtype)))
+        self.log_lengthscale = nn.Parameter(
+            torch.log(torch.tensor(0.5, device=x.device, dtype=x.dtype))
+        )
+        self.log_outputscale = nn.Parameter(
+            torch.log(torch.tensor(1.0, device=x.device, dtype=x.dtype))
+        )
+        self.log_noise = nn.Parameter(
+            torch.log(torch.tensor(1e-2, device=x.device, dtype=x.dtype))
+        )
 
     def _compute_elbo(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         n = x.shape[0]
@@ -246,7 +268,9 @@ class SparseGaussianProcessRegressor:
         noise = torch.exp(self.log_noise) + self.min_noise
 
         Kmm = self._rbf(self.inducing, self.inducing, lengthscale, outputscale)
-        Kmm = Kmm + (self.kernel_jitter + noise * 0.0) * torch.eye(m, device=x.device, dtype=x.dtype)
+        Kmm = Kmm + (self.kernel_jitter + noise * 0.0) * torch.eye(
+            m, device=x.device, dtype=x.dtype
+        )
         Lmm = torch.linalg.cholesky(Kmm)
 
         Kmn = self._rbf(self.inducing, x, lengthscale, outputscale)
@@ -264,7 +288,10 @@ class SparseGaussianProcessRegressor:
         data_fit = torch.matmul(y.T, solve_A_y)
 
         trace_term = outputscale - (Kmn * Kmm_inv_Kmn).sum(dim=0)
-        elbo = -0.5 * (n * math.log(2.0 * math.pi) + log_det_A + data_fit) - 0.5 * trace_term.sum() / noise
+        elbo = (
+            -0.5 * (n * math.log(2.0 * math.pi) + log_det_A + data_fit)
+            - 0.5 * trace_term.sum() / noise
+        )
         return elbo.squeeze()
 
     def fit(self, x: torch.Tensor, y: torch.Tensor) -> "SparseGaussianProcessRegressor":
@@ -292,7 +319,9 @@ class SparseGaussianProcessRegressor:
             optimizer.step()
             self.elbo_history.append(float(elbo.detach()))
             if self.verbose and (it + 1) % max(1, self.num_iterations // 10) == 0:
-                print(f"[SparseGP] Iter {it+1:04d}/{self.num_iterations}: ELBO={elbo.item():.4f}")
+                print(
+                    f"[SparseGP] Iter {it+1:04d}/{self.num_iterations}: ELBO={elbo.item():.4f}"
+                )
 
         with torch.no_grad():
             params = self._posterior_cache(x, y)
@@ -306,7 +335,9 @@ class SparseGaussianProcessRegressor:
         self._fitted = True
         return self
 
-    def _posterior_cache(self, x: torch.Tensor, y: torch.Tensor) -> dict[str, torch.Tensor]:
+    def _posterior_cache(
+        self, x: torch.Tensor, y: torch.Tensor
+    ) -> dict[str, torch.Tensor]:
         lengthscale = torch.exp(self.log_lengthscale)
         outputscale = torch.exp(self.log_outputscale)
         noise = torch.exp(self.log_noise) + self.min_noise
@@ -314,7 +345,9 @@ class SparseGaussianProcessRegressor:
         inducing = self.inducing.detach().clone()
         Kmm = self._rbf(inducing, inducing, lengthscale, outputscale)
         m = inducing.shape[0]
-        Kmm = Kmm + self.kernel_jitter * torch.eye(m, device=inducing.device, dtype=inducing.dtype)
+        Kmm = Kmm + self.kernel_jitter * torch.eye(
+            m, device=inducing.device, dtype=inducing.dtype
+        )
         Lmm = torch.linalg.cholesky(Kmm)
 
         Kmn = self._rbf(inducing, x, lengthscale, outputscale)
@@ -367,8 +400,12 @@ class SparseGaussianProcessRegressor:
             K_ss = self._rbf(x_star, x_star, lengthscale, outputscale)
             cov = K_ss - K_sm @ self._Sigma @ K_sm.transpose(0, 1)
             if include_noise:
-                cov = cov + noise * torch.eye(x_star.shape[0], device=cov.device, dtype=cov.dtype)
-            cov = cov + self.kernel_jitter * torch.eye(x_star.shape[0], device=cov.device, dtype=cov.dtype)
+                cov = cov + noise * torch.eye(
+                    x_star.shape[0], device=cov.device, dtype=cov.dtype
+                )
+            cov = cov + self.kernel_jitter * torch.eye(
+                x_star.shape[0], device=cov.device, dtype=cov.dtype
+            )
             return mean.squeeze(-1), cov
 
         tmp = K_sm @ self._Sigma
@@ -396,5 +433,8 @@ class SparseGaussianProcessRegressor:
             total_var=total,
             probs=None,
             probs_var=None,
-            metadata={"method": "sparse_gp", "num_inducing": int(self.inducing_points_.shape[0])},
+            metadata={
+                "method": "sparse_gp",
+                "num_inducing": int(self.inducing_points_.shape[0]),
+            },
         )

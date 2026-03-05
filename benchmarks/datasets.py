@@ -62,7 +62,9 @@ def load_regression_datasets(seed: int = 42) -> List[RegressionDataset]:
             return_X_y=True,
             data_home=str(cache_dir),
         )
-        datasets.append(_to_regression_dataset("california_housing", x_cal, y_cal, seed))
+        datasets.append(
+            _to_regression_dataset("california_housing", x_cal, y_cal, seed)
+        )
     except Exception:
         pass
 

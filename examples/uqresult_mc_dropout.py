@@ -24,7 +24,12 @@ def main() -> None:
 
     uq_model = MCDropoutWrapper(model, n_mc=100, apply_softmax=False)
     uq = uq_model.predict_uq(x)
-    print("mean:", uq.mean.shape, "epistemic:", uq.epistemic_var.shape if uq.epistemic_var is not None else None)
+    print(
+        "mean:",
+        uq.mean.shape,
+        "epistemic:",
+        uq.epistemic_var.shape if uq.epistemic_var is not None else None,
+    )
 
 
 if __name__ == "__main__":

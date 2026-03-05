@@ -14,7 +14,9 @@ def _make_regression_loader(input_dim: int, n_samples: int = 64, batch_size: int
     return DataLoader(TensorDataset(x, y), batch_size=batch_size, shuffle=True)
 
 
-def _make_classification_loader(input_dim: int, n_classes: int = 3, n_samples: int = 72, batch_size: int = 18):
+def _make_classification_loader(
+    input_dim: int, n_classes: int = 3, n_samples: int = 72, batch_size: int = 18
+):
     gen = torch.Generator().manual_seed(321)
     x = torch.randn(n_samples, input_dim, generator=gen)
     logits = torch.randn(input_dim, n_classes, generator=gen)
@@ -51,18 +53,25 @@ def _fit_simple_classification_model(input_dim: int = 5, n_classes: int = 3):
 
 
 def test_supported_hessian_structures_and_validation():
-    expected = ('diag', 'fisher_diag', 'lowrank_diag', 'block_diag', 'kron', 'full')
+    expected = ("diag", "fisher_diag", "lowrank_diag", "block_diag", "kron", "full")
     assert LaplaceWrapper.supported_hessian_structures() == expected
 
     model = MLP(4, [8], 1)
-    with pytest.raises(ValueError, match='Unsupported hessian_structure'):
-        LaplaceWrapper(model, likelihood='regression', hessian_structure='not_a_structure')
+    with pytest.raises(ValueError, match="Unsupported hessian_structure"):
+        LaplaceWrapper(
+            model, likelihood="regression", hessian_structure="not_a_structure"
+        )
 
 
-@pytest.mark.parametrize('structure', LaplaceWrapper.supported_hessian_structures())
+@pytest.mark.parametrize("structure", LaplaceWrapper.supported_hessian_structures())
 def test_regression_predictive_outputs_are_finite(structure):
     model, train_loader = _fit_simple_regression_model(input_dim=4)
-    wrapper = LaplaceWrapper(model, likelihood='regression', hessian_structure=structure, subset_of_weights='last_layer')
+    wrapper = LaplaceWrapper(
+        model,
+        likelihood="regression",
+        hessian_structure=structure,
+        subset_of_weights="last_layer",
+    )
 
     wrapper.fit(train_loader, prior_precision=1.0)
     x_query = torch.randn(9, 4)
@@ -76,10 +85,15 @@ def test_regression_predictive_outputs_are_finite(structure):
     assert (var >= 0).all()
 
 
-@pytest.mark.parametrize('structure', LaplaceWrapper.supported_hessian_structures())
+@pytest.mark.parametrize("structure", LaplaceWrapper.supported_hessian_structures())
 def test_classification_predictive_contract(structure):
     model, train_loader = _fit_simple_classification_model(input_dim=5, n_classes=3)
-    wrapper = LaplaceWrapper(model, likelihood='classification', hessian_structure=structure, subset_of_weights='last_layer')
+    wrapper = LaplaceWrapper(
+        model,
+        likelihood="classification",
+        hessian_structure=structure,
+        subset_of_weights="last_layer",
+    )
 
     wrapper.fit(train_loader, prior_precision=1.0)
     x_query = torch.randn(11, 5)
@@ -95,11 +109,18 @@ def test_classification_predictive_contract(structure):
 
 def test_subset_combinations_work_for_native_structures():
     model, train_loader = _fit_simple_regression_model(input_dim=6)
-    for subset in ('last_layer', 'all'):
-        for structure in ('diag', 'fisher_diag', 'lowrank_diag', 'block_diag', 'kron', 'full'):
+    for subset in ("last_layer", "all"):
+        for structure in (
+            "diag",
+            "fisher_diag",
+            "lowrank_diag",
+            "block_diag",
+            "kron",
+            "full",
+        ):
             wrapper = LaplaceWrapper(
                 model,
-                likelihood='regression',
+                likelihood="regression",
                 hessian_structure=structure,
                 subset_of_weights=subset,
             )
@@ -116,12 +137,12 @@ def test_full_all_parameter_guardrail_triggers_before_backend():
 
     wrapper = LaplaceWrapper(
         model,
-        likelihood='regression',
-        hessian_structure='full',
-        subset_of_weights='all',
+        likelihood="regression",
+        hessian_structure="full",
+        subset_of_weights="all",
         full_max_params=1000,
     )
-    with pytest.raises(ValueError, match='full_max_params'):
+    with pytest.raises(ValueError, match="full_max_params"):
         wrapper.fit(train_loader, prior_precision=1.0)
 
 
@@ -130,9 +151,9 @@ def test_lowrank_rank_clipping_and_fallback_path():
 
     wrapper = LaplaceWrapper(
         model,
-        likelihood='regression',
-        hessian_structure='lowrank_diag',
-        subset_of_weights='last_layer',
+        likelihood="regression",
+        hessian_structure="lowrank_diag",
+        subset_of_weights="last_layer",
         lowrank_rank=999,
     )
     wrapper.fit(train_loader, prior_precision=1.0)
@@ -143,9 +164,10 @@ def test_lowrank_rank_clipping_and_fallback_path():
     assert torch.isfinite(mean).all()
     assert torch.isfinite(var).all()
 
+
 def test_backward_compatible_diag_path():
     model, train_loader = _fit_simple_regression_model(input_dim=4)
-    wrapper = LaplaceWrapper(model, likelihood='regression', hessian_structure='diag')
+    wrapper = LaplaceWrapper(model, likelihood="regression", hessian_structure="diag")
 
     wrapper.fit(train_loader, prior_precision=1.0)
     mean, var = wrapper.predict(torch.randn(6, 4), n_samples=12)

@@ -12,6 +12,7 @@ class SGLDOptimizer(torch.optim.Optimizer):
     This optimizer performs an SGD-like update with additive Gaussian noise
     calibrated by the step size, following Welling & Teh (2011).
     """
+
     def __init__(self, params, lr=1e-3, weight_decay=0.0):
         defaults = dict(lr=lr, weight_decay=weight_decay)
         super().__init__(params, defaults)
@@ -20,16 +21,17 @@ class SGLDOptimizer(torch.optim.Optimizer):
     def step(self):
         """Apply one SGLD parameter update in-place."""
         for group in self.param_groups:
-            lr = group['lr']
-            wd = group['weight_decay']
-            for p in group['params']:
+            lr = group["lr"]
+            wd = group["weight_decay"]
+            for p in group["params"]:
                 if p.grad is None:
                     continue
                 grad = p.grad
                 if wd != 0.0:
                     grad = grad + wd * p
-                noise = torch.randn_like(p) * (2 * lr)**0.5
+                noise = torch.randn_like(p) * (2 * lr) ** 0.5
                 p.add_(-lr * grad + noise)
+
 
 def collect_posterior_samples(
     model: nn.Module,
@@ -71,13 +73,18 @@ def collect_posterior_samples(
             step += 1
             if step > int(burn_in * n_steps):
                 # store a copy of parameters
-                samples.append({k: v.detach().cpu().clone() for k, v in model.state_dict().items()})
+                samples.append(
+                    {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+                )
             if step >= n_steps:
                 return samples
     return samples
 
+
 @torch.inference_mode()
-def predict_with_samples(model: nn.Module, samples, x, apply_softmax=True, device="cpu"):
+def predict_with_samples(
+    model: nn.Module, samples, x, apply_softmax=True, device="cpu"
+):
     """Predictive mean and variance from stored parameter samples."""
     preds = []
     for s in samples:
@@ -91,7 +98,9 @@ def predict_with_samples(model: nn.Module, samples, x, apply_softmax=True, devic
 
 
 @torch.inference_mode()
-def predict_with_samples_uq(model: nn.Module, samples, x, apply_softmax=True, device="cpu") -> UQResult:
+def predict_with_samples_uq(
+    model: nn.Module, samples, x, apply_softmax=True, device="cpu"
+) -> UQResult:
     """Predictive uncertainty summary from posterior samples."""
     mean, var = predict_with_samples(
         model=model,

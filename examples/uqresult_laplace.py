@@ -25,7 +25,12 @@ def main() -> None:
     la = LaplaceWrapper(model, likelihood="regression", hessian_structure="diag")
     la.fit(loader, prior_precision=1.0)
     uq = la.predict_uq(x, n_samples=80)
-    print("mean:", uq.mean.shape, "total_var:", uq.total_var.shape if uq.total_var is not None else None)
+    print(
+        "mean:",
+        uq.mean.shape,
+        "total_var:",
+        uq.total_var.shape if uq.total_var is not None else None,
+    )
 
 
 if __name__ == "__main__":

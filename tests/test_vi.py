@@ -36,7 +36,7 @@ def test_vi_elbo_finite_for_regression():
         x,
         y,
         num_batches=5,
-        criterion=nn.MSELoss(reduction='mean'),
+        criterion=nn.MSELoss(reduction="mean"),
     )
 
     assert torch.isfinite(loss)
@@ -64,13 +64,13 @@ def test_n_batches_backward_compat_emits_warning():
     y = torch.tensor([0, 1, 1, 0, 1, 0])
 
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter('always')
+        warnings.simplefilter("always")
         loss, nll, kl = vi_elbo_step(model, x, y, n_batches=3)
 
     assert torch.isfinite(loss)
     assert torch.isfinite(nll)
     assert torch.isfinite(kl)
-    assert any('deprecated' in str(w.message).lower() for w in caught)
+    assert any("deprecated" in str(w.message).lower() for w in caught)
 
 
 def test_mc_samples_path_returns_scalars():
@@ -84,7 +84,7 @@ def test_mc_samples_path_returns_scalars():
         x,
         y,
         num_batches=4,
-        criterion=nn.MSELoss(reduction='mean'),
+        criterion=nn.MSELoss(reduction="mean"),
         kl_weight=0.01,
         mc_samples=4,
     )
@@ -105,13 +105,13 @@ def test_vi_elbo_rejects_invalid_args():
 
     try:
         vi_elbo_step(model, x, y, num_batches=0)
-        raise AssertionError('Expected ValueError for num_batches=0')
+        raise AssertionError("Expected ValueError for num_batches=0")
     except ValueError:
         pass
 
     try:
         vi_elbo_step(model, x, y, num_batches=2, mc_samples=0)
-        raise AssertionError('Expected ValueError for mc_samples=0')
+        raise AssertionError("Expected ValueError for mc_samples=0")
     except ValueError:
         pass
 
@@ -133,7 +133,7 @@ def test_short_training_smoothed_elbo_decreases():
     train_loader = DataLoader(TensorDataset(x, y), batch_size=32, shuffle=True)
 
     model = BayesByBackpropMLP(1, [24, 24], 1, prior_sigma=0.5)
-    criterion = nn.MSELoss(reduction='mean')
+    criterion = nn.MSELoss(reduction="mean")
     optimizer = optim.Adam(model.parameters(), lr=5e-3)
     kl_weight = 0.01
     num_batches = len(train_loader)

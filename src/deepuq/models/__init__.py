@@ -5,4 +5,9 @@ from .gaussian_process import (
     SparseGaussianProcessRegressor,
 )
 
-__all__ = ["MLP", "GaussianProcessRegressor", "RBFKernel", "SparseGaussianProcessRegressor"]
+__all__ = [
+    "MLP",
+    "GaussianProcessRegressor",
+    "RBFKernel",
+    "SparseGaussianProcessRegressor",
+]

@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 class MLP(nn.Module):
     """Simple feed-forward MLP used across examples and tutorials."""
 
@@ -7,8 +8,8 @@ class MLP(nn.Module):
         super().__init__()
         dims = [input_dim] + list(hidden_dims) + [output_dim]
         layers = []
-        for i in range(len(dims)-2):
-            layers += [nn.Linear(dims[i], dims[i+1]), nn.ReLU(), nn.Dropout(p_drop)]
+        for i in range(len(dims) - 2):
+            layers += [nn.Linear(dims[i], dims[i + 1]), nn.ReLU(), nn.Dropout(p_drop)]
         layers += [nn.Linear(dims[-2], dims[-1])]
         self.net = nn.Sequential(*layers)
 

@@ -40,13 +40,19 @@ def run(config: BenchmarkConfig, output_dir: Path) -> List[dict]:
                         "nll": "nan",
                         "coverage95": "nan",
                         "interval_width95": "nan",
-                        "train_time_sec": _fmt(float(output.get("train_time_sec", float("nan")))),
-                        "infer_time_sec": _fmt(float(output.get("infer_time_sec", float("nan")))),
+                        "train_time_sec": _fmt(
+                            float(output.get("train_time_sec", float("nan")))
+                        ),
+                        "infer_time_sec": _fmt(
+                            float(output.get("infer_time_sec", float("nan")))
+                        ),
                         "status": f"error: {output.get('error', 'unknown')}",
                     }
                 )
             else:
-                metrics = regression_metrics(dataset.y_test, output["mean"], output.get("var"))
+                metrics = regression_metrics(
+                    dataset.y_test, output["mean"], output.get("var")
+                )
                 row.update(
                     {
                         "rmse": _fmt(metrics["rmse"]),

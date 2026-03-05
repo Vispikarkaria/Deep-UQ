@@ -203,7 +203,9 @@ def vi_elbo_step(
         raise ValueError("Provide only one batch-count value or make them equal.")
 
     if not isinstance(num_batches, int) or num_batches <= 0:
-        raise ValueError(f"num_batches must be a positive integer, got {num_batches!r}.")
+        raise ValueError(
+            f"num_batches must be a positive integer, got {num_batches!r}."
+        )
     if not isinstance(mc_samples, int) or mc_samples <= 0:
         raise ValueError(f"mc_samples must be a positive integer, got {mc_samples!r}.")
 
@@ -271,7 +273,11 @@ def predict_vi_uq(
             total_var=epistemic,
             probs=mean,
             probs_var=epistemic,
-            metadata={"method": "vi", "n_samples": int(n_samples), "task": "classification"},
+            metadata={
+                "method": "vi",
+                "n_samples": int(n_samples),
+                "task": "classification",
+            },
         )
 
     if aleatoric_var is not None:

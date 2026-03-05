@@ -57,7 +57,12 @@ def test_laplace_predict_uq_regression_shapes():
             loss.backward()
             opt.step()
 
-    la = LaplaceWrapper(model, likelihood="regression", hessian_structure="diag", subset_of_weights="last_layer")
+    la = LaplaceWrapper(
+        model,
+        likelihood="regression",
+        hessian_structure="diag",
+        subset_of_weights="last_layer",
+    )
     la.fit(loader, prior_precision=1.0)
     uq = la.predict_uq(torch.randn(5, 3), n_samples=10)
 
@@ -83,7 +88,12 @@ def test_laplace_predict_uq_classification_fields():
             loss.backward()
             opt.step()
 
-    la = LaplaceWrapper(model, likelihood="classification", hessian_structure="diag", subset_of_weights="last_layer")
+    la = LaplaceWrapper(
+        model,
+        likelihood="classification",
+        hessian_structure="diag",
+        subset_of_weights="last_layer",
+    )
     la.fit(loader, prior_precision=1.0)
     uq = la.predict_uq(torch.randn(6, 4), n_samples=8)
     assert uq.probs is not None
@@ -101,9 +111,13 @@ def test_mcmc_predict_with_samples_uq():
         with torch.no_grad():
             for p in model.parameters():
                 p.add_(0.01 * torch.randn_like(p))
-        samples.append({k: v.detach().cpu().clone() for k, v in model.state_dict().items()})
+        samples.append(
+            {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+        )
 
-    legacy_mean, legacy_var = predict_with_samples(model, samples, x, apply_softmax=False)
+    legacy_mean, legacy_var = predict_with_samples(
+        model, samples, x, apply_softmax=False
+    )
     uq = predict_with_samples_uq(model, samples, x, apply_softmax=False)
 
     assert isinstance(uq, UQResult)
@@ -134,7 +148,9 @@ def test_gp_predict_uq_shapes():
     assert exact_uq.mean.shape == (5,)
     assert exact_uq.total_var is not None and exact_uq.total_var.shape == (5,)
 
-    sparse = SparseGaussianProcessRegressor(num_inducing=8, num_iterations=5, verbose=False)
+    sparse = SparseGaussianProcessRegressor(
+        num_inducing=8, num_iterations=5, verbose=False
+    )
     sparse.fit(x, y)
     sparse_uq = sparse.predict_uq(x[:5])
     assert isinstance(sparse_uq, UQResult)

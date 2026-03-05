@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from deepuq.models import MLP
 from deepuq.methods import LaplaceWrapper
 
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 L = 2.0
 w_load = 4000.0
@@ -52,12 +52,12 @@ for epoch in range(200):
 # Try other structures:
 #   'fisher_diag', 'lowrank_diag', 'block_diag' (native)
 #   'kron', 'full' (native in deepuq)
-laplace_structure = 'diag'
+laplace_structure = "diag"
 la = LaplaceWrapper(
     model,
-    likelihood='regression',
+    likelihood="regression",
     hessian_structure=laplace_structure,
-    subset_of_weights='last_layer',
+    subset_of_weights="last_layer",
 )
 la.fit(train_loader, prior_precision=1.0)
 mean, var = la.predict(x_grid.to(DEVICE), n_samples=200)
@@ -68,13 +68,26 @@ lower = mean - 1.96 * std
 upper = mean + 1.96 * std
 
 plt.figure(figsize=(7, 4))
-plt.scatter(x_train.numpy(), y_train.numpy(), s=14, alpha=0.5, label='Noisy samples')
-plt.plot(x_grid.numpy(), y_grid_true.numpy(), color='black', linewidth=2, label='True deflection')
-plt.plot(x_grid.numpy(), mean.numpy(), color='tab:blue', label='Laplace mean')
-plt.fill_between(x_grid.squeeze().numpy(), lower.squeeze().numpy(), upper.squeeze().numpy(), alpha=0.2, color='tab:blue', label='95% interval')
-plt.xlabel('Position x (m)')
-plt.ylabel('Deflection y (mm)')
-plt.title('Laplace confidence bounds')
+plt.scatter(x_train.numpy(), y_train.numpy(), s=14, alpha=0.5, label="Noisy samples")
+plt.plot(
+    x_grid.numpy(),
+    y_grid_true.numpy(),
+    color="black",
+    linewidth=2,
+    label="True deflection",
+)
+plt.plot(x_grid.numpy(), mean.numpy(), color="tab:blue", label="Laplace mean")
+plt.fill_between(
+    x_grid.squeeze().numpy(),
+    lower.squeeze().numpy(),
+    upper.squeeze().numpy(),
+    alpha=0.2,
+    color="tab:blue",
+    label="95% interval",
+)
+plt.xlabel("Position x (m)")
+plt.ylabel("Deflection y (mm)")
+plt.title("Laplace confidence bounds")
 plt.legend(frameon=False)
 plt.tight_layout()
 plt.show()
