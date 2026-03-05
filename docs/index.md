@@ -53,12 +53,7 @@ Deep-UQ is built for engineers and researchers who need uncertainty-aware modeli
 | Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper`, `predict_uq` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
 | MCMC | Stochastic Gradient Langevin Dynamics | `SGLDOptimizer`, `predict_with_samples_uq` | `notebooks/SGLD_Tutorial.ipynb` |
 | MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper`, `predict_uq` | `notebooks/MC_Dropout_Tutorial.ipynb` |
-| Gaussian Process | Exact GP + kernel composition (`RBF`, Matérn, RQ, Periodic, Linear) | `GaussianProcessRegressor`, kernels, `predict_uq` | `notebooks/gp/GP_Exact_Tutorial.ipynb` |
-| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_Sparse_Tutorial.ipynb` |
-| GP Classification | Binary + OvR multiclass | `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`, `predict_uq` | `notebooks/gp/GP_Classification_Tutorial.ipynb` |
-| GP Heteroscedastic | Input-dependent noise | `HeteroscedasticGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb` |
-| GP Multi-task | ICM coregionalization | `MultiTaskGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb` |
-| GP Spectral + DKL | Spectral mixture + deep kernel learning | `SpectralMixtureGaussianProcessRegressor`, `DeepKernelGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_SpectralMixture_Tutorial.ipynb`, `notebooks/gp/GP_DeepKernel_Tutorial.ipynb` |
+| Gaussian Processes | Exact, sparse, classification (binary + OvR), heteroscedastic, multi-task ICM, spectral mixture, deep kernel, and kernel composition (`RBF`, Matérn, RQ, Periodic, Linear) | `GaussianProcessRegressor`, `SparseGaussianProcessRegressor`, `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`, `HeteroscedasticGaussianProcessRegressor`, `MultiTaskGaussianProcessRegressor`, `SpectralMixtureGaussianProcessRegressor`, `DeepKernelGaussianProcessRegressor`, kernel classes, `predict_uq` | `notebooks/gp/GP_Model_Comparison.ipynb` (see all under `notebooks/gp/`) |
 
 ## Choosing a Method
 
