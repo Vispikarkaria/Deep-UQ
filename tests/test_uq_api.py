@@ -10,6 +10,14 @@ from deepuq.methods import (
     predict_with_samples_uq,
 )
 from deepuq.models import GaussianProcessRegressor, MLP, SparseGaussianProcessRegressor
+from deepuq.models import (
+    DeepKernelGaussianProcessRegressor,
+    GaussianProcessClassifier,
+    HeteroscedasticGaussianProcessRegressor,
+    MultiTaskGaussianProcessRegressor,
+    OneVsRestGaussianProcessClassifier,
+    SpectralMixtureGaussianProcessRegressor,
+)
 from deepuq.types import UQResult
 
 
@@ -156,3 +164,73 @@ def test_gp_predict_uq_shapes():
     assert isinstance(sparse_uq, UQResult)
     assert sparse_uq.mean.shape == (5,)
     assert sparse_uq.total_var is not None and sparse_uq.total_var.shape == (5,)
+
+
+def test_new_gp_regressors_predict_uq_contract():
+    x = torch.linspace(-1.0, 1.0, 32).unsqueeze(-1)
+    y = torch.sin(2 * torch.pi * x) + 0.05 * torch.randn_like(x)
+    x_test = torch.linspace(-1.4, 1.4, 12).unsqueeze(-1)
+
+    hetero = HeteroscedasticGaussianProcessRegressor(num_alternations=3)
+    hetero.fit(x, y)
+    hetero_uq = hetero.predict_uq(x_test)
+    assert hetero_uq.total_var is not None
+    assert hetero_uq.aleatoric_var is not None
+    assert hetero_uq.metadata["method"] == "heteroscedastic_gp"
+
+    sm = SpectralMixtureGaussianProcessRegressor(num_mixtures=2, opt_steps=30)
+    sm.fit(x, y)
+    sm_uq = sm.predict_uq(x_test)
+    assert sm_uq.total_var is not None
+    assert sm_uq.metadata["method"] == "spectral_mixture_gp"
+
+    x_dkl = torch.cat([x, x**2, torch.sin(3 * x)], dim=1)
+    x_dkl_test = torch.cat([x_test, x_test**2, torch.sin(3 * x_test)], dim=1)
+    dkl = DeepKernelGaussianProcessRegressor(
+        feature_dim=8,
+        hidden_dims=(16, 16),
+        epochs=25,
+        lr=1e-3,
+    )
+    dkl.fit(x_dkl, y)
+    dkl_uq = dkl.predict_uq(x_dkl_test)
+    assert dkl_uq.total_var is not None
+    assert dkl_uq.metadata["method"] == "deep_kernel_gp"
+
+
+def test_new_gp_classifiers_predict_uq_contract():
+    x = torch.randn(36, 2)
+    y_bin = (x[:, 0] + 0.4 * x[:, 1] > 0).float()
+    y_multi = torch.bucketize(
+        x[:, 0] - 0.3 * x[:, 1],
+        boundaries=torch.tensor([-0.2, 0.4]),
+    )
+    x_test = torch.randn(10, 2)
+
+    gpc = GaussianProcessClassifier(max_iter=10, tol=1e-4)
+    gpc.fit(x, y_bin)
+    gpc_uq = gpc.predict_uq(x_test)
+    assert gpc_uq.probs is not None and gpc_uq.probs.shape == (10, 2)
+    assert gpc_uq.total_var is None
+
+    ovr = OneVsRestGaussianProcessClassifier(max_iter=8, tol=1e-4)
+    ovr.fit(x, y_multi)
+    ovr_uq = ovr.predict_uq(x_test)
+    assert ovr_uq.probs is not None
+    assert ovr_uq.probs.shape[0] == 10
+    row_sums = ovr_uq.probs.sum(dim=1)
+    assert torch.allclose(row_sums, torch.ones_like(row_sums), atol=1e-3)
+
+
+def test_multitask_gp_predict_uq_contract():
+    x = torch.linspace(-1.0, 1.0, 20).unsqueeze(-1)
+    y1 = torch.sin(1.2 * x)
+    y2 = 0.6 * torch.cos(1.0 * x)
+    y = torch.cat([y1, y2], dim=1)
+
+    model = MultiTaskGaussianProcessRegressor(num_tasks=2, opt_steps=25, lr=0.05)
+    model.fit(x, y)
+    uq = model.predict_uq(x[:6])
+    assert uq.mean.shape == (6, 2)
+    assert uq.total_var is not None and uq.total_var.shape == (6, 2)
+    assert uq.metadata["method"] == "multitask_icm_gp"

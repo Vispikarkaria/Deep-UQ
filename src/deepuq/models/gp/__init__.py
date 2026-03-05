@@ -1,28 +1,26 @@
-"""Public Gaussian process APIs for Deep-UQ.
+"""Gaussian process model families and kernels."""
 
-This module preserves historical import paths while delegating implementations
-into ``deepuq.models.gp``.
-"""
-
-from .gp import (
-    DeepKernelGaussianProcessRegressor,
+from .classification import (
     GaussianProcessClassifier,
-    GaussianProcessRegressor,
-    HeteroscedasticGaussianProcessRegressor,
+    OneVsRestGaussianProcessClassifier,
+)
+from .deep_kernel import DeepKernelGaussianProcessRegressor
+from .exact_regression import GaussianProcessRegressor
+from .heteroscedastic import HeteroscedasticGaussianProcessRegressor
+from .kernels import (
     Kernel,
     LinearKernel,
     MaternKernel,
-    MultiTaskGaussianProcessRegressor,
-    OneVsRestGaussianProcessClassifier,
     PeriodicKernel,
     ProductKernel,
     RBFKernel,
     RationalQuadraticKernel,
-    SparseGaussianProcessRegressor,
-    SpectralMixtureGaussianProcessRegressor,
     SpectralMixtureKernel,
     SumKernel,
 )
+from .multitask_icm import MultiTaskGaussianProcessRegressor
+from .sparse_regression import SparseGaussianProcessRegressor
+from .spectral_mixture import SpectralMixtureGaussianProcessRegressor
 
 __all__ = [
     "Kernel",

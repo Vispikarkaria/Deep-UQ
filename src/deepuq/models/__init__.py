@@ -1,13 +1,39 @@
-from .simple import MLP
 from .gaussian_process import (
+    DeepKernelGaussianProcessRegressor,
+    GaussianProcessClassifier,
     GaussianProcessRegressor,
+    HeteroscedasticGaussianProcessRegressor,
+    LinearKernel,
+    MaternKernel,
+    MultiTaskGaussianProcessRegressor,
+    OneVsRestGaussianProcessClassifier,
+    PeriodicKernel,
+    ProductKernel,
     RBFKernel,
+    RationalQuadraticKernel,
     SparseGaussianProcessRegressor,
+    SpectralMixtureGaussianProcessRegressor,
+    SpectralMixtureKernel,
+    SumKernel,
 )
+from .simple import MLP
 
 __all__ = [
     "MLP",
-    "GaussianProcessRegressor",
     "RBFKernel",
+    "MaternKernel",
+    "RationalQuadraticKernel",
+    "PeriodicKernel",
+    "LinearKernel",
+    "SpectralMixtureKernel",
+    "SumKernel",
+    "ProductKernel",
+    "GaussianProcessRegressor",
     "SparseGaussianProcessRegressor",
+    "GaussianProcessClassifier",
+    "OneVsRestGaussianProcessClassifier",
+    "HeteroscedasticGaussianProcessRegressor",
+    "MultiTaskGaussianProcessRegressor",
+    "SpectralMixtureGaussianProcessRegressor",
+    "DeepKernelGaussianProcessRegressor",
 ]

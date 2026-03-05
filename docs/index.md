@@ -42,7 +42,7 @@ Deep-UQ is built for engineers and researchers who need uncertainty-aware modeli
 - Five UQ families in one interface surface.
 - Consistent regression/classification uncertainty outputs through `UQResult`.
 - Native Laplace backends for `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, and `full`.
-- Exact and sparse Gaussian Process baselines for calibration-focused comparisons.
+- Full Gaussian Process suite: exact, sparse, classification, heteroscedastic, multitask, spectral, and deep-kernel variants.
 - Reproducible tutorials, examples, and benchmark scripts.
 
 ## Method Summary
@@ -53,8 +53,12 @@ Deep-UQ is built for engineers and researchers who need uncertainty-aware modeli
 | Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper`, `predict_uq` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
 | MCMC | Stochastic Gradient Langevin Dynamics | `SGLDOptimizer`, `predict_with_samples_uq` | `notebooks/SGLD_Tutorial.ipynb` |
 | MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper`, `predict_uq` | `notebooks/MC_Dropout_Tutorial.ipynb` |
-| Gaussian Process | Exact GP (`RBFKernel`) | `GaussianProcessRegressor`, `predict_uq` | `notebooks/GaussianProcess_Tutorial.ipynb` |
-| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor`, `predict_uq` | `notebooks/SparseGaussianProcess_Tutorial.ipynb` |
+| Gaussian Process | Exact GP + kernel composition (`RBF`, Matérn, RQ, Periodic, Linear) | `GaussianProcessRegressor`, kernels, `predict_uq` | `notebooks/gp/GP_Exact_Tutorial.ipynb` |
+| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_Sparse_Tutorial.ipynb` |
+| GP Classification | Binary + OvR multiclass | `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`, `predict_uq` | `notebooks/gp/GP_Classification_Tutorial.ipynb` |
+| GP Heteroscedastic | Input-dependent noise | `HeteroscedasticGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb` |
+| GP Multi-task | ICM coregionalization | `MultiTaskGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb` |
+| GP Spectral + DKL | Spectral mixture + deep kernel learning | `SpectralMixtureGaussianProcessRegressor`, `DeepKernelGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_SpectralMixture_Tutorial.ipynb`, `notebooks/gp/GP_DeepKernel_Tutorial.ipynb` |
 
 ## Choosing a Method
 

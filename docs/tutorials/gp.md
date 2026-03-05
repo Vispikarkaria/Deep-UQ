@@ -1,26 +1,33 @@
 # Tutorial: Gaussian Processes
 
-Notebooks:
+The GP tutorial suite lives under `notebooks/gp/` and covers exact, sparse, classification, heteroscedastic, multitask, spectral, and deep-kernel models.
 
-- [GaussianProcess_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/GaussianProcess_Tutorial.ipynb)
-- [SparseGaussianProcess_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/SparseGaussianProcess_Tutorial.ipynb)
+## Notebook Index
 
-## Purpose
+- [GP_Exact_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_Exact_Tutorial.ipynb)
+- [GP_Sparse_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_Sparse_Tutorial.ipynb)
+- [GP_Kernel_Zoo_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_Kernel_Zoo_Tutorial.ipynb)
+- [GP_Classification_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_Classification_Tutorial.ipynb)
+- [GP_Heteroscedastic_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb)
+- [GP_MultiTask_ICM_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb)
+- [GP_SpectralMixture_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_SpectralMixture_Tutorial.ipynb)
+- [GP_DeepKernel_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_DeepKernel_Tutorial.ipynb)
+- [GP_Model_Comparison.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/gp/GP_Model_Comparison.ipynb)
 
-Compare exact GP and sparse variational GP behavior on regression tasks.
+## Legacy Paths
 
-## Data Setup
+The original root notebook paths are kept as lightweight compatibility stubs:
 
-- smooth synthetic regression functions
-- varying sample density and noise
+- `notebooks/GaussianProcess_Tutorial.ipynb`
+- `notebooks/SparseGaussianProcess_Tutorial.ipynb`
 
-## Core Logic
+## Common Evaluation Protocol
 
-- exact posterior inference with RBF kernels
-- sparse inducing-point approximation optimized with ELBO
+Across notebooks, we emphasize calibration-first metrics:
 
-## Expected Outputs
+- RMSE
+- Gaussian NLL
+- 95% interval coverage
+- Mean 95% interval width
 
-- posterior mean and variance plots
-- posterior samples
-- training objective trends for sparse GP
+Each notebook uses deterministic seeds and quick default configs for CPU-friendly runtime.

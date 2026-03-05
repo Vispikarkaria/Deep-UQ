@@ -6,13 +6,13 @@ Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
 ![lint](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/lint.yml/badge.svg)
 ![docs](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/docs.yml/badge.svg)
 
-Implements **five** widely used methods:
+Implements **five** widely used UQ families with multiple variants:
 
 1. **Variational Inference (VI)** — Bayes by Backprop with BayesianLinear layers.
 2. **Laplace Approximation** — native backends for all supported structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`).
 3. **MCMC (SGLD)** — Stochastic Gradient Langevin Dynamics sampler for NN posteriors.
 4. **MC Dropout** — Keep dropout active at test-time and aggregate Monte Carlo predictions.
-5. **Gaussian Processes (GPs)** — Exact regression and sparse inducing-point approximations with RBF kernels.
+5. **Gaussian Processes (GPs)** — Exact, sparse, classification, heteroscedastic, multitask, spectral-mixture, and deep-kernel GP variants.
 
 Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regression task to illustrate confidence bounds.
 
@@ -24,8 +24,13 @@ Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regr
 | Laplace Approximation | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper`, `predict_uq` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
 | MCMC | Stochastic Gradient Langevin Dynamics | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | `notebooks/SGLD_Tutorial.ipynb` |
 | MC Dropout | Monte Carlo dropout inference | `MCDropoutWrapper`, `predict_uq` | `notebooks/MC_Dropout_Tutorial.ipynb` |
-| Gaussian Process | Exact GP (`RBFKernel`) | `GaussianProcessRegressor`, `predict_uq` | `notebooks/GaussianProcess_Tutorial.ipynb` |
-| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor`, `predict_uq` | `notebooks/SparseGaussianProcess_Tutorial.ipynb` |
+| Gaussian Process | Exact GP + kernel zoo (`RBF`, Matérn, RQ, Periodic, Linear, composition) | `GaussianProcessRegressor`, kernels, `predict_uq` | `notebooks/gp/GP_Exact_Tutorial.ipynb` |
+| Sparse GP | Variational inducing-point GP | `SparseGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_Sparse_Tutorial.ipynb` |
+| GP Classification | Binary + OvR multiclass | `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`, `predict_uq` | `notebooks/gp/GP_Classification_Tutorial.ipynb` |
+| GP Heteroscedastic | Input-dependent noise regression | `HeteroscedasticGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb` |
+| GP Multi-task | ICM coregionalized regression | `MultiTaskGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb` |
+| GP Spectral | Spectral mixture GP | `SpectralMixtureGaussianProcessRegressor`, `SpectralMixtureKernel`, `predict_uq` | `notebooks/gp/GP_SpectralMixture_Tutorial.ipynb` |
+| GP Deep Kernel | NN feature extractor + GP head | `DeepKernelGaussianProcessRegressor`, `predict_uq` | `notebooks/gp/GP_DeepKernel_Tutorial.ipynb` |
 
 ## Documentation Website
 
@@ -112,7 +117,7 @@ print(uq.mean.shape, uq.total_var.shape)
 - **Laplace**: Fit a Gaussian around a MAP solution using one of multiple curvature structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`) and calibrate with a prior precision.
 - **MCMC (SGLD)**: Inject Gaussian noise into SGD steps to sample from the posterior.
 - **MC Dropout**: Use dropout at inference; Monte Carlo average for mean and variance.
-- **Gaussian Processes**: Closed-form posterior inference with RBF kernels for regression and uncertainty-aware interpolation.
+- **Gaussian Processes**: Full GP suite for regression and classification, including richer kernels and advanced structured variants.
 
 For Laplace users:
 - All supported structures are implemented natively in `deepuq`.
@@ -126,29 +131,39 @@ For Laplace users:
 - `notebooks/laplace/Laplace_FullHessian_Tutorial.ipynb`: Full-Hessian Laplace example.
 - `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb`: Side-by-side comparison of all Hessian structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`) using shared MAP weights and common metrics (RMSE, NLL, coverage, interval width, ID/OOD uncertainty ratio).
 - `notebooks/SGLD_Tutorial.ipynb`: MCMC posterior sampling with SGLD.
-- `notebooks/GaussianProcess_Tutorial.ipynb`: Exact Gaussian Process regression.
-- `notebooks/SparseGaussianProcess_Tutorial.ipynb`: Sparse variational GP with inducing points.
+- `notebooks/gp/GP_Exact_Tutorial.ipynb`: Exact Gaussian Process regression on an engineering-style deflection task.
+- `notebooks/gp/GP_Sparse_Tutorial.ipynb`: Sparse variational GP with inducing points and ELBO trend.
+- `notebooks/gp/GP_Kernel_Zoo_Tutorial.ipynb`: Kernel misspecification and calibration comparison.
+- `notebooks/gp/GP_Classification_Tutorial.ipynb`: Binary and OvR GP classification uncertainty.
+- `notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb`: Input-dependent noise decomposition.
+- `notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb`: Correlated multi-output ICM GP.
+- `notebooks/gp/GP_SpectralMixture_Tutorial.ipynb`: Multi-frequency spectral mixture GP.
+- `notebooks/gp/GP_DeepKernel_Tutorial.ipynb`: Deep kernel GP for representation-rich inputs.
+- `notebooks/gp/GP_Model_Comparison.ipynb`: Calibration and runtime comparison across GP families.
 
 ### Gaussian Processes
 
-The module `deepuq.models.gaussian_process` provides lightweight GP utilities
-implemented entirely in PyTorch so everything can run on CPU or GPU.
+The module `deepuq.models.gaussian_process` provides a lightweight, pure-PyTorch GP suite so everything runs on CPU or GPU without extra GP dependencies.
 
-#### Exact GP
+#### Exact GP + Kernel Variants
 
-`GaussianProcessRegressor` implements closed-form inference with an RBF kernel.
-The API mirrors scikit-learn while keeping tensors on the chosen device.
+`GaussianProcessRegressor` supports exact regression with interchangeable kernels (`RBFKernel`, `MaternKernel`, `RationalQuadraticKernel`, `PeriodicKernel`, `LinearKernel`) and kernel composition via `+` and `*`.
 
 ```python
 import torch
-from deepuq.models import GaussianProcessRegressor, RBFKernel
+from deepuq.models import (
+    GaussianProcessRegressor,
+    RBFKernel,
+    PeriodicKernel,
+    LinearKernel,
+)
 
 # Training data
 x = torch.linspace(-1.0, 1.0, 40).unsqueeze(-1)
 y = torch.sin(2 * torch.pi * x) + 0.05 * torch.randn_like(x)
 
 # Model setup
-kernel = RBFKernel(lengthscale=0.5, outputscale=1.0)
+kernel = PeriodicKernel(lengthscale=0.6, outputscale=0.8, period=2.0) + LinearKernel(variance=0.05)
 gp = GaussianProcessRegressor(kernel=kernel, noise=0.02)
 gp.fit(x, y)
 
@@ -176,11 +191,18 @@ sparse_gp.fit(x, y)
 mean, var = sparse_gp.predict(x[:50])
 ```
 
-Explore both flavours in the notebooks
-`notebooks/GaussianProcess_Tutorial.ipynb` (exact GP) and
-`notebooks/SparseGaussianProcess_Tutorial.ipynb` (sparse GP), each of which
-visualises posterior means, credible intervals, and posterior samples on toy
-datasets.
+#### Additional GP Families
+
+- Classification: `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`
+- Heteroscedastic regression: `HeteroscedasticGaussianProcessRegressor`
+- Multi-task regression (ICM): `MultiTaskGaussianProcessRegressor`
+- Spectral mixture regression: `SpectralMixtureGaussianProcessRegressor`
+- Deep kernel regression: `DeepKernelGaussianProcessRegressor`
+
+Explore the full suite under `notebooks/gp/`.
+Legacy notebook paths are kept as compatibility stubs:
+- `notebooks/GaussianProcess_Tutorial.ipynb`
+- `notebooks/SparseGaussianProcess_Tutorial.ipynb`
 
 ## Documentation
 

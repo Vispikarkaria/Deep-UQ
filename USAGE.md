@@ -110,6 +110,51 @@ sgp.fit(x_train, y_train)
 uq_result = sgp.predict_uq(x_batch)
 ```
 
+Kernel variants and composition:
+```python
+from deepuq.models import (
+    GaussianProcessRegressor,
+    MaternKernel,
+    PeriodicKernel,
+    LinearKernel,
+)
+
+kernel = MaternKernel(lengthscale=0.8, outputscale=1.1, nu=2.5) + PeriodicKernel(
+    lengthscale=0.6, outputscale=0.7, period=2.2
+) * LinearKernel(variance=0.02)
+gp = GaussianProcessRegressor(kernel=kernel, noise=0.01)
+```
+
+GP classification:
+```python
+from deepuq.models import GaussianProcessClassifier, OneVsRestGaussianProcessClassifier
+
+gpc = GaussianProcessClassifier()
+gpc.fit(x_train, y_binary)
+uq_binary = gpc.predict_uq(x_batch)
+
+ovr = OneVsRestGaussianProcessClassifier()
+ovr.fit(x_train, y_multiclass)
+uq_multi = ovr.predict_uq(x_batch)
+```
+
+Advanced GP regressors:
+```python
+from deepuq.models import (
+    DeepKernelGaussianProcessRegressor,
+    HeteroscedasticGaussianProcessRegressor,
+    MultiTaskGaussianProcessRegressor,
+    SpectralMixtureGaussianProcessRegressor,
+)
+
+het = HeteroscedasticGaussianProcessRegressor().fit(x_train, y_train)
+sm = SpectralMixtureGaussianProcessRegressor(num_mixtures=4).fit(x_train, y_train)
+dkl = DeepKernelGaussianProcessRegressor().fit(x_train_features, y_train)
+mt = MultiTaskGaussianProcessRegressor(num_tasks=3).fit(x_train, y_train_multi)
+```
+
+GP tutorials are organized under `notebooks/gp/`.
+
 ## Calibration and Metrics
 - For regression, track **RMSE**, **MAE**, and 95% interval coverage.
 - Adjust `n_mc` or posterior sample counts to stabilize uncertainty bands.

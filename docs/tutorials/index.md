@@ -14,3 +14,4 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 
 - Main notebooks: [`notebooks/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks)
 - Laplace notebooks: [`notebooks/laplace/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/laplace)
+- Gaussian Process notebooks: [`notebooks/gp/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/gp)
