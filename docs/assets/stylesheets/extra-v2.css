@@ -154,6 +154,16 @@ pre,
   text-align: center;
 }
 
+.family-matrix tbody td:nth-child(7),
+.family-matrix thead th:nth-child(7) {
+  min-width: 22rem;
+}
+
+.family-matrix tbody td:nth-child(8),
+.family-matrix thead th:nth-child(8) {
+  min-width: 11rem;
+}
+
 .family-chip {
   display: inline-block;
   margin: 0 0.35rem 0.2rem 0;
@@ -267,5 +277,15 @@ span.arithmatex.math-fallback {
 
   .family-table-block {
     padding: 0.9rem 0.75rem 0.55rem;
+  }
+}
+
+@media (min-width: 1220px) {
+  .md-grid {
+    max-width: 96rem;
+  }
+
+  .md-content {
+    max-width: none;
   }
 }
