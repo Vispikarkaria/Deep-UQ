@@ -104,7 +104,7 @@ pre,
 
 .family-table-block table {
   width: 100%;
-  min-width: 980px;
+  min-width: 860px;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.95rem;
@@ -139,6 +139,21 @@ pre,
   font-weight: 700;
 }
 
+.family-matrix tbody td:nth-child(2),
+.family-matrix tbody td:nth-child(3),
+.family-matrix tbody td:nth-child(4),
+.family-matrix tbody td:nth-child(5),
+.family-matrix tbody td:nth-child(6),
+.family-matrix thead th:nth-child(2),
+.family-matrix thead th:nth-child(3),
+.family-matrix thead th:nth-child(4),
+.family-matrix thead th:nth-child(5),
+.family-matrix thead th:nth-child(6) {
+  width: 4.8rem;
+  min-width: 4.8rem;
+  text-align: center;
+}
+
 .family-chip {
   display: inline-block;
   margin: 0 0.35rem 0.2rem 0;
@@ -156,6 +171,30 @@ pre,
   border-color: rgba(11, 132, 243, 0.28);
   background: rgba(11, 132, 243, 0.1);
   color: #0a67b3;
+}
+
+.family-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.family-mark--yes {
+  color: #0d6f35;
+  background: rgba(37, 167, 74, 0.14);
+  border-color: rgba(37, 167, 74, 0.3);
+}
+
+.family-mark--no {
+  color: #b43333;
+  background: rgba(210, 50, 50, 0.12);
+  border-color: rgba(210, 50, 50, 0.25);
 }
 
 .uq-chip {

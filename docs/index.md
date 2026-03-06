@@ -51,7 +51,9 @@ The website is the canonical reading surface for the method guides below. Each
 family section here gives a compact comparison table, then links to the full
 method page, API reference, and tutorial guide.
 
-<div class="family-table-block reveal" markdown="1">
+Legend: <span class="family-mark family-mark--yes">✓</span> direct support, <span class="family-mark family-mark--no">✗</span> not a primary capability for that method.
+
+<div class="family-table-block family-matrix reveal" markdown="1">
 ### Variational Inference
 
 Bayes by Backprop is Deep-UQ's end-to-end Bayesian neural network family. Use
@@ -59,12 +61,12 @@ it when you want weight uncertainty learned directly during training.
 
 <p class="family-table-readmore"><strong>Read more:</strong> <a href="methods/variational-inference/">Variational Inference method guide</a></p>
 
-| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
-|---|---|---|---|---|---|---|
-| Bayes by Backprop | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Epistemic</span> | End-to-end Bayesian neural-network training | `BayesianLinear`, `BayesByBackpropMLP`, `vi_elbo_step`, `predict_vi_uq` | [Guide](methods/variational-inference.md)<br>[API](api/methods/vi.md) | [Guide](tutorials/bayes-by-backprop.md)<br>`notebooks/BayesByBackprop_Tutorial.ipynb` |
+| Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
+|---|---|---|---|---|---|---|---|
+| Bayes by Backprop | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `BayesianLinear`, `BayesByBackpropMLP`, `vi_elbo_step`, `predict_vi_uq` | [Guide](methods/variational-inference.md)<br>[API](api/methods/vi.md)<br>[Tutorial](tutorials/bayes-by-backprop.md) |
 </div>
 
-<div class="family-table-block reveal" markdown="1">
+<div class="family-table-block family-matrix reveal" markdown="1">
 ### Laplace Approximation
 
 Laplace methods wrap a trained MAP model with a Gaussian posterior defined by a
@@ -73,17 +75,17 @@ uncertainty with less retraining cost than full Bayesian neural nets.
 
 <p class="family-table-readmore"><strong>Read more:</strong> <a href="methods/laplace/">Laplace method guide</a></p>
 
-| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
-|---|---|---|---|---|---|---|
-| Diagonal Laplace | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Epistemic</span> | Cheapest Laplace baseline around a trained MAP network | `LaplaceWrapper(hessian_structure="diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md) | [Guide](tutorials/laplace-comparison.md)<br>`notebooks/laplace/Laplace_Tutorial.ipynb` |
-| Fisher-Diagonal Laplace | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Epistemic</span> | Diagonal empirical-Fisher style approximation | `LaplaceWrapper(hessian_structure="fisher_diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md) | [Guide](tutorials/laplace-comparison.md)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| Low-Rank + Diagonal Laplace | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Epistemic</span> | Capture dominant coupled directions cheaply | `LaplaceWrapper(hessian_structure="lowrank_diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md) | [Guide](tutorials/laplace-comparison.md)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| Block-Diagonal Laplace | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Epistemic</span> | Preserve within-block coupling at moderate memory cost | `LaplaceWrapper(hessian_structure="block_diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md) | [Guide](tutorials/laplace-comparison.md)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| Kronecker-Factored Laplace | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Epistemic</span> | Better fidelity/cost trade-off for layerwise structures | `LaplaceWrapper(hessian_structure="kron")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md) | [Guide](tutorials/laplace-comparison.md)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| Full-Hessian Laplace | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Epistemic</span> | Dense curvature for small enough models | `LaplaceWrapper(hessian_structure="full")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md) | [Guide](tutorials/laplace-comparison.md)<br>`notebooks/laplace/Laplace_FullHessian_Tutorial.ipynb` |
+| Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
+|---|---|---|---|---|---|---|---|
+| Diagonal Laplace | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `LaplaceWrapper(hessian_structure="diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md)<br>[Tutorial](tutorials/laplace-comparison.md) |
+| Fisher-Diagonal Laplace | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `LaplaceWrapper(hessian_structure="fisher_diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md)<br>[Tutorial](tutorials/laplace-comparison.md) |
+| Low-Rank + Diagonal Laplace | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `LaplaceWrapper(hessian_structure="lowrank_diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md)<br>[Tutorial](tutorials/laplace-comparison.md) |
+| Block-Diagonal Laplace | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `LaplaceWrapper(hessian_structure="block_diag")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md)<br>[Tutorial](tutorials/laplace-comparison.md) |
+| Kronecker-Factored Laplace | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `LaplaceWrapper(hessian_structure="kron")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md)<br>[Tutorial](tutorials/laplace-comparison.md) |
+| Full-Hessian Laplace | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `LaplaceWrapper(hessian_structure="full")` | [Guide](methods/laplace.md)<br>[API](api/methods/laplace.md)<br>[Tutorial](tutorials/laplace-comparison.md) |
 </div>
 
-<div class="family-table-block reveal" markdown="1">
+<div class="family-table-block family-matrix reveal" markdown="1">
 ### MCMC / SGLD
 
 SGLD is the package's posterior-sampling method for deep networks. Use it when
@@ -91,12 +93,12 @@ you want sampled parameter trajectories and Monte Carlo predictive uncertainty.
 
 <p class="family-table-readmore"><strong>Read more:</strong> <a href="methods/mcmc-sgld/">MCMC / SGLD method guide</a></p>
 
-| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
-|---|---|---|---|---|---|---|
-| Stochastic Gradient Langevin Dynamics | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Posterior Samples</span> <span class="family-chip family-chip--accent">Epistemic</span> | SGD-like posterior sampling with predictive averaging | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | [Guide](methods/mcmc-sgld.md)<br>[API](api/methods/mcmc.md) | [Guide](tutorials/sgld.md)<br>`notebooks/SGLD_Tutorial.ipynb` |
+| Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
+|---|---|---|---|---|---|---|---|
+| Stochastic Gradient Langevin Dynamics | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | [Guide](methods/mcmc-sgld.md)<br>[API](api/methods/mcmc.md)<br>[Tutorial](tutorials/sgld.md) |
 </div>
 
-<div class="family-table-block reveal" markdown="1">
+<div class="family-table-block family-matrix reveal" markdown="1">
 ### MC Dropout
 
 MC Dropout is the fastest neural-network UQ baseline in the package. Use it
@@ -105,12 +107,12 @@ dropout-enabled model.
 
 <p class="family-table-readmore"><strong>Read more:</strong> <a href="methods/mc-dropout/">MC Dropout method guide</a></p>
 
-| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
-|---|---|---|---|---|---|---|
-| MC Dropout | <span class="family-chip">Regression</span> <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Approx. Epistemic</span> | Minimal-code-change uncertainty baseline for dropout models | `MCDropoutWrapper`, `predict_uq` | [Guide](methods/mc-dropout.md)<br>[API](api/methods/mc_dropout.md) | [Guide](tutorials/mc-dropout.md)<br>`notebooks/MC_Dropout_Tutorial.ipynb` |
+| Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
+|---|---|---|---|---|---|---|---|
+| MC Dropout | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `MCDropoutWrapper`, `predict_uq` | [Guide](methods/mc-dropout.md)<br>[API](api/methods/mc_dropout.md)<br>[Tutorial](tutorials/mc-dropout.md) |
 </div>
 
-<div class="family-table-block reveal" markdown="1">
+<div class="family-table-block family-matrix reveal" markdown="1">
 ### Gaussian Processes
 
 The GP family covers the broadest set of structured nonparametric models in the
@@ -119,16 +121,16 @@ multi-task coupling, spectral kernels, and deep kernel learning.
 
 <p class="family-table-readmore"><strong>Read more:</strong> <a href="methods/gaussian-processes/">Gaussian Processes method guide</a></p>
 
-| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
-|---|---|---|---|---|---|---|
-| Exact GP Regression | <span class="family-chip">Regression</span> | <span class="family-chip family-chip--accent">Epistemic + Aleatoric</span> | Strong small-data calibration baseline | `GaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_Exact_Tutorial.ipynb` |
-| Sparse Variational GP | <span class="family-chip">Regression</span> | <span class="family-chip family-chip--accent">Epistemic + Aleatoric</span> | Scalable inducing-point GP regression | `SparseGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_Sparse_Tutorial.ipynb` |
-| GP Classifier | <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Class Probability</span> | Binary decision-boundary uncertainty | `GaussianProcessClassifier` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_Classification_Tutorial.ipynb` |
-| OvR GP Classifier | <span class="family-chip">Classification</span> | <span class="family-chip family-chip--accent">Class Probability</span> | Multiclass GP classification via one-vs-rest | `OneVsRestGaussianProcessClassifier` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_Classification_Tutorial.ipynb` |
-| Heteroscedastic GP | <span class="family-chip">Regression</span> | <span class="family-chip family-chip--accent">Epistemic + Aleatoric</span> | Input-dependent noise decomposition | `HeteroscedasticGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb` |
-| Multi-task ICM GP | <span class="family-chip">Multi-output Regression</span> | <span class="family-chip family-chip--accent">Shared-output Epistemic + Aleatoric</span> | Correlated multi-output regression | `MultiTaskGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb` |
-| Spectral Mixture GP | <span class="family-chip">Regression</span> | <span class="family-chip family-chip--accent">Epistemic + Aleatoric</span> | Multi-frequency signal structure and extrapolation | `SpectralMixtureGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_SpectralMixture_Tutorial.ipynb` |
-| Deep Kernel GP | <span class="family-chip">Regression</span> | <span class="family-chip family-chip--accent">Epistemic + Aleatoric</span> | Learn a feature space before GP inference | `DeepKernelGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md) | [Guide](tutorials/gp.md)<br>`notebooks/gp/GP_DeepKernel_Tutorial.ipynb` |
+| Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
+|---|---|---|---|---|---|---|---|
+| Exact GP Regression | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `GaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
+| Sparse Variational GP | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `SparseGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
+| GP Classifier | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `GaussianProcessClassifier` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
+| OvR GP Classifier | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `OneVsRestGaussianProcessClassifier` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
+| Heteroscedastic GP | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `HeteroscedasticGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
+| Multi-task ICM GP | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `MultiTaskGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
+| Spectral Mixture GP | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `SpectralMixtureGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
+| Deep Kernel GP | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `DeepKernelGaussianProcessRegressor` | [Guide](methods/gaussian-processes.md)<br>[API](api/models/gaussian_process.md)<br>[Tutorial](tutorials/gp.md) |
 </div>
 
 ## Choosing a Method
