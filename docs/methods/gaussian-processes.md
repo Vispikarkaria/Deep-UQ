@@ -40,7 +40,7 @@ $$ y_i = f(x_i) + \varepsilon_i, \qquad \varepsilon_i \sim \mathcal{N}(0,\sigma_
 
 the predictive variance decomposes as
 
-$$ \operatorname{Var}[y_* \mid x_*, \mathcal{D}] = \operatorname{Var}[f_* \mid x_*, \mathcal{D}] + \sigma_n^2. $$
+$$ \mathrm{Var}[y_* \mid x_*, \mathcal{D}] = \mathrm{Var}[f_* \mid x_*, \mathcal{D}] + \sigma_n^2. $$
 
 For classification, the main quantity is the predictive class probability. In
 the binary setting,
@@ -102,7 +102,7 @@ $$ Q_{XX} = K_{XZ}K_{ZZ}^{-1}K_{ZX}. $$
 
 A common collapsed evidence lower bound is
 
-$$ \mathcal{F} = \log \mathcal{N}\!\left(y \mid 0, Q_{XX} + \sigma_n^2 I\right) - \frac{1}{2\sigma_n^2}\operatorname{tr}\!\left(K_{XX} - Q_{XX}\right). $$
+$$ \mathcal{F} = \log \mathcal{N}\!\left(y \mid 0, Q_{XX} + \sigma_n^2 I\right) - \frac{1}{2\sigma_n^2}\mathrm{tr}\!\left(K_{XX} - Q_{XX}\right). $$
 
 This is the standard sparse-GP approximation used to preserve posterior
 uncertainty structure while reducing the cost of exact $N \times N$ kernel
@@ -154,7 +154,7 @@ $$ K = B \otimes K_x + \sigma_n^2 I. $$
 
 To guarantee positive semidefiniteness, the task covariance is parameterized as
 
-$$ B = LL^{\top} + \operatorname{diag}(d). $$
+$$ B = LL^{\top} + \mathrm{diag}(d). $$
 
 This allows information sharing across correlated outputs while keeping
 task-specific uncertainty.
@@ -183,7 +183,7 @@ For regression, the posterior predictive moments are
 
 $$ \mathbb{E}[y_* \mid x_*, \mathcal{D}] = \mu_*, $$
 
-$$ \sigma_{\mathrm{epi}}^2(x_*) = \operatorname{diag}(\Sigma_*), $$
+$$ \sigma_{\mathrm{epi}}^2(x_*) = \mathrm{diag}(\Sigma_*), $$
 
 $$ \sigma_{\mathrm{pred}}^2(x_*) = \sigma_{\mathrm{epi}}^2(x_*) + \sigma_{\mathrm{alea}}^2(x_*). $$
 
