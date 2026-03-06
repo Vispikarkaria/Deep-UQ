@@ -73,7 +73,9 @@ extra_css:
 
 extra_javascript:
   - assets/javascripts/extra-v2.js
-  - assets/javascripts/mathjax.js
+  - assets/javascripts/mathjax-config-v2.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - assets/javascripts/mathjax-render-v2.js
 
 nav:
   - Home: index.md
