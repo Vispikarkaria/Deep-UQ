@@ -11,13 +11,48 @@ window.MathJax = {
   },
 };
 
-document$.subscribe(() => {
+let mathJaxRenderScheduled = false;
+
+async function typesetArithmatex() {
   if (!window.MathJax || !MathJax.typesetPromise || !MathJax.startup) {
-    return;
+    return false;
+  }
+
+  await MathJax.startup.promise;
+
+  const nodes = document.querySelectorAll(".arithmatex");
+  if (!nodes.length) {
+    return true;
   }
 
   MathJax.startup.output.clearCache();
-  MathJax.typesetClear();
+  MathJax.typesetClear(nodes);
   MathJax.texReset();
-  MathJax.typesetPromise();
+  await MathJax.typesetPromise(nodes);
+  return true;
+}
+
+function scheduleMathJaxRender(attempt = 0) {
+  if (mathJaxRenderScheduled) {
+    return;
+  }
+
+  mathJaxRenderScheduled = true;
+
+  requestAnimationFrame(async () => {
+    mathJaxRenderScheduled = false;
+
+    const rendered = await typesetArithmatex();
+    if (!rendered && attempt < 40) {
+      setTimeout(() => scheduleMathJaxRender(attempt + 1), 100);
+    }
+  });
+}
+
+document$.subscribe(() => {
+  scheduleMathJaxRender();
+});
+
+window.addEventListener("load", () => {
+  scheduleMathJaxRender();
 });
