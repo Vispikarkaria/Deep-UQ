@@ -13,6 +13,84 @@ const KATEX_AUTORENDER_FALLBACKS = [
 let katexEnsurePromise = null;
 let renderScheduled = false;
 
+function replaceRecursively(text, pattern, replacer) {
+  let result = text;
+  let next = result.replace(pattern, replacer);
+  while (next !== result) {
+    result = next;
+    next = result.replace(pattern, replacer);
+  }
+  return result;
+}
+
+function latexToReadableMath(rawMath) {
+  let text = (rawMath || "").replace(/\u00a0/g, " ").trim();
+
+  text = replaceRecursively(text, /\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1)/($2)");
+  text = replaceRecursively(text, /\\sqrt\{([^{}]+)\}/g, "sqrt($1)");
+
+  const replacements = [
+    [/\\left/g, ""],
+    [/\\right/g, ""],
+    [/\\qquad/g, "   "],
+    [/\\quad/g, "  "],
+    [/\\,/g, " "],
+    [/\\!/g, ""],
+    [/\\cdot/g, "·"],
+    [/\\otimes/g, "⊗"],
+    [/\\odot/g, "⊙"],
+    [/\\approx/g, "≈"],
+    [/\\sim/g, "∼"],
+    [/\\propto/g, "∝"],
+    [/\\mid/g, " | "],
+    [/\\infty/g, "∞"],
+    [/\\pi/g, "π"],
+    [/\\lambda/g, "λ"],
+    [/\\Lambda/g, "Λ"],
+    [/\\mu/g, "μ"],
+    [/\\Sigma/g, "Σ"],
+    [/\\sigma/g, "σ"],
+    [/\\theta/g, "θ"],
+    [/\\phi/g, "ϕ"],
+    [/\\psi/g, "ψ"],
+    [/\\rho/g, "ρ"],
+    [/\\varepsilon/g, "ε"],
+    [/\\epsilon/g, "ε"],
+    [/\\tau/g, "τ"],
+    [/\\nu/g, "ν"],
+    [/\\ell/g, "ℓ"],
+    [/\\top/g, "T"],
+    [/\\sum/g, "Σ"],
+    [/\\prod/g, "Π"],
+    [/\\log/g, "log"],
+    [/\\exp/g, "exp"],
+    [/\\softmax/g, "softmax"],
+    [/\\arg\min/g, "argmin"],
+    [/\\arg\max/g, "argmax"],
+    [/\\mathcal\{N\}/g, "N"],
+    [/\\mathcal\{GP\}/g, "GP"],
+    [/\\mathcal\{D\}/g, "D"],
+    [/\\mathcal\{F\}/g, "F"],
+    [/\\mathbb\{R\}/g, "R"],
+    [/\\mathrm\{([^{}]+)\}/g, "$1"],
+    [/\\mathcal\{([^{}]+)\}/g, "$1"],
+    [/\\mathbb\{([^{}]+)\}/g, "$1"],
+    [/\\operatorname\{([^{}]+)\}/g, "$1"],
+    [/\^\{([^{}]+)\}/g, "^$1"],
+    [/_{([^{}]+)}/g, "_$1"],
+  ];
+
+  replacements.forEach(([pattern, replacement]) => {
+    text = text.replace(pattern, replacement);
+  });
+
+  text = text.replace(/[{}]/g, "");
+  text = text.replace(/\\/g, "");
+  text = text.replace(/\s+/g, " ").trim();
+
+  return text;
+}
+
 function loadScript(url) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${url}"]`);
@@ -122,6 +200,24 @@ function renderArithmatexNodes(root) {
   });
 }
 
+function renderPlainMathFallback(root) {
+  root.querySelectorAll(".arithmatex").forEach((node) => {
+    if (node.dataset.katexRendered === "1" || node.dataset.mathFallbackRendered === "1") {
+      return;
+    }
+
+    const isDisplayNode = node.tagName.toLowerCase() === "div";
+    const payload = extractMathPayload(node.textContent, isDisplayNode);
+    if (!payload.math) {
+      return;
+    }
+
+    node.textContent = latexToReadableMath(payload.math);
+    node.classList.add("math-fallback");
+    node.dataset.mathFallbackRendered = "1";
+  });
+}
+
 async function renderKatexMath(root) {
   if (!root) {
     return;
@@ -130,6 +226,7 @@ async function renderKatexMath(root) {
   try {
     await ensureKatexRuntime();
   } catch (_err) {
+    renderPlainMathFallback(root);
     return;
   }
 

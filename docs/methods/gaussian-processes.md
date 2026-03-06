@@ -32,18 +32,16 @@ For regression, `deepuq` reports:
 - `aleatoric_var`: observation noise uncertainty
 - `total_var`: sum of epistemic and aleatoric components
 
-Regression observation model:
+Canonical regression observation model:
 
 $$
-y = f(x) + \varepsilon,
-\qquad
-\varepsilon \sim \mathcal{N}(0, \sigma_\varepsilon^2)
+y = f(x) + \varepsilon, \qquad \varepsilon \sim \mathcal{N}(0, \sigma_n^2)
 $$
 
 Predictive variance decomposition:
 
 $$
-\sigma_{\mathrm{pred}}^2(x) = \sigma_{\mathrm{epi}}^2(x) + \sigma_{\mathrm{alea}}^2(x)
+\mathrm{Var}[y_* \mid x_*, \mathcal{D}] = \mathrm{Var}[f_* \mid x_*, \mathcal{D}] + \sigma_n^2
 $$
 
 For classification, GP classifiers return class probabilities (`probs`) and probability spread proxies (`probs_var`).
@@ -58,37 +56,36 @@ $$
 f(\cdot) \sim \mathcal{GP}(0, k(\cdot, \cdot))
 $$
 
-With training inputs $X$, targets $y$, and test inputs $X_*$:
+With training inputs <span class="journal-inline">X = {x<sub>i</sub>}<sub>i=1</sub><sup>N</sup></span>, observations <span class="journal-inline">y</span>, and test inputs <span class="journal-inline">X<sub>*</sub></span>:
 
 $$
-\mu_* = K_{*X}\left(K_{XX} + \sigma_\varepsilon^2 I\right)^{-1} y
+\mu_* = K(X_*, X)\left[K(X, X) + \sigma_n^2 I\right]^{-1} y
 $$
 
 $$
-\Sigma_* = K_{**} - K_{*X}\left(K_{XX} + \sigma_\varepsilon^2 I\right)^{-1} K_{X*}
+\Sigma_* = K(X_*, X_*) - K(X_*, X)\left[K(X, X) + \sigma_n^2 I\right]^{-1}K(X, X_*)
 $$
 
 Log marginal likelihood:
 
 $$
-\log p(y \mid X) =
--\frac{1}{2} y^\top \left(K_{XX} + \sigma_\varepsilon^2 I\right)^{-1} y - \frac{1}{2} \log\left|K_{XX} + \sigma_\varepsilon^2 I\right| - \frac{N}{2}\log(2\pi)
+\log p(y \mid X) = -\frac{1}{2} y^\top \left[K(X, X) + \sigma_n^2 I\right]^{-1} y - \frac{1}{2} \log\left|K(X, X) + \sigma_n^2 I\right| - \frac{N}{2}\log(2\pi)
 $$
 
 ### 3.2 Sparse variational GP regression
 
-Inducing variables $u = f(Z)$ with $M \ll N$ and variational posterior $q(u)$ are used for scalability.
+Inducing variables u = f(Z) with M << N and variational posterior q(u) are used for scalability.
 
 Approximate covariance term:
 
 $$
-Q_{NN} = K_{NM} K_{MM}^{-1} K_{MN}
+Q_{XX} = K_{XZ} K_{ZZ}^{-1} K_{ZX}
 $$
 
 Common collapsed ELBO form:
 
 $$
-\mathcal{F} = \log \mathcal{N}\left(y \mid 0, Q_{NN} + \sigma_\varepsilon^2 I\right) - \frac{1}{2\sigma_\varepsilon^2}\mathrm{tr}\left(K_{NN} - Q_{NN}\right)
+\mathcal{F} = \log \mathcal{N}\left(y \mid 0, Q_{XX} + \sigma_n^2 I\right) - \frac{1}{2\sigma_n^2}\mathrm{tr}\left(K_{XX} - Q_{XX}\right)
 $$
 
 ### 3.3 GP classification (binary + OvR multiclass)
@@ -99,14 +96,14 @@ $$
 p(y_i=1 \mid f_i) = \sigma(f_i)
 $$
 
-where $\sigma(\cdot)$ is the logistic sigmoid.
+where σ(·) is the logistic sigmoid.
 
 `deepuq` uses a Laplace approximation around the latent mode.
 
 A common logistic-Gaussian predictive approximation is:
 
 $$
-p(y=1 \mid x) \approx \sigma\left(\frac{\mu_f(x)}{\sqrt{1 + \frac{\pi}{8}\sigma_f^2(x)}}\right)
+p(y=1 \mid x, \mathcal{D}) \approx \sigma\left(\frac{\mu_f(x)}{\sqrt{1 + \frac{\pi}{8}\sigma_f^2(x)}}\right)
 $$
 
 For multiclass classification, one binary GP is fit per class (OvR), then class scores are normalized into probabilities.
@@ -116,7 +113,7 @@ For multiclass classification, one binary GP is fit per class (OvR), then class 
 Noise depends on input:
 
 $$
-\varepsilon(x) \sim \mathcal{N}\left(0, \sigma_\varepsilon^2(x)\right)
+\varepsilon(x) \sim \mathcal{N}\left(0, \sigma_n^2(x)\right)
 $$
 
 `deepuq` alternates between:
@@ -132,16 +129,16 @@ $$
 
 ### 3.5 Multi-task ICM GP regression
 
-For task indices $t, t'$:
+For task indices t and t':
 
 $$
-K\big((x,t), (x',t')\big) = K_x(x,x')\,B_{tt'}
+k\big((x,t), (x',t')\big) = k_x(x,x')\,B_{tt'}
 $$
 
 Equivalent matrix form:
 
 $$
-K = B \otimes K_x + \sigma_\varepsilon^2 I
+K = B \otimes K_x + \sigma_n^2 I
 $$
 
 Task covariance is constrained PSD, e.g.:
@@ -152,7 +149,7 @@ $$
 
 ### 3.6 Spectral mixture GP regression
 
-Spectral mixture kernel (for lag $\tau = x-x'$):
+Spectral mixture kernel for lag τ = x - x':
 
 $$
 k(\tau) = \sum_{q=1}^{Q} w_q \prod_{d=1}^{D}
@@ -161,7 +158,7 @@ $$
 
 ### 3.7 Deep kernel GP regression
 
-A learned feature map $\phi_\psi(x)$ is composed with a GP kernel:
+A learned feature map <span class="journal-inline">φ<sub>ψ</sub>(x)</span> is composed with a GP kernel:
 
 $$
 k_{\mathrm{DKL}}(x,x') = k\big(\phi_\psi(x), \phi_\psi(x')\big)
@@ -192,7 +189,7 @@ Deep-UQ GP kernels include:
 ## 6) Practical Notes
 
 - Exact GP is strongest for calibration on small/medium datasets.
-- Sparse GP is preferred when $N$ grows and exact $\mathcal{O}(N^3)$ cost is too high.
+- Sparse GP is preferred when N grows and exact cubic cost becomes too high.
 - Heteroscedastic GP is useful when noise level changes with operating regime.
 - Multi-task ICM helps when outputs are correlated.
 - Spectral mixture kernels help for multi-frequency and quasi-periodic signals.

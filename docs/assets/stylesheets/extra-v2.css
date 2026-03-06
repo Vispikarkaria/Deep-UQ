@@ -106,6 +106,33 @@ pre,
   transform: translateY(0);
 }
 
+.arithmatex.math-fallback {
+  font-family: "STIX Two Text", "Times New Roman", serif;
+  color: var(--uq-ink);
+}
+
+div.arithmatex.math-fallback {
+  margin: 1rem 0;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid rgba(11, 132, 243, 0.45);
+  border-radius: 10px;
+  background: rgba(12, 41, 68, 0.04);
+  font-size: 1.02rem;
+  line-height: 1.6;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+span.arithmatex.math-fallback {
+  font-family: "STIX Two Text", "Times New Roman", serif;
+  font-style: italic;
+}
+
+.journal-inline {
+  font-family: "STIX Two Text", "Times New Roman", serif;
+  font-style: italic;
+}
+
 @media (max-width: 900px) {
   .hero-panel {
     padding: 1.4rem 1rem;
