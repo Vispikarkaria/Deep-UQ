@@ -79,6 +79,85 @@ pre,
   margin-top: 0.2rem;
 }
 
+.family-table-block {
+  margin: 1.2rem 0 1.5rem;
+  padding: 1rem 1rem 0.7rem;
+  border: 1px solid rgba(15, 36, 56, 0.12);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 248, 251, 0.92));
+  box-shadow: 0 10px 28px rgba(10, 38, 62, 0.06);
+  overflow-x: auto;
+}
+
+.family-table-block h3 {
+  margin-top: 0;
+  margin-bottom: 0.55rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(12, 41, 68, 0.06), rgba(11, 132, 243, 0.08));
+}
+
+.family-table-readmore {
+  margin: 0.2rem 0 0.9rem;
+  color: var(--uq-muted);
+}
+
+.family-table-block table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+}
+
+.family-table-block thead th {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid rgba(15, 36, 56, 0.12);
+  background: rgba(12, 41, 68, 0.92);
+  color: #f5faff;
+  text-align: left;
+  vertical-align: top;
+}
+
+.family-table-block tbody td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid rgba(15, 36, 56, 0.08);
+  vertical-align: top;
+}
+
+.family-table-block tbody tr:nth-child(odd) td {
+  background: rgba(11, 132, 243, 0.035);
+}
+
+.family-table-block tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.family-table-block tbody td:first-child,
+.family-table-block thead th:first-child {
+  min-width: 13rem;
+  font-weight: 700;
+}
+
+.family-chip {
+  display: inline-block;
+  margin: 0 0.35rem 0.2rem 0;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 36, 56, 0.14);
+  background: rgba(12, 41, 68, 0.05);
+  color: #23405a;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.family-chip--accent {
+  border-color: rgba(11, 132, 243, 0.28);
+  background: rgba(11, 132, 243, 0.1);
+  color: #0a67b3;
+}
+
 .uq-chip {
   display: inline-block;
   border-radius: 999px;
@@ -136,5 +215,9 @@ span.arithmatex.math-fallback {
 @media (max-width: 900px) {
   .hero-panel {
     padding: 1.4rem 1rem;
+  }
+
+  .family-table-block {
+    padding: 0.9rem 0.75rem 0.55rem;
   }
 }

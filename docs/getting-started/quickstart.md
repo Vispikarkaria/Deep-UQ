@@ -62,6 +62,12 @@ uq_result = gp.predict_uq(x_test)
 
 ## Next Steps
 
-- Explore [method docs](../methods/variational-inference.md)
+- Compare all families on the [docs home page](../index.md)
+- Explore method docs:
+  - [Variational Inference](../methods/variational-inference.md)
+  - [Laplace Approximation](../methods/laplace.md)
+  - [MCMC / SGLD](../methods/mcmc-sgld.md)
+  - [MC Dropout](../methods/mc-dropout.md)
+  - [Gaussian Processes](../methods/gaussian-processes.md)
 - Run full scripts in [examples](../examples/index.md)
 - Walk through [tutorial guides](../tutorials/index.md)

@@ -16,15 +16,89 @@ Implements **five** widely used UQ families with multiple variants:
 
 Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regression task to illustrate confidence bounds.
 
-## Method Summary
+## Method Families
 
-| Method Family | Method Name | Implemented Variants | Main Wrapper / Class | Tutorial |
-|---|---|---|---|---|
-| Variational Inference | 1) Bayes by Backprop | Mean-field VI for neural nets | `BayesianLinear`, `vi_elbo_step`, `predict_vi_uq` | `notebooks/BayesByBackprop_Tutorial.ipynb` |
-| Laplace Approximation | 1) Laplace | `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full` | `LaplaceWrapper`, `predict_uq` | `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
-| MCMC | 1) Stochastic Gradient Langevin Dynamics | Posterior sampling with SGLD | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | `notebooks/SGLD_Tutorial.ipynb` |
-| MC Dropout | 1) MC Dropout | Stochastic dropout inference | `MCDropoutWrapper`, `predict_uq` | `notebooks/MC_Dropout_Tutorial.ipynb` |
-| Gaussian Processes | <strong>1)</strong> <code>GaussianProcessRegressor</code><br><strong>2)</strong> <code>SparseGaussianProcessRegressor</code><br><strong>3)</strong> <code>GaussianProcessClassifier</code><br><strong>4)</strong> <code>OneVsRestGaussianProcessClassifier</code><br><strong>5)</strong> <code>HeteroscedasticGaussianProcessRegressor</code><br><strong>6)</strong> <code>MultiTaskGaussianProcessRegressor</code><br><strong>7)</strong> <code>SpectralMixtureGaussianProcessRegressor</code><br><strong>8)</strong> <code>DeepKernelGaussianProcessRegressor</code> | Exact, sparse, classification (binary + OvR), heteroscedastic, multi-task ICM, spectral mixture, deep kernel, and kernel composition (`RBF`, Matérn, RQ, Periodic, Linear) | GP kernel classes + `predict_uq` | `notebooks/gp/GP_Model_Comparison.ipynb` (see all under `notebooks/gp/`) |
+The website is the canonical place to read the full method guides and equations.
+This README keeps the overview concise and links outward to the detailed docs.
+
+### Variational Inference
+
+Variational Inference in Deep-UQ currently focuses on Bayes by Backprop: a
+mean-field Bayesian neural network trained with an ELBO objective. Use it when
+you want end-to-end Bayesian weight learning rather than a posterior
+approximation around a pretrained deterministic model.
+
+Read more:
+- https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/
+
+| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
+|---|---|---|---|---|---|---|
+| Bayes by Backprop | Regression, Classification | Epistemic | Train a Bayesian neural network from scratch with learned weight uncertainty | `BayesianLinear`, `BayesByBackpropMLP`, `vi_elbo_step`, `predict_vi_uq` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/) | [Tutorial guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/bayes-by-backprop/)<br>`notebooks/BayesByBackprop_Tutorial.ipynb` |
+
+### Laplace Approximation
+
+Laplace methods in Deep-UQ wrap a trained MAP model with a Gaussian posterior
+defined by a chosen curvature structure. They are useful when you want stronger
+post-training uncertainty than MC Dropout without retraining a Bayesian network
+from scratch.
+
+Read more:
+- https://vispikarkaria.github.io/Deep-UQ/methods/laplace/
+
+| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
+|---|---|---|---|---|---|---|
+| Diagonal Laplace | Regression, Classification | Epistemic | Cheapest Laplace baseline around a trained MAP network | `LaplaceWrapper(hessian_structure="diag")` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/laplace/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/laplace/) | [Laplace tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/laplace-comparison/)<br>`notebooks/laplace/Laplace_Tutorial.ipynb` |
+| Fisher-Diagonal Laplace | Regression, Classification | Epistemic | Diagonal empirical-Fisher style curvature with minimal memory | `LaplaceWrapper(hessian_structure="fisher_diag")` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/laplace/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/laplace/) | [Comparison guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/laplace-comparison/)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
+| Low-Rank + Diagonal Laplace | Regression, Classification | Epistemic | Capture dominant coupled directions without full dense curvature | `LaplaceWrapper(hessian_structure="lowrank_diag")` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/laplace/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/laplace/) | [Comparison guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/laplace-comparison/)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
+| Block-Diagonal Laplace | Regression, Classification | Epistemic | Layer/block-wise curvature with moderate cost and stronger coupling | `LaplaceWrapper(hessian_structure="block_diag")` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/laplace/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/laplace/) | [Comparison guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/laplace-comparison/)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
+| Kronecker-Factored Laplace | Regression, Classification | Epistemic | Better fidelity/cost trade-off for layerwise linear blocks | `LaplaceWrapper(hessian_structure="kron")` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/laplace/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/laplace/) | [Comparison guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/laplace-comparison/)<br>`notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb` |
+| Full-Hessian Laplace | Regression, Classification | Epistemic | Small models where dense curvature is affordable and desired | `LaplaceWrapper(hessian_structure="full")` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/laplace/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/laplace/) | [Full-Hessian guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/laplace-comparison/)<br>`notebooks/laplace/Laplace_FullHessian_Tutorial.ipynb` |
+
+### MCMC / SGLD
+
+The MCMC family is built around Stochastic Gradient Langevin Dynamics. Use it
+when you want posterior samples directly and are willing to trade extra compute
+for a sampling-based view of predictive uncertainty.
+
+Read more:
+- https://vispikarkaria.github.io/Deep-UQ/methods/mcmc-sgld/
+
+| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
+|---|---|---|---|---|---|---|
+| Stochastic Gradient Langevin Dynamics | Regression, Classification | Posterior samples, Epistemic | Sample-based posterior uncertainty with SGD-like training dynamics | `SGLDOptimizer`, `collect_posterior_samples`, `predict_with_samples_uq` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/mcmc-sgld/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/mcmc/) | [Tutorial guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/sgld/)<br>`notebooks/SGLD_Tutorial.ipynb` |
+
+### MC Dropout
+
+MC Dropout keeps dropout active at inference and aggregates many stochastic
+forward passes. It is the fastest uncertainty baseline when you already have a
+dropout-enabled neural network and want minimal training changes.
+
+Read more:
+- https://vispikarkaria.github.io/Deep-UQ/methods/mc-dropout/
+
+| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
+|---|---|---|---|---|---|---|
+| MC Dropout | Regression, Classification | Approx. Epistemic | Minimal-code-change uncertainty baseline for dropout models | `MCDropoutWrapper`, `predict_uq` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/mc-dropout/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/mc_dropout/) | [Tutorial guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/mc-dropout/)<br>`notebooks/MC_Dropout_Tutorial.ipynb` |
+
+### Gaussian Processes
+
+The GP family is the most structurally diverse part of the package: exact and
+sparse regression, binary and multiclass classification, heteroscedastic noise,
+multi-task output coupling, spectral kernels, and deep kernel learning.
+
+Read more:
+- https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/
+
+| Method | Primary Task | Uncertainty Type | Best Use Case | Main Interface | Docs | Tutorial |
+|---|---|---|---|---|---|---|
+| Exact GP Regression | Regression | Epistemic + Aleatoric | Small/medium data with strong calibration and smooth posterior bands | `GaussianProcessRegressor` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_Exact_Tutorial.ipynb` |
+| Sparse Variational GP | Regression | Epistemic + Aleatoric | Larger regression problems where exact kernel algebra is too expensive | `SparseGaussianProcessRegressor` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_Sparse_Tutorial.ipynb` |
+| GP Classifier | Classification | Class-probability uncertainty | Binary boundary uncertainty with nonparametric latent-function priors | `GaussianProcessClassifier` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_Classification_Tutorial.ipynb` |
+| OvR GP Classifier | Classification | Class-probability uncertainty | Multiclass classification via one-vs-rest GP decision surfaces | `OneVsRestGaussianProcessClassifier` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_Classification_Tutorial.ipynb` |
+| Heteroscedastic GP | Regression | Epistemic + Aleatoric | Separate model uncertainty from input-dependent noise | `HeteroscedasticGaussianProcessRegressor` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb` |
+| Multi-task ICM GP | Multi-output Regression | Shared-output Epistemic + Aleatoric | Correlated multi-output regression with task covariance | `MultiTaskGaussianProcessRegressor` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb` |
+| Spectral Mixture GP | Regression | Epistemic + Aleatoric | Multi-frequency and periodic extrapolation problems | `SpectralMixtureGaussianProcessRegressor` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_SpectralMixture_Tutorial.ipynb` |
+| Deep Kernel GP | Regression | Epistemic + Aleatoric | Learn a representation before applying a GP head | `DeepKernelGaussianProcessRegressor` | [Method guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/) | [GP guide](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/)<br>`notebooks/gp/GP_DeepKernel_Tutorial.ipynb` |
 
 ## Documentation Website
 
