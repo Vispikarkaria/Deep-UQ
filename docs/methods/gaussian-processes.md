@@ -72,9 +72,7 @@ Log marginal likelihood:
 
 $$
 \log p(y \mid X) =
--\frac{1}{2} y^\top \left(K_{XX} + \sigma_\varepsilon^2 I\right)^{-1} y
-- \frac{1}{2} \log\left|K_{XX} + \sigma_\varepsilon^2 I\right|
-- \frac{N}{2}\log(2\pi)
+-\frac{1}{2} y^\top \left(K_{XX} + \sigma_\varepsilon^2 I\right)^{-1} y - \frac{1}{2} \log\left|K_{XX} + \sigma_\varepsilon^2 I\right| - \frac{N}{2}\log(2\pi)
 $$
 
 ### 3.2 Sparse variational GP regression
@@ -90,8 +88,7 @@ $$
 Common collapsed ELBO form:
 
 $$
-\mathcal{F} = \log \mathcal{N}\left(y \mid 0, Q_{NN} + \sigma_\varepsilon^2 I\right)
-- \frac{1}{2\sigma_\varepsilon^2}\mathrm{tr}\left(K_{NN} - Q_{NN}\right)
+\mathcal{F} = \log \mathcal{N}\left(y \mid 0, Q_{NN} + \sigma_\varepsilon^2 I\right) - \frac{1}{2\sigma_\varepsilon^2}\mathrm{tr}\left(K_{NN} - Q_{NN}\right)
 $$
 
 ### 3.3 GP classification (binary + OvR multiclass)

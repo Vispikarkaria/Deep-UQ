@@ -1,19 +1,23 @@
 #!/usr/bin/env python3
-"""Fail if docs markdown display-math blocks contain operator-only lines.
+"""Fail if docs markdown display-math blocks contain markdown-sensitive lines.
 
-This prevents GitHub markdown mis-parsing in $$...$$ blocks such as lines that are
-only '=', '-', '+', or '*'.
+This prevents GitHub markdown mis-parsing in $$...$$ blocks, including:
+- operator-only lines such as '=', '-', '+', '*'
+- list-like lines such as '- <expr>' or '+ <expr>' that Markdown can treat as bullets
 """
 
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 
 OPERATOR_ONLY = {"=", "-", "+", "*"}
+LIST_PREFIX_RE = re.compile(r"^[+\-*]\s+")
+ORDERED_LIST_PREFIX_RE = re.compile(r"^\d+\.\s+")
 DEFAULT_GLOB = "docs/methods/*.md"
 
 
@@ -23,6 +27,7 @@ class Violation:
     block_index: int
     line_number: int
     token: str
+    reason: str
 
 
 def iter_display_blocks(text: str):
@@ -53,6 +58,19 @@ def check_file(path: Path) -> list[Violation]:
                         block_index=block_idx,
                         line_number=start_line + rel_line - 1,
                         token=token,
+                        reason="operator-only line",
+                    )
+                )
+                continue
+
+            if LIST_PREFIX_RE.match(token) or ORDERED_LIST_PREFIX_RE.match(token):
+                violations.append(
+                    Violation(
+                        path=path,
+                        block_index=block_idx,
+                        line_number=start_line + rel_line - 1,
+                        token=token,
+                        reason="markdown-list-like line",
                     )
                 )
     return violations
@@ -60,7 +78,7 @@ def check_file(path: Path) -> list[Violation]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check markdown display-math blocks for operator-only lines."
+        description="Check markdown display-math blocks for markdown-sensitive lines."
     )
     parser.add_argument(
         "--glob",
@@ -79,17 +97,19 @@ def main() -> int:
         all_violations.extend(check_file(path))
 
     if not all_violations:
-        print(f"[math-guard] OK: {len(paths)} files checked; no operator-only math lines found.")
+        print(
+            f"[math-guard] OK: {len(paths)} files checked; no markdown-sensitive lines found in display math blocks."
+        )
         return 0
 
-    print("[math-guard] Found operator-only lines inside $$...$$ blocks:")
+    print("[math-guard] Found markdown-sensitive lines inside $$...$$ blocks:")
     for violation in all_violations:
         print(
             f"  - {violation.path}:{violation.line_number} "
-            f"(block #{violation.block_index}) token '{violation.token}'"
+            f"(block #{violation.block_index}) {violation.reason}: '{violation.token}'"
         )
 
-    print("[math-guard] Fix by keeping operators on the same line as surrounding math.")
+    print("[math-guard] Fix by keeping operators/list markers away from start-of-line inside $$...$$ blocks.")
     return 1
 
 

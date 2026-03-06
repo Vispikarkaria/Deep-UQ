@@ -54,22 +54,19 @@ $$
 Canonical ELBO (maximization form):
 
 $$
-\mathcal F(\phi)=\mathbb E_{q_{\phi}(w)}\left[\log p(\mathcal D\mid w)\right]
-- \mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
+\mathcal F(\phi)=\mathbb E_{q_{\phi}(w)}\left[\log p(\mathcal D\mid w)\right]-\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
 $$
 
 Equivalent minimization form used in training:
 
 $$
-\mathcal L_{\mathrm{ELBO}}(\phi)=\mathbb E_{q_{\phi}(w)}\left[-\log p(\mathcal D\mid w)\right]
-+ \beta\,\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
+\mathcal L_{\mathrm{ELBO}}(\phi)=\mathbb E_{q_{\phi}(w)}\left[-\log p(\mathcal D\mid w)\right]+\beta\,\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
 $$
 
 Mini-batch objective with $N_b$ optimizer steps per epoch:
 
 $$
-\widehat{\mathcal L}_{\mathrm{ELBO}}=\widehat{\mathcal L}_{\mathrm{NLL}}
-+ \beta\,\frac{1}{N_b}\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
+\widehat{\mathcal L}_{\mathrm{ELBO}}=\widehat{\mathcal L}_{\mathrm{NLL}}+\beta\,\frac{1}{N_b}\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
 $$
 
 Relationship to posterior KL:
