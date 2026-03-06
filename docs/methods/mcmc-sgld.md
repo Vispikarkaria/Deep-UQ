@@ -80,9 +80,7 @@ $$
 \sigma^2_{\mathrm{epi}}(x)=
 \frac{1}{S}\sum_{s=1}^{S}\left(f(x;\theta^{(s)})-\mu(x)\right)^2
 $$
-
 Classification predictive probabilities:
-
 $$
 \bar p(y\mid x)=
 \frac{1}{S}\sum_{s=1}^{S}
