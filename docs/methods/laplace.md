@@ -15,63 +15,39 @@ The method primarily quantifies **epistemic uncertainty** via posterior weight u
 
 With parameter samples $\{\theta^{(s)}\}_{s=1}^S$:
 
-$$
-\mu(x)=\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)})
-$$
+$$ \mu(x)=\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)}) $$
 
-$$
-\sigma^2_{\mathrm{epi}}(x)=
-\frac{1}{S}\sum_{s=1}^S\left(f(x;\theta^{(s)})-\mu(x)\right)^2
-$$
+$$ \sigma^2_{\mathrm{epi}}(x)= \frac{1}{S}\sum_{s=1}^S\left(f(x;\theta^{(s)})-\mu(x)\right)^2 $$
 
 For regression, the predictive variance returned by `deepuq` is:
 
-$$
-\sigma^2_{\mathrm{pred}}(x)=\sigma^2_{\mathrm{epi}}(x)+\hat\sigma^2_{\varepsilon}
-$$
+$$ \sigma^2_{\mathrm{pred}}(x)=\sigma^2_{\mathrm{epi}}(x)+\hat\sigma^2_{\varepsilon} $$
 
 where $\hat\sigma^2_{\varepsilon}$ is an empirical residual-noise estimate.
 
 For classification, predictive probabilities are Monte Carlo averaged:
 
-$$
-\bar p(y\mid x)=
-\frac{1}{S}\sum_{s=1}^S p(y\mid x,\theta^{(s)})
-$$
+$$ \bar p(y\mid x)= \frac{1}{S}\sum_{s=1}^S p(y\mid x,\theta^{(s)}) $$
 
 ## 3) Mathematical Setup / Notation
 
 Dataset and parameters:
 
-$$
-\mathcal D=\{(x_i,y_i)\}_{i=1}^N,
-\qquad
-\theta\in\mathbb R^P
-$$
+$$ \mathcal D=\{(x_i,y_i)\}_{i=1}^N, \qquad \theta\in\mathbb R^P $$
 
 MAP estimator:
 
-$$
-\theta^*=\arg\min_{\theta}\,\mathcal J(\theta),
-\qquad
-\mathcal J(\theta)=-\log p(\mathcal D\mid\theta)-\log p(\theta)
-$$
+$$ \theta^*=\arg\min_{\theta}\,\mathcal J(\theta), \qquad \mathcal J(\theta)=-\log p(\mathcal D\mid\theta)-\log p(\theta) $$
 
 With isotropic Gaussian prior:
 
-$$
-p(\theta)=\mathcal N(0,\lambda^{-1}I),\qquad \lambda>0
-$$
+$$ p(\theta)=\mathcal N(0,\lambda^{-1}I),\qquad \lambda>0 $$
 
 Canonical Laplace posterior:
 
-$$
-q(\theta\mid\mathcal D)=\mathcal N\!\left(\theta^*,\Lambda^{-1}\right)
-$$
+$$ q(\theta\mid\mathcal D)=\mathcal N\!\left(\theta^*,\Lambda^{-1}\right) $$
 
-$$
-\Lambda\approx H(\theta^*)+\lambda I+\epsilon I
-$$
+$$ \Lambda\approx H(\theta^*)+\lambda I+\epsilon I $$
 
 where $H(\theta^*)$ is a local curvature surrogate and $\epsilon>0$ is damping.
 
@@ -79,29 +55,19 @@ where $H(\theta^*)$ is a local curvature surrogate and $\epsilon>0$ is damping.
 
 ### 4.1 Diagonal (`diag`)
 
-$$
-\Lambda_{\mathrm{diag}}=\mathrm{diag}(H)+\lambda I+\epsilon I
-$$
+$$ \Lambda_{\mathrm{diag}}=\mathrm{diag}(H)+\lambda I+\epsilon I $$
 
 Using empirical batch gradients $g_b=\nabla_{\theta}\ell_b(\theta^*)$:
 
-$$
-d=\frac{1}{N}\sum_b g_b\odot g_b,
-\qquad
-\Lambda_{\mathrm{diag}}=\mathrm{diag}(d)+(\lambda+\epsilon)I
-$$
+$$ d=\frac{1}{N}\sum_b g_b\odot g_b, \qquad \Lambda_{\mathrm{diag}}=\mathrm{diag}(d)+(\lambda+\epsilon)I $$
 
 ### 4.2 Empirical Fisher Diagonal (`fisher_diag`)
 
-$$
-\Lambda_{\mathrm{fdiag}}=\mathrm{diag}(F_{\mathrm{emp}})+(\lambda+\epsilon)I
-$$
+$$ \Lambda_{\mathrm{fdiag}}=\mathrm{diag}(F_{\mathrm{emp}})+(\lambda+\epsilon)I $$
 
 with
 
-$$
-F_{\mathrm{emp}}\approx\frac{1}{N}\sum_b g_b g_b^{\top}
-$$
+$$ F_{\mathrm{emp}}\approx\frac{1}{N}\sum_b g_b g_b^{\top} $$
 
 and only the diagonal retained.
 
@@ -109,115 +75,71 @@ and only the diagonal retained.
 
 Curvature decomposition:
 
-$$
-H\approx U_r\Sigma_r U_r^{\top}+D_r
-$$
+$$ H\approx U_r\Sigma_r U_r^{\top}+D_r $$
 
 Posterior precision:
 
-$$
-\Lambda\approx U_r\Sigma_r U_r^{\top}+D_r+(\lambda+\epsilon)I
-$$
+$$ \Lambda\approx U_r\Sigma_r U_r^{\top}+D_r+(\lambda+\epsilon)I $$
 
 If $\widetilde G=G/\sqrt N$ with SVD $\widetilde G=USV^{\top}$, then
 
-$$
-U_r=V_{:,1:r},
-\qquad
-\Sigma_r=\mathrm{diag}(S_{1:r}^2)
-$$
+$$ U_r=V_{:,1:r}, \qquad \Sigma_r=\mathrm{diag}(S_{1:r}^2) $$
 
 and a diagonal residual form is
 
-$$
-D_r=\mathrm{diag}\!\left(\max\left(d_{\mathrm{tot}}-d_{\mathrm{lr}},0\right)\right)
-$$
+$$ D_r=\mathrm{diag}\!\left(\max\left(d_{\mathrm{tot}}-d_{\mathrm{lr}},0\right)\right) $$
 
 ### 4.4 Block Diagonal (`block_diag`)
 
 Partition parameters into $K$ blocks:
 
-$$
-\Lambda\approx\mathrm{blkdiag}(\Lambda_1,\ldots,\Lambda_K)
-$$
+$$ \Lambda\approx\mathrm{blkdiag}(\Lambda_1,\ldots,\Lambda_K) $$
 
 Block curvature and precision:
 
-$$
-C_k=\frac{1}{N}\sum_b g_{b,k}g_{b,k}^{\top},
-\qquad
-\Lambda_k=C_k+(\lambda+\epsilon)I_k
-$$
+$$ C_k=\frac{1}{N}\sum_b g_{b,k}g_{b,k}^{\top}, \qquad \Lambda_k=C_k+(\lambda+\epsilon)I_k $$
 
 ### 4.5 Kronecker-Factored (`kron`)
 
 For linear layer $\ell$:
 
-$$
-H_{\ell}\approx A_{\ell}\otimes G_{\ell}
-$$
+$$ H_{\ell}\approx A_{\ell}\otimes G_{\ell} $$
 
 with activation and output-gradient factors:
 
-$$
-A_{\ell}=\mathbb E\left[a_{\ell}a_{\ell}^{\top}\right],
-\qquad
-G_{\ell}=\mathbb E\left[g_{\ell}g_{\ell}^{\top}\right]
-$$
+$$ A_{\ell}=\mathbb E\left[a_{\ell}a_{\ell}^{\top}\right], \qquad G_{\ell}=\mathbb E\left[g_{\ell}g_{\ell}^{\top}\right] $$
 
 A standard eigenbasis view is
 
-$$
-A_{\ell}=U_A S_A U_A^{\top},
-\qquad
-G_{\ell}=U_G S_G U_G^{\top}
-$$
+$$ A_{\ell}=U_A S_A U_A^{\top}, \qquad G_{\ell}=U_G S_G U_G^{\top} $$
 
 so the layer precision spectrum is approximated by
 
-$$
-S_A\otimes S_G+(\lambda+\epsilon)I
-$$
+$$ S_A\otimes S_G+(\lambda+\epsilon)I $$
 
 ### 4.6 Full (`full`)
 
-$$
-\Lambda_{\mathrm{full}}=H+(\lambda+\epsilon)I
-$$
+$$ \Lambda_{\mathrm{full}}=H+(\lambda+\epsilon)I $$
 
 With stacked gradients $G\in\mathbb R^{B\times P}$:
 
-$$
-C=\frac{1}{N}G^{\top}G,
-\qquad
-\Lambda_{\mathrm{full}}=C+(\lambda+\epsilon)I
-$$
+$$ C=\frac{1}{N}G^{\top}G, \qquad \Lambda_{\mathrm{full}}=C+(\lambda+\epsilon)I $$
 
 ## 5) Inference / Prediction Equations
 
 Given $\theta\sim q(\theta\mid\mathcal D)$, Monte Carlo prediction uses:
 
-$$
-\mu(x)\approx\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)})
-$$
+$$ \mu(x)\approx\frac{1}{S}\sum_{s=1}^S f(x;\theta^{(s)}) $$
 
-$$
-\mathrm{Var}[f(x)]\approx
-\frac{1}{S}\sum_{s=1}^S\left(f(x;\theta^{(s)})-\mu(x)\right)^2
-$$
+$$ \mathrm{Var}[f(x)]\approx \frac{1}{S}\sum_{s=1}^S\left(f(x;\theta^{(s)})-\mu(x)\right)^2 $$
 
 Regression total predictive variance:
 
-$$
-\sigma^2_{\mathrm{pred}}(x)=\mathrm{Var}[f(x)]+\hat\sigma^2_{\varepsilon}
-$$
+$$ \sigma^2_{\mathrm{pred}}(x)=\mathrm{Var}[f(x)]+\hat\sigma^2_{\varepsilon} $$
 
 Classification predictive probability:
 
-$$
-\bar p(y\mid x)\approx
-\frac{1}{S}\sum_{s=1}^S \mathrm{softmax}\!\left(z(x;\theta^{(s)})\right)
-$$
+$$ \bar p(y\mid x)\approx \frac{1}{S}\sum_{s=1}^S \mathrm{softmax}\!\left(z(x;\theta^{(s)})\right) $$
 
 ## 6) Practical Implications
 
