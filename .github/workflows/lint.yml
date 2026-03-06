@@ -35,3 +35,6 @@ jobs:
 
       - name: Large file guard
         run: python scripts/check_large_files.py --fail-threshold-mb 50
+
+      - name: Math markdown guard
+        run: python scripts/check_math_blocks.py --glob "docs/methods/*.md"

@@ -19,15 +19,13 @@ $$
 $$
 
 $$
-\sigma^2_{\mathrm{epi}}(x)=
-\frac{1}{T}\sum_{t=1}^{T}\left(f_t(x)-\mu(x)\right)^2
+\sigma^2_{\mathrm{epi}}(x)=\frac{1}{T}\sum_{t=1}^{T}\left(f_t(x)-\mu(x)\right)^2
 $$
 
 Classification predictive probability estimate:
 
 $$
-\bar p(y\mid x)=
-\frac{1}{T}\sum_{t=1}^{T} p_t(y\mid x)
+\bar p(y\mid x)=\frac{1}{T}\sum_{t=1}^{T} p_t(y\mid x)
 $$
 
 ## 3) Mathematical Setup / Notation
@@ -63,9 +61,7 @@ $$
 So predictive variance estimate is:
 
 $$
-\widehat{\mathrm{Var}}[f(x)]
-=
-\widehat{\mathbb E}[f(x)^2]-\hat\mu(x)^2
+\widehat{\mathrm{Var}}[f(x)] = \widehat{\mathbb E}[f(x)^2]-\hat\mu(x)^2
 $$
 
 For class probabilities $P_t(x)\in[0,1]^C$:
@@ -77,9 +73,7 @@ $$
 and componentwise variance:
 
 $$
-\widehat{\mathrm{Var}}[P_c(x)]
-=
-\frac{1}{T}\sum_{t=1}^{T}\left(P_{t,c}(x)-\hat P_c(x)\right)^2
+\widehat{\mathrm{Var}}[P_c(x)] = \frac{1}{T}\sum_{t=1}^{T}\left(P_{t,c}(x)-\hat P_c(x)\right)^2
 $$
 
 ## 5) Inference / Prediction Equations

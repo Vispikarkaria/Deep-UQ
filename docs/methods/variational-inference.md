@@ -21,11 +21,8 @@ $$
 Monte Carlo approximation:
 
 $$
-p(y_\*\mid x_\*,\mathcal D)
-\approx
-\frac{1}{S}\sum_{s=1}^{S} p(y_\*\mid x_\*,w^{(s)}),
-\qquad
-w^{(s)}\sim q_{\phi}(w)
+p(y_\*\mid x_\*,\mathcal D)\approx\frac{1}{S}\sum_{s=1}^{S} p(y_\*\mid x_\*,w^{(s)}),
+\qquad w^{(s)}\sim q_{\phi}(w)
 $$
 
 ## 3) Mathematical Setup / Notation
@@ -57,37 +54,28 @@ $$
 Canonical ELBO (maximization form):
 
 $$
-\mathcal F(\phi)=
-\mathbb E_{q_{\phi}(w)}\left[\log p(\mathcal D\mid w)\right]
--
-\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
+\mathcal F(\phi)=\mathbb E_{q_{\phi}(w)}\left[\log p(\mathcal D\mid w)\right]
+- \mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
 $$
 
 Equivalent minimization form used in training:
 
 $$
-\mathcal L_{\mathrm{ELBO}}(\phi)=
-\mathbb E_{q_{\phi}(w)}\left[-\log p(\mathcal D\mid w)\right]
-+
-\beta\,\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
+\mathcal L_{\mathrm{ELBO}}(\phi)=\mathbb E_{q_{\phi}(w)}\left[-\log p(\mathcal D\mid w)\right]
++ \beta\,\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
 $$
 
 Mini-batch objective with $N_b$ optimizer steps per epoch:
 
 $$
-\widehat{\mathcal L}_{\mathrm{ELBO}}=
-\widehat{\mathcal L}_{\mathrm{NLL}}
-+
-\beta\,\frac{1}{N_b}
-\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
+\widehat{\mathcal L}_{\mathrm{ELBO}}=\widehat{\mathcal L}_{\mathrm{NLL}}
++ \beta\,\frac{1}{N_b}\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w)\right)
 $$
 
 Relationship to posterior KL:
 
 $$
-\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w\mid\mathcal D)\right)
-=
-\mathcal L_{\mathrm{ELBO}}(\phi)+\log p(\mathcal D)
+\mathrm{KL}\!\left(q_{\phi}(w)\,\|\,p(w\mid\mathcal D)\right)=\mathcal L_{\mathrm{ELBO}}(\phi)+\log p(\mathcal D)
 $$
 
 ## 5) Inference / Prediction Equations
@@ -99,16 +87,13 @@ $$
 $$
 
 $$
-\sigma^2_{\mathrm{epi}}(x)=
-\frac{1}{S}\sum_{s=1}^{S}\left(f(x;w^{(s)})-\mu(x)\right)^2
+\sigma^2_{\mathrm{epi}}(x)=\frac{1}{S}\sum_{s=1}^{S}\left(f(x;w^{(s)})-\mu(x)\right)^2
 $$
 
 Classification predictive probabilities:
 
 $$
-\bar p(y\mid x)=
-\frac{1}{S}\sum_{s=1}^{S}
-\mathrm{softmax}\!\left(z(x;w^{(s)})\right)
+\bar p(y\mid x)=\frac{1}{S}\sum_{s=1}^{S}\mathrm{softmax}\!\left(z(x;w^{(s)})\right)
 $$
 
 ## 6) Practical Implications

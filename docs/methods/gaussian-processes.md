@@ -43,11 +43,7 @@ $$
 Predictive variance decomposition:
 
 $$
-\sigma_{\mathrm{pred}}^2(x)
-=
-\sigma_{\mathrm{epi}}^2(x)
-+
-\sigma_{\mathrm{alea}}^2(x)
+\sigma_{\mathrm{pred}}^2(x) = \sigma_{\mathrm{epi}}^2(x) + \sigma_{\mathrm{alea}}^2(x)
 $$
 
 For classification, GP classifiers return class probabilities (`probs`) and probability spread proxies (`probs_var`).
@@ -75,16 +71,10 @@ $$
 Log marginal likelihood:
 
 $$
-\log p(y \mid X)
-=
--
-\frac{1}{2}
-y^\top \left(K_{XX} + \sigma_\varepsilon^2 I\right)^{-1} y
--
-\frac{1}{2}
-\log\left|K_{XX} + \sigma_\varepsilon^2 I\right|
--
-\frac{N}{2}\log(2\pi)
+\log p(y \mid X) =
+-\frac{1}{2} y^\top \left(K_{XX} + \sigma_\varepsilon^2 I\right)^{-1} y
+- \frac{1}{2} \log\left|K_{XX} + \sigma_\varepsilon^2 I\right|
+- \frac{N}{2}\log(2\pi)
 $$
 
 ### 3.2 Sparse variational GP regression
@@ -100,11 +90,8 @@ $$
 Common collapsed ELBO form:
 
 $$
-\mathcal{F}
-=
-\log \mathcal{N}\left(y \mid 0, Q_{NN} + \sigma_\varepsilon^2 I\right)
--
-\frac{1}{2\sigma_\varepsilon^2}\mathrm{tr}\left(K_{NN} - Q_{NN}\right)
+\mathcal{F} = \log \mathcal{N}\left(y \mid 0, Q_{NN} + \sigma_\varepsilon^2 I\right)
+- \frac{1}{2\sigma_\varepsilon^2}\mathrm{tr}\left(K_{NN} - Q_{NN}\right)
 $$
 
 ### 3.3 GP classification (binary + OvR multiclass)
@@ -122,11 +109,7 @@ where $\sigma(\cdot)$ is the logistic sigmoid.
 A common logistic-Gaussian predictive approximation is:
 
 $$
-p(y=1 \mid x)
-\approx
-\sigma\left(
-\frac{\mu_f(x)}{\sqrt{1 + \frac{\pi}{8}\sigma_f^2(x)}}
-\right)
+p(y=1 \mid x) \approx \sigma\left(\frac{\mu_f(x)}{\sqrt{1 + \frac{\pi}{8}\sigma_f^2(x)}}\right)
 $$
 
 For multiclass classification, one binary GP is fit per class (OvR), then class scores are normalized into probabilities.
@@ -175,13 +158,8 @@ $$
 Spectral mixture kernel (for lag $\tau = x-x'$):
 
 $$
-k(\tau)
-=
-\sum_{q=1}^{Q}
-w_q
-\prod_{d=1}^{D}
-\exp\left(-2\pi^2 \tau_d^2 v_{qd}\right)
-\cos\left(2\pi \tau_d \mu_{qd}\right)
+k(\tau) = \sum_{q=1}^{Q} w_q \prod_{d=1}^{D}
+\exp\left(-2\pi^2 \tau_d^2 v_{qd}\right)\cos\left(2\pi \tau_d \mu_{qd}\right)
 $$
 
 ### 3.7 Deep kernel GP regression
