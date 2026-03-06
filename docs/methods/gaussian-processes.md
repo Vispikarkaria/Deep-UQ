@@ -1,6 +1,6 @@
 # Gaussian Processes
 
-`deepuq` exposes Gaussian Process methods through:
+`deepuq` exposes Gaussian Process methods through
 `GaussianProcessRegressor`, `SparseGaussianProcessRegressor`,
 `GaussianProcessClassifier`, `OneVsRestGaussianProcessClassifier`,
 `HeteroscedasticGaussianProcessRegressor`,
@@ -10,227 +10,209 @@
 
 ## 1) Motivation
 
-Gaussian Processes place a Bayesian prior directly over functions rather than over
-finite-dimensional weights. This makes them a strong uncertainty quantification
-baseline because posterior uncertainty expands naturally when observations are
-sparse, noisy, or out of distribution.
+Gaussian Processes place a Bayesian prior directly over functions, which makes
+them a strong baseline when the goal is not only prediction accuracy but also
+calibrated uncertainty. Instead of fitting one function and treating it as
+certain, the model infers a posterior distribution over plausible latent
+functions after observing the dataset.
 
-In `deepuq`, the GP family is designed to cover:
+This is why GP methods remain important in uncertainty quantification:
 
-- exact regression for calibrated small-data baselines,
-- sparse variational regression for larger datasets,
-- classification with uncertainty near decision boundaries,
-- input-dependent noise models,
-- correlated multi-output regression,
-- spectral structure and learned feature maps.
+- uncertainty grows naturally away from observed data,
+- observation noise can be modeled explicitly,
+- posterior covariance reveals coupling across inputs and tasks,
+- kernel design gives direct control over smoothness, periodicity, and shared
+  structure.
+
+In `deepuq`, the GP family covers exact regression, sparse variational
+regression, GP classification, heteroscedastic regression, multi-task ICM,
+spectral mixture kernels, and deep kernel learning.
 
 ## 2) What Uncertainty Is Quantified
 
-For regression, GP models quantify posterior uncertainty in the latent function
-and, when appropriate, observation noise.
+For regression, Gaussian Processes quantify posterior uncertainty in the latent
+function and, when the observation model includes noise, aleatoric uncertainty
+in the measurements.
 
-With the standard noisy-observation model:
+With the standard regression model,
 
-$$
-y_i=f(x_i)+\varepsilon_i,
-\qquad
-\varepsilon_i\sim\mathcal N(0,\sigma_n^2)
-$$
+\[ y_i = f(x_i) + \varepsilon_i, \qquad \varepsilon_i \sim \mathcal{N}(0,\sigma_n^2), \]
 
-the predictive variance decomposes as:
+the predictive variance decomposes as
 
-$$
-\mathrm{Var}[y_*\mid x_*,\mathcal D]=\mathrm{Var}[f_*\mid x_*,\mathcal D]+\sigma_n^2
-$$
+\[ \operatorname{Var}[y_* \mid x_*, \mathcal{D}] = \operatorname{Var}[f_* \mid x_*, \mathcal{D}] + \sigma_n^2. \]
 
-For classification, the object of interest is the predictive class probability.
-In the binary case:
+For classification, the main quantity is the predictive class probability. In
+the binary setting,
 
-$$
-p(y_*=1\mid x_*,\mathcal D)=\int p(y_*=1\mid f_*)\,p(f_*\mid x_*,\mathcal D)\,df_*
-$$
+\[ p(y_* = 1 \mid x_*, \mathcal{D}) = \int p(y_* = 1 \mid f_*) \, p(f_* \mid x_*, \mathcal{D}) \, df_*. \]
+
+So the regression models quantify both latent uncertainty and noise structure,
+while the classification models quantify uncertainty in the class-probability
+surface, especially near boundaries and away from training support.
 
 ## 3) Mathematical Setup / Notation
 
-Dataset and kernel notation:
+Throughout this page, let
 
-$$
-\mathcal D=\{(x_i,y_i)\}_{i=1}^N,
-\qquad
-X=[x_1,\ldots,x_N]^{\top}
-$$
+\[ \mathcal{D} = \{(x_i,y_i)\}_{i=1}^{N}, \qquad X = [x_1,\ldots,x_N]^{\top}, \qquad y = [y_1,\ldots,y_N]^{\top}. \]
 
-$$
-K_{XX}=k(X,X),
-\qquad
-K_{*X}=k(X_*,X),
-\qquad
-K_{**}=k(X_*,X_*)
-$$
+Kernel matrices follow the standard GP notation:
 
-Throughout the page:
+\[ K_{XX} = k(X,X), \qquad K_{*X} = k(X_*,X), \qquad K_{X*} = K_{*X}^{\top}, \qquad K_{**} = k(X_*,X_*). \]
 
-- $f$ denotes the latent function,
-- $u=f(Z)$ denotes inducing variables at inducing inputs $Z$,
-- $\sigma_n^2$ denotes observation-noise variance,
-- $B$ denotes the task covariance matrix in the multi-task model.
+Additional symbols used below:
 
-## 4) Core Method Equations
+- \( f \) is the latent function,
+- \( u = f(Z) \) are inducing variables at inducing inputs \( Z \),
+- \( \sigma_n^2 \) is homoscedastic observation-noise variance,
+- \( \sigma_n^2(x) \) is input-dependent noise variance,
+- \( B \) is the task covariance matrix in the intrinsic coregionalization model,
+- \( \phi_{\psi} \) is a trainable feature extractor in deep kernel learning.
+
+## 4) Core Models and Equations
 
 ### 4.1 Exact GP Regression
 
-Prior:
+The exact GP prior is
 
-$$
-f(\cdot)\sim\mathcal{GP}(0,k(\cdot,\cdot))
-$$
+\[ f(\cdot) \sim \mathcal{GP}\!\left(0, k(\cdot,\cdot)\right). \]
 
-Posterior predictive mean and covariance:
+Conditioning on observed data gives the predictive mean
 
-$$
-\mu_*=K_{*X}\left(K_{XX}+\sigma_n^2 I\right)^{-1}y
-$$
+\[ \mu_* = K_{*X}\left(K_{XX} + \sigma_n^2 I\right)^{-1}y, \]
 
-$$
-\Sigma_*=K_{**}-K_{*X}\left(K_{XX}+\sigma_n^2 I\right)^{-1}K_{X*}
-$$
+and predictive covariance
 
-Log marginal likelihood:
+\[ \Sigma_* = K_{**} - K_{*X}\left(K_{XX} + \sigma_n^2 I\right)^{-1}K_{X*}. \]
 
-$$
-\log p(y\mid X)=-\frac{1}{2}y^{\top}\left(K_{XX}+\sigma_n^2 I\right)^{-1}y-\frac{1}{2}\log\left|K_{XX}+\sigma_n^2 I\right|-\frac{N}{2}\log(2\pi)
-$$
+The log marginal likelihood used for kernel learning is
+
+\[ \log p(y \mid X) = -\frac{1}{2} y^{\top}\left(K_{XX} + \sigma_n^2 I\right)^{-1}y - \frac{1}{2}\log\left|K_{XX} + \sigma_n^2 I\right| - \frac{N}{2}\log(2\pi). \]
 
 ### 4.2 Sparse Variational GP Regression
 
-Introduce inducing variables:
+Sparse variational GP regression introduces inducing variables
 
-$$
-u=f(Z),
-\qquad
-q(u)=\mathcal N(m,S),
-\qquad
-M\ll N
-$$
+\[ u = f(Z), \qquad q(u) = \mathcal{N}(m,S), \qquad M \ll N. \]
 
-Projected covariance:
+The projected covariance is
 
-$$
-Q_{XX}=K_{XZ}K_{ZZ}^{-1}K_{ZX}
-$$
+\[ Q_{XX} = K_{XZ}K_{ZZ}^{-1}K_{ZX}. \]
 
-Common collapsed ELBO form:
+A common collapsed evidence lower bound is
 
-$$
-\mathcal F=\log\mathcal N\left(y\mid 0,Q_{XX}+\sigma_n^2 I\right)-\frac{1}{2\sigma_n^2}\mathrm{tr}\left(K_{XX}-Q_{XX}\right)
-$$
+\[ \mathcal{F} = \log \mathcal{N}\!\left(y \mid 0, Q_{XX} + \sigma_n^2 I\right) - \frac{1}{2\sigma_n^2}\operatorname{tr}\!\left(K_{XX} - Q_{XX}\right). \]
+
+This is the standard sparse-GP approximation used to preserve posterior
+uncertainty structure while reducing the cost of exact \(N \times N\) kernel
+algebra.
 
 ### 4.3 GP Classification (Binary + OvR Multiclass)
 
-Binary likelihood:
+For binary classification with latent score \( f_i \), the Bernoulli likelihood
+is
 
-$$
-p(y_i=1\mid f_i)=\sigma(f_i)
-$$
+\[ p(y_i = 1 \mid f_i) = \sigma(f_i), \]
 
-where $\sigma(\cdot)$ is the logistic sigmoid.
+where \( \sigma(\cdot) \) is the logistic sigmoid.
 
-`deepuq` uses a Laplace approximation in the latent space. A common predictive
-approximation is:
+`deepuq` uses a Laplace approximation in latent-function space. A standard
+logistic-Gaussian predictive approximation is
 
-$$
-p(y_*=1\mid x_*,\mathcal D)\approx\sigma\left(\frac{\mu_*}{\sqrt{1+\frac{\pi}{8}\sigma_*^2}}\right)
-$$
+\[ p(y_* = 1 \mid x_*, \mathcal{D}) \approx \sigma\!\left(\frac{\mu_*}{\sqrt{1 + \frac{\pi}{8}\sigma_*^2}}\right). \]
 
 For multiclass classification, one binary GP is fit per class and the resulting
-scores are normalized into class probabilities.
+scores are normalized as
+
+\[ \tilde p_c(x) = \frac{p_c(x)}{\sum_{j=1}^{C} p_j(x)}. \]
 
 ### 4.4 Heteroscedastic GP Regression
 
-Input-dependent noise model:
+When the measurement noise depends on the input, the observation model becomes
 
-$$
-y_i=f(x_i)+\varepsilon_i,
-\qquad
-\varepsilon_i\sim\mathcal N\left(0,\sigma_n^2(x_i)\right)
-$$
+\[ y_i = f(x_i) + \varepsilon_i, \qquad \varepsilon_i \sim \mathcal{N}\!\left(0,\sigma_n^2(x_i)\right). \]
 
-`deepuq` alternates between a mean GP and a noise GP. The transformed
-residual target used for the noise process is:
+In practice, `deepuq` alternates between:
 
-$$
-\log\left((y_i-\hat f(x_i))^2+\delta\right)
-$$
+- a GP for the latent mean,
+- a GP for the log noise process.
+
+The transformed residual target used for the noise model is
+
+\[ \log\!\left((y_i - \hat f(x_i))^2 + \delta\right), \qquad \delta > 0. \]
 
 ### 4.5 Multi-task ICM GP Regression
 
-For task indices $t$ and $t'$:
+For task indices \( t \) and \( t' \), the intrinsic coregionalization kernel is
 
-$$
-k\big((x,t),(x',t')\big)=k_x(x,x')\,B_{tt'}
-$$
+\[ k\!\left((x,t),(x',t')\right) = k_x(x,x') \, B_{tt'}. \]
 
-Equivalent covariance form:
+The corresponding covariance matrix is
 
-$$
-K=B\otimes K_x+\sigma_n^2 I
-$$
+\[ K = B \otimes K_x + \sigma_n^2 I. \]
 
-with positive semidefinite task covariance:
+To guarantee positive semidefiniteness, the task covariance is parameterized as
 
-$$
-B=LL^{\top}+\mathrm{diag}(d)
-$$
+\[ B = LL^{\top} + \operatorname{diag}(d). \]
+
+This allows information sharing across correlated outputs while keeping
+task-specific uncertainty.
 
 ### 4.6 Spectral Mixture GP Regression
 
-For lag $\tau=x-x'$:
+For lag \( \tau = x - x' \), the spectral mixture kernel takes the form
 
-$$
-k(\tau)=\sum_{q=1}^{Q}w_q\prod_{d=1}^{D}\exp\left(-2\pi^2\tau_d^2 v_{qd}\right)\cos\left(2\pi\tau_d\mu_{qd}\right)
-$$
+\[ k(\tau) = \sum_{q=1}^{Q} w_q \prod_{d=1}^{D} \exp\!\left(-2\pi^2\tau_d^2 v_{qd}\right)\cos\!\left(2\pi\tau_d\mu_{qd}\right). \]
+
+This kernel is useful when the latent signal contains several frequency bands or
+requires extrapolation of oscillatory structure.
 
 ### 4.7 Deep Kernel GP Regression
 
-Learned representation with GP head:
+Deep kernel learning composes a trainable feature map with a base kernel:
 
-$$
-k_{\mathrm{DKL}}(x,x')=k_{\mathrm{base}}\big(\phi_{\psi}(x),\phi_{\psi}(x')\big)
-$$
+\[ k_{\mathrm{DKL}}(x,x') = k_{\mathrm{base}}\!\left(\phi_{\psi}(x), \phi_{\psi}(x')\right). \]
 
-where $\phi_{\psi}$ is a trainable feature extractor.
+This lets the model learn a representation in which the GP prior is better
+matched to the observed data.
 
 ## 5) Inference / Prediction Equations
 
-For regression, the posterior predictive moments are:
+For regression, the posterior predictive moments are
 
-$$
-\mathbb E[y_*\mid x_*,\mathcal D]=\mu_*
-$$
+\[ \mathbb{E}[y_* \mid x_*, \mathcal{D}] = \mu_*, \]
 
-$$
-\mathrm{Var}[f_*\mid x_*,\mathcal D]=\mathrm{diag}(\Sigma_*)
-$$
+\[ \sigma_{\mathrm{epi}}^2(x_*) = \operatorname{diag}(\Sigma_*), \]
 
-$$
-\mathrm{Var}[y_*\mid x_*,\mathcal D]=\mathrm{diag}(\Sigma_*)+\sigma_n^2
-$$
+\[ \sigma_{\mathrm{pred}}^2(x_*) = \sigma_{\mathrm{epi}}^2(x_*) + \sigma_{\mathrm{alea}}^2(x_*). \]
 
-For classification, predictive probabilities are estimated from the latent
-posterior. In the one-vs-rest setting, classwise probabilities are computed
-independently and then normalized.
+For exact homoscedastic regression, \( \sigma_{\mathrm{alea}}^2(x_*) = \sigma_n^2 \).
+For heteroscedastic regression, \( \sigma_{\mathrm{alea}}^2(x_*) = \sigma_n^2(x_*) \).
+
+For classification, the predictive probability is obtained by integrating over
+the latent posterior:
+
+\[ p(y_* \mid x_*, \mathcal{D}) = \int p(y_* \mid f_*) \, p(f_* \mid x_*, \mathcal{D}) \, df_*. \]
+
+In one-vs-rest classification, classwise probabilities are estimated
+independently and then renormalized into a multiclass simplex.
 
 ## 6) Practical Implications
 
-- Exact GP gives the strongest calibrated baseline when $N$ is modest.
-- Sparse GP reduces cost from cubic training in $N$ to inducing-point scaling.
-- Classification GPs are useful when boundary uncertainty matters more than raw
-  point accuracy.
-- Heteroscedastic GP separates epistemic and aleatoric structure when noise is
-  regime-dependent.
-- Multi-task ICM helps when outputs are correlated and can share information.
-- Spectral mixture and deep kernel variants are useful when simple stationary
-  kernels are too restrictive.
+- Exact GP regression is the strongest calibrated baseline when the dataset is
+  small or medium sized.
+- Sparse variational GP regression trades exactness for scalability while
+  keeping a principled probabilistic objective.
+- GP classification is useful when uncertainty near failure boundaries matters.
+- Heteroscedastic GP regression separates model uncertainty from input-dependent
+  noise.
+- Multi-task ICM helps when multiple outputs are correlated and should share
+  information.
+- Spectral mixture kernels are appropriate for multi-frequency or oscillatory
+  structure.
+- Deep kernel learning is useful when a fixed kernel in raw input space is too
+  restrictive.
 
 ## UQResult Field Mapping
 
@@ -238,7 +220,7 @@ independently and then normalized.
 
 | Model Type | `mean` | `epistemic_var` | `aleatoric_var` | `total_var` | `probs` | `probs_var` |
 |---|---|---|---|---|---|---|
-| Regression GP family | Posterior mean | Latent posterior variance | Noise term (constant or input-dependent) | Sum of epi + alea | `None` | `None` |
+| Regression GP family | Posterior mean | Latent posterior variance | Noise term (constant or input-dependent) | Sum of epistemic and aleatoric variance | `None` | `None` |
 | Classification GP family | `None` | `None` | `None` | `None` | Class probabilities | Probability spread proxy |
 
 ## 7) References
@@ -247,9 +229,10 @@ independently and then normalized.
 2. Titsias, M. (2009). *Variational Learning of Inducing Variables in Sparse Gaussian Processes*. AISTATS (PMLR 5). [Proceedings](https://proceedings.mlr.press/v5/titsias09a.html)
 3. Hensman, J., Fusi, N., & Lawrence, N. D. (2013). *Gaussian Processes for Big Data*. UAI. [Paper](https://arxiv.org/abs/1309.6835)
 4. Williams, C. K. I., & Barber, D. (1998). *Bayesian Classification with Gaussian Processes*. IEEE TPAMI, 20(12), 1342-1351. DOI: [10.1109/34.735807](https://doi.org/10.1109/34.735807)
-5. Alvarez, M. A., Rosasco, L., & Lawrence, N. D. (2012). *Kernels for Vector-Valued Functions: A Review*. Foundations and Trends in ML, 4(3), 195-266. DOI: [10.1561/2200000036](https://doi.org/10.1561/2200000036)
-6. Wilson, A. G., & Adams, R. P. (2013). *Gaussian Process Kernels for Pattern Discovery and Extrapolation*. ICML (PMLR). [Proceedings](https://proceedings.mlr.press/v28/wilson13.html)
-7. Wilson, A. G., Hu, Z., Salakhutdinov, R., & Xing, E. P. (2016). *Deep Kernel Learning*. AISTATS (PMLR). [Proceedings](https://proceedings.mlr.press/v51/wilson16.html)
+5. Le, H., Smola, A., & Canu, S. (2005). *Heteroscedastic Gaussian Process Regression*. ICML Workshop. [Paper](https://www.researchgate.net/publication/228827935_Heteroscedastic_Gaussian_process_regression)
+6. Alvarez, M. A., Rosasco, L., & Lawrence, N. D. (2012). *Kernels for Vector-Valued Functions: A Review*. Foundations and Trends in Machine Learning, 4(3), 195-266. DOI: [10.1561/2200000036](https://doi.org/10.1561/2200000036)
+7. Wilson, A. G., & Adams, R. P. (2013). *Gaussian Process Kernels for Pattern Discovery and Extrapolation*. ICML (PMLR). [Proceedings](https://proceedings.mlr.press/v28/wilson13.html)
+8. Wilson, A. G., Hu, Z., Salakhutdinov, R., & Xing, E. P. (2016). *Deep Kernel Learning*. AISTATS (PMLR). [Proceedings](https://proceedings.mlr.press/v51/wilson16.html)
 
 ## Related docs
 

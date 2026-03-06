@@ -58,9 +58,6 @@ markdown_extensions:
   - footnotes
   - pymdownx.arithmatex:
       generic: true
-      smart_dollar: true
-      tex_inline_wrap: ["\\(", "\\)"]
-      tex_block_wrap: ["\\[", "\\]"]
   - toc:
       permalink: true
   - pymdownx.details
@@ -72,14 +69,12 @@ markdown_extensions:
       alternate_style: true
 
 extra_css:
-  - https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css
   - assets/stylesheets/extra-v2.css
 
 extra_javascript:
   - assets/javascripts/extra-v2.js
-  - https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js
-  - https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js
-  - assets/javascripts/katex.js
+  - assets/javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
   - Home: index.md

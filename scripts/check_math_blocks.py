@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fail if docs markdown display-math blocks contain markdown-sensitive lines.
 
-This prevents GitHub markdown mis-parsing in $$...$$ blocks, including:
+This prevents GitHub markdown mis-parsing in $$...$$ and \[...\] blocks, including:
 - operator-only lines such as '=', '-', '+', '*'
 - list-like lines such as '- <expr>' or '+ <expr>' that Markdown can treat as bullets
 """
@@ -30,25 +30,33 @@ class Violation:
     reason: str
 
 
+DISPLAY_BLOCK_PATTERNS = (
+    ("$$", re.compile(r"\$\$(.*?)\$\$", re.DOTALL)),
+    (r"\[\]", re.compile(r"\\\[(.*?)\\\]", re.DOTALL)),
+)
+
+
 def iter_display_blocks(text: str):
-    """Yield (block_index, start_line, block_content) for each $$...$$ block."""
-    parts = text.split("$$")
-    for idx, block in enumerate(parts[1::2], start=1):
-        # Count lines before this block starts.
-        prefix = "$$".join(parts[: 2 * idx - 1])
-        start_line = prefix.count("\n") + 1
-        yield idx, start_line, block
+    """Yield (block_index, start_line, block_content, delimiter) for display blocks."""
+    matches = []
+    for delimiter, pattern in DISPLAY_BLOCK_PATTERNS:
+        for match in pattern.finditer(text):
+            matches.append((match.start(), delimiter, match.group(1)))
+
+    for idx, (start, delimiter, block) in enumerate(sorted(matches), start=1):
+        start_line = text[:start].count("\n") + 1
+        yield idx, start_line, block, delimiter
 
 
 def check_file(path: Path) -> list[Violation]:
     text = path.read_text(encoding="utf-8")
     if text.count("$$") % 2 != 0:
-        # Keep this script scoped to operator-only guard as requested.
-        # Unbalanced delimiters are reported as a top-level violation-like message.
         print(f"[math-guard] WARNING: odd number of '$$' delimiters in {path}")
+    if text.count(r"\[") != text.count(r"\]"):
+        print(f"[math-guard] WARNING: unbalanced '\\['/'\\]' delimiters in {path}")
 
     violations: list[Violation] = []
-    for block_idx, start_line, block in iter_display_blocks(text):
+    for block_idx, start_line, block, _delimiter in iter_display_blocks(text):
         for rel_line, line in enumerate(block.splitlines(), start=1):
             token = line.strip()
             if token in OPERATOR_ONLY:
@@ -102,14 +110,16 @@ def main() -> int:
         )
         return 0
 
-    print("[math-guard] Found markdown-sensitive lines inside $$...$$ blocks:")
+    print("[math-guard] Found markdown-sensitive lines inside display math blocks:")
     for violation in all_violations:
         print(
             f"  - {violation.path}:{violation.line_number} "
             f"(block #{violation.block_index}) {violation.reason}: '{violation.token}'"
         )
 
-    print("[math-guard] Fix by keeping operators/list markers away from start-of-line inside $$...$$ blocks.")
+    print(
+        "[math-guard] Fix by keeping operators/list markers away from start-of-line inside display math blocks."
+    )
     return 1
 
 
