@@ -130,8 +130,8 @@ Releases are tag-driven via `.github/workflows/release.yml` and PyPI trusted pub
 2. Commit and push to `master`.
 3. Tag and push:
 ```bash
-git tag v0.1.8
-git push origin v0.1.8
+git tag v0.1.9
+git push origin v0.1.9
 ```
 4. Verify package on PyPI:
 ```bash
@@ -210,6 +210,8 @@ For Laplace users:
 - `notebooks/gp/GP_SpectralMixture_Tutorial.ipynb`: Multi-frequency spectral mixture GP.
 - `notebooks/gp/GP_DeepKernel_Tutorial.ipynb`: Deep kernel GP for representation-rich inputs.
 - `notebooks/gp/GP_Model_Comparison.ipynb`: Calibration and runtime comparison across GP families.
+- `notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb`: 2D viscous Burgers operator learning with DeepONet and spatial Laplace uncertainty maps.
+- `notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb`: 1D Poisson operator learning with sparse forcing sensors, residual DeepONet training, and 1D uncertainty bands.
 
 ### Gaussian Processes
 

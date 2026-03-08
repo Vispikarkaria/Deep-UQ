@@ -96,6 +96,7 @@ nav:
       - SGLD: tutorials/sgld.md
       - Gaussian Processes: tutorials/gp.md
       - Scientific ML (DeepONet + Burgers): tutorials/sciml-deeponet-burgers.md
+      - Scientific ML (DeepONet + 1D Poisson): tutorials/sciml-deeponet-poisson1d.md
   - Examples: examples/index.md
   - API:
       - api/index.md

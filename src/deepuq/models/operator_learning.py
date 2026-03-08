@@ -22,8 +22,8 @@ def _build_tanh_mlp(
     return nn.Sequential(*layers)
 
 
-class DeepONet2D(nn.Module):
-    """A compact DeepONet for 2D operator learning on a fixed query grid.
+class _DeepONetFixedGrid(nn.Module):
+    """Shared DeepONet implementation for fixed-grid operator learning.
 
     The default ``forward`` accepts only the branch input tensor so the model can
     be used with existing ``LaplaceWrapper`` dataloaders that expect
@@ -94,3 +94,47 @@ class DeepONet2D(nn.Module):
                 "or call set_query_grid(...) before forward()."
             )
         return self.predict_on_coords(branch_inputs, self.query_grid)
+
+
+class DeepONet1D(_DeepONetFixedGrid):
+    """A compact DeepONet for 1D operator learning on a fixed query grid."""
+
+    def __init__(
+        self,
+        branch_input_dim: int,
+        trunk_input_dim: int = 1,
+        latent_dim: int = 128,
+        hidden_dim: int = 128,
+        depth: int = 4,
+        query_grid: Optional[torch.Tensor] = None,
+    ) -> None:
+        super().__init__(
+            branch_input_dim=branch_input_dim,
+            trunk_input_dim=trunk_input_dim,
+            latent_dim=latent_dim,
+            hidden_dim=hidden_dim,
+            depth=depth,
+            query_grid=query_grid,
+        )
+
+
+class DeepONet2D(_DeepONetFixedGrid):
+    """A compact DeepONet for 2D operator learning on a fixed query grid."""
+
+    def __init__(
+        self,
+        branch_input_dim: int,
+        trunk_input_dim: int = 2,
+        latent_dim: int = 128,
+        hidden_dim: int = 128,
+        depth: int = 4,
+        query_grid: Optional[torch.Tensor] = None,
+    ) -> None:
+        super().__init__(
+            branch_input_dim=branch_input_dim,
+            trunk_input_dim=trunk_input_dim,
+            latent_dim=latent_dim,
+            hidden_dim=hidden_dim,
+            depth=depth,
+            query_grid=query_grid,
+        )

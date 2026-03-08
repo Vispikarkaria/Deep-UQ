@@ -39,6 +39,9 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 - [DeepONet + Burgers + Laplace guide](sciml-deeponet-burgers.md)
 - Uses the reusable `DeepONet2D` model together with the existing Laplace backends
 - Notebook: [`notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb)
+- [DeepONet + 1D Poisson + Laplace guide](sciml-deeponet-poisson1d.md)
+- Uses the reusable `DeepONet1D` model for a field-to-field 1D operator-learning problem with shaded UQ bands
+- Notebook: [`notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb)
 
 ## Notebook Source Directory
 

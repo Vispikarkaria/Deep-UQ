@@ -16,11 +16,12 @@ from .gaussian_process import (
     SpectralMixtureKernel,
     SumKernel,
 )
-from .operator_learning import DeepONet2D
+from .operator_learning import DeepONet1D, DeepONet2D
 from .simple import MLP
 
 __all__ = [
     "MLP",
+    "DeepONet1D",
     "DeepONet2D",
     "RBFKernel",
     "MaternKernel",

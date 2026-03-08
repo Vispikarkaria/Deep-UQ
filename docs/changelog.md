@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.9 — 2026-03-08
+
+Highlights:
+
+- Added `DeepONet1D` for fixed-grid 1D operator-learning workflows that remain compatible with `LaplaceWrapper`.
+- Added `notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb` covering a 1D Poisson problem with sparse forcing sensors, residual DeepONet training, and last-layer Laplace uncertainty bands.
+- Extended DeepONet tests to cover the 1D model and last-layer Laplace compatibility.
+- Expanded the 2D Burgers SciML notebook explanations and comments for easier first-time reading.
+- Added tutorial docs and site navigation for the new 1D SciML notebook.
+
 ## 0.1.8 — 2026-03-07
 
 Highlights:
