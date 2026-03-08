@@ -1,4 +1,4 @@
-# deepuq
+# Deep-UQ
 
 Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
 

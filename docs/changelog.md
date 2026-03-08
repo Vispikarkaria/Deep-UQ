@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.12 — 2026-03-08
+
+Highlights:
+
+- Switched PyPI long-description rendering to a dedicated `README_PYPI.md`.
+- Removed GitHub workflow badges and repo-specific overview content from the PyPI package description.
+- Aligned naming in the package presentation around `Deep-UQ` (docs/project), `uqdeepnn` (PyPI), and `deepuq` (Python import).
+
 ## 0.1.11 — 2026-03-08
 
 Highlights:
