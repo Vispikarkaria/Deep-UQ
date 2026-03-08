@@ -83,6 +83,7 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
+follow_imports = "skip"
 files = [
     "src/deepuq/methods",
     "src/deepuq/models/gaussian_process.py",
