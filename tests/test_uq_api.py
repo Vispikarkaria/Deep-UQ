@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from deepuq.methods import (
     BayesByBackpropMLP,
+    DeepEnsembleWrapper,
     LaplaceWrapper,
     MCDropoutWrapper,
     predict_vi_uq,
@@ -143,6 +144,19 @@ def test_vi_predict_uq_shapes():
     assert uq.mean.shape == (7, 1)
     assert uq.epistemic_var is not None and uq.epistemic_var.shape == (7, 1)
     assert uq.total_var is not None and uq.total_var.shape == (7, 1)
+
+
+def test_deep_ensemble_predict_uq_shapes():
+    models = [MLP(3, [8], 1, p_drop=0.0) for _ in range(3)]
+    wrapper = DeepEnsembleWrapper(models)
+    x = torch.randn(6, 3)
+
+    uq = wrapper.predict_uq(x)
+    assert isinstance(uq, UQResult)
+    assert uq.mean.shape == (6, 1)
+    assert uq.epistemic_var is not None and uq.epistemic_var.shape == (6, 1)
+    assert uq.total_var is not None and uq.total_var.shape == (6, 1)
+    assert uq.metadata["method"] == "deep_ensemble"
 
 
 def test_gp_predict_uq_shapes():

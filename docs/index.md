@@ -6,7 +6,7 @@ hide:
 <div class="hero-panel reveal">
   <h1>Deep-UQ Documentation</h1>
   <p><strong>Purpose:</strong> Deep-UQ helps you train predictive models that know when they are uncertain, so decisions can use both predictions and confidence.</p>
-  <p>Unified uncertainty quantification toolkit in PyTorch. Build and compare <strong>Bayes by Backprop</strong>, <strong>Laplace</strong>, <strong>SGLD</strong>, <strong>MC Dropout</strong>, and <strong>Gaussian Process</strong> methods in one package.</p>
+  <p>Unified uncertainty quantification toolkit in PyTorch. Build and compare <strong>Deep Ensembles</strong>, <strong>Bayes by Backprop</strong>, <strong>Laplace</strong>, <strong>SGLD</strong>, <strong>MC Dropout</strong>, and <strong>Gaussian Process</strong> methods in one package.</p>
   <p>
     <a href="getting-started/installation/" class="md-button md-button--primary">Get Started</a>
     <a href="api/" class="md-button">API Reference</a>
@@ -39,11 +39,20 @@ Deep-UQ is built for engineers and researchers who need uncertainty-aware modeli
 
 ## What You Get
 
-- Five UQ families in one interface surface.
+- Six UQ families in one interface surface.
+- A regression-first deep ensemble baseline for deterministic backbones.
 - Consistent regression/classification uncertainty outputs through `UQResult`.
 - Native Laplace backends for `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, and `full`.
 - Full Gaussian Process suite: exact, sparse, classification, heteroscedastic, multitask, spectral, and deep-kernel variants.
 - Reproducible tutorials, examples, and benchmark scripts.
+
+## Model Architectures
+
+Deep-UQ now documents predictive backbones separately from uncertainty methods.
+Use the architecture inventory to see which models are available for 1D, 2D,
+and 3D tasks and which UQ methods pair naturally with them.
+
+- [Model architecture inventory](models/architectures.md)
 
 ## Method Families
 
@@ -52,6 +61,20 @@ family section here gives a compact comparison table, then links to the full
 method page, API reference, and tutorial guide.
 
 Legend: <span class="family-mark family-mark--yes">✓</span> direct support, <span class="family-mark family-mark--no">✗</span> not a primary capability for that method.
+
+<div class="family-table-block family-matrix reveal" markdown="1">
+### Deep Ensembles
+
+Deep ensembles are the main multi-model uncertainty baseline for deterministic
+backbones. They are especially useful for convolutional surrogates where MC
+Dropout is natural and last-layer Laplace is not.
+
+<p class="family-table-readmore"><strong>Read more:</strong> <a href="methods/deep-ensembles/">Deep Ensembles method guide</a></p>
+
+| Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
+|---|---|---|---|---|---|---|---|
+| Deep Ensembles | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `DeepEnsembleWrapper` | [Guide](methods/deep-ensembles.md)<br>[API](api/methods/ensembles.md)<br>[Tutorial](tutorials/sciml-deep-ensemble-poisson1d.md) |
+</div>
 
 <div class="family-table-block family-matrix reveal" markdown="1">
 ### Variational Inference
@@ -186,6 +209,7 @@ Outputs:
 
 - [Installation guide](getting-started/installation.md)
 - [Quickstart examples](getting-started/quickstart.md)
+- [Model architecture inventory](models/architectures.md)
 - [Method docs](methods/variational-inference.md)
 - [Tutorial guides](tutorials/index.md)
 - [API reference](api/index.md)

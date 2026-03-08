@@ -6,15 +6,16 @@ Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
 ![lint](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/lint.yml/badge.svg)
 ![docs](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/docs.yml/badge.svg)
 
-Implements **five** widely used UQ families with multiple variants:
+Implements **six** widely used UQ families with multiple variants:
 
-1. **Variational Inference (VI)** — Bayes by Backprop with BayesianLinear layers.
-2. **Laplace Approximation** — native backends for all supported structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`).
-3. **MCMC (SGLD)** — Stochastic Gradient Langevin Dynamics sampler for NN posteriors.
-4. **MC Dropout** — Keep dropout active at test-time and aggregate Monte Carlo predictions.
-5. **Gaussian Processes (GPs)** — Exact, sparse, classification, heteroscedastic, multitask, spectral-mixture, and deep-kernel GP variants.
+1. **Deep Ensembles** — Independent deterministic models aggregated into a predictive mean and variance.
+2. **Variational Inference (VI)** — Bayes by Backprop with BayesianLinear layers.
+3. **Laplace Approximation** — native backends for all supported structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`).
+4. **MCMC (SGLD)** — Stochastic Gradient Langevin Dynamics sampler for NN posteriors.
+5. **MC Dropout** — Keep dropout active at test-time and aggregate Monte Carlo predictions.
+6. **Gaussian Processes (GPs)** — Exact, sparse, classification, heteroscedastic, multitask, spectral-mixture, and deep-kernel GP variants.
 
-Examples and tutorials focus on a synthetic Euler-Bernoulli beam deflection regression task to illustrate confidence bounds.
+Examples and tutorials now cover beam-style regression, Gaussian-process benchmarks, and scientific machine learning cases such as DeepONet, FNO, convolutional surrogates, and PINNs.
 
 ## Method Families
 
@@ -22,6 +23,20 @@ The website is the canonical place to read the full method guides and equations.
 This README keeps the overview concise and links outward to the detailed docs.
 
 Legend: `✓` direct support, `✗` not a primary capability for that method.
+
+### Deep Ensembles
+
+Deep ensembles are the package's strongest pragmatic neural-network baseline for
+predictive uncertainty. They work especially well with deterministic backbones
+that are awkward to Bayesianize directly, such as convolutional field-to-field
+surrogates.
+
+Read more:
+- https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/
+
+| Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
+|---|---|---|---|---|---|---|---|
+| Deep Ensembles | ✓ | ✗ | ✗ | ✓ | ✗ | `DeepEnsembleWrapper` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/ensembles/)<br>[Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/sciml-deep-ensemble-poisson1d/) |
 
 ### Variational Inference
 
@@ -102,9 +117,26 @@ Read more:
 | Spectral Mixture GP | ✓ | ✗ | ✗ | ✓ | ✓ | `SpectralMixtureGaussianProcessRegressor` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/)<br>[Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/) |
 | Deep Kernel GP | ✓ | ✗ | ✗ | ✓ | ✓ | `DeepKernelGaussianProcessRegressor` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/gaussian-processes/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/models/gaussian_process/)<br>[Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/) |
 
+## Model Architectures
+
+The website is the canonical location for the full architecture inventory,
+including compatibility with Laplace, MC Dropout, and Deep Ensembles:
+
+- https://vispikarkaria.github.io/Deep-UQ/models/architectures/
+
+Compact summary:
+
+| Family | Main Classes | Main UQ Path | Tutorial |
+|---|---|---|---|
+| Dense / Parametric | `MLP`, `PINN1D`, `PINN2D` | Laplace, MC Dropout, Deep Ensembles | [Poisson1D / PINN tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
+| Spatial Convolutional | `CNNRegressor2D`, `ResNetRegressor2D`, `UNet2D`, `UNet3D` | MC Dropout, Deep Ensembles | [Heat2D / Diffusion2D tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
+| Operator Learning | `DeepONet1D`, `DeepONet2D`, `FNO3D` | Laplace (DeepONet/FNO), task-specific comparisons | [SciML tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
+| Gaussian Processes | GP classes and kernels | Native Bayesian | [GP tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/) |
+
 ## Documentation Website
 
 - Docs home: https://vispikarkaria.github.io/Deep-UQ/
+- Model architectures: https://vispikarkaria.github.io/Deep-UQ/models/architectures/
 - Tutorials: https://vispikarkaria.github.io/Deep-UQ/tutorials/
 - API reference: https://vispikarkaria.github.io/Deep-UQ/api/
 
@@ -130,8 +162,8 @@ Releases are tag-driven via `.github/workflows/release.yml` and PyPI trusted pub
 2. Commit and push to `master`.
 3. Tag and push:
 ```bash
-git tag v0.1.9
-git push origin v0.1.9
+git tag v0.1.11
+git push origin v0.1.11
 ```
 4. Verify package on PyPI:
 ```bash
@@ -183,6 +215,7 @@ print(uq.mean.shape, uq.total_var.shape)
 
 ## Methods
 
+- **Deep Ensembles**: Train multiple deterministic models independently and aggregate their predictions into a mean and variance.
 - **VI**: Place Gaussian posteriors over weights with reparameterization trick and KL regularization.
 - **Laplace**: Fit a Gaussian around a MAP solution using one of multiple curvature structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`) and calibrate with a prior precision.
 - **MCMC (SGLD)**: Inject Gaussian noise into SGD steps to sample from the posterior.
@@ -212,6 +245,10 @@ For Laplace users:
 - `notebooks/gp/GP_Model_Comparison.ipynb`: Calibration and runtime comparison across GP families.
 - `notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb`: 2D viscous Burgers operator learning with DeepONet and spatial Laplace uncertainty maps.
 - `notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb`: 1D Poisson operator learning with sparse forcing sensors, residual DeepONet training, and 1D uncertainty bands.
+- `notebooks/sciml/DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb`: Deep ensemble uncertainty bands for a parametric 1D Poisson response map.
+- `notebooks/sciml/CNN_ResNet_Heat2D_UQ_Tutorial.ipynb`: CNN / ResNet baselines with MC Dropout on a 2D heat source-to-solution problem.
+- `notebooks/sciml/UNet_Diffusion2D_UQ_Tutorial.ipynb`: U-Net field-to-field uncertainty on a 2D transient diffusion problem.
+- `notebooks/sciml/PINN_Poisson_Laplace_Tutorial.ipynb`: Physics-informed Poisson solutions with last-layer Laplace uncertainty.
 
 ### Gaussian Processes
 

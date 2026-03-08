@@ -18,10 +18,18 @@ from .gaussian_process import (
     SumKernel,
 )
 from .operator_learning import DeepONet1D, DeepONet2D
+from .pinn import PINN1D, PINN2D
 from .simple import MLP
+from .spatial import CNNRegressor2D, ResNetRegressor2D, UNet2D, UNet3D
 
 __all__ = [
     "MLP",
+    "CNNRegressor2D",
+    "ResNetRegressor2D",
+    "UNet2D",
+    "UNet3D",
+    "PINN1D",
+    "PINN2D",
     "SpectralConv3D",
     "FNOBlock3D",
     "FNO3D",

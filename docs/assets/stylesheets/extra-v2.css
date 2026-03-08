@@ -164,6 +164,33 @@ pre,
   min-width: 11rem;
 }
 
+.architecture-matrix tbody td:nth-child(2),
+.architecture-matrix tbody td:nth-child(3),
+.architecture-matrix tbody td:nth-child(4),
+.architecture-matrix tbody td:nth-child(5),
+.architecture-matrix tbody td:nth-child(6),
+.architecture-matrix tbody td:nth-child(7),
+.architecture-matrix thead th:nth-child(2),
+.architecture-matrix thead th:nth-child(3),
+.architecture-matrix thead th:nth-child(4),
+.architecture-matrix thead th:nth-child(5),
+.architecture-matrix thead th:nth-child(6),
+.architecture-matrix thead th:nth-child(7) {
+  width: 4.4rem;
+  min-width: 4.4rem;
+  text-align: center;
+}
+
+.architecture-matrix tbody td:nth-child(8),
+.architecture-matrix thead th:nth-child(8) {
+  min-width: 17rem;
+}
+
+.architecture-matrix tbody td:nth-child(9),
+.architecture-matrix thead th:nth-child(9) {
+  min-width: 14rem;
+}
+
 .family-chip {
   display: inline-block;
   margin: 0 0.35rem 0.2rem 0;

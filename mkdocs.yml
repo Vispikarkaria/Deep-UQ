@@ -83,13 +83,17 @@ nav:
       - Installation: getting-started/installation.md
       - Quickstart: getting-started/quickstart.md
   - Methods:
+      - Deep Ensembles: methods/deep-ensembles.md
       - Variational Inference: methods/variational-inference.md
       - Laplace Approximation: methods/laplace.md
       - MCMC (SGLD): methods/mcmc-sgld.md
       - MC Dropout: methods/mc-dropout.md
       - Gaussian Processes: methods/gaussian-processes.md
+  - Models:
+      - Model Architectures: models/architectures.md
   - Tutorials:
       - tutorials/index.md
+      - Deep Ensembles + Parametric Poisson1D: tutorials/sciml-deep-ensemble-poisson1d.md
       - Bayes by Backprop: tutorials/bayes-by-backprop.md
       - Laplace Comparison: tutorials/laplace-comparison.md
       - MC Dropout: tutorials/mc-dropout.md
@@ -98,16 +102,22 @@ nav:
       - Scientific ML (DeepONet + Burgers): tutorials/sciml-deeponet-burgers.md
       - Scientific ML (DeepONet + 1D Poisson): tutorials/sciml-deeponet-poisson1d.md
       - Scientific ML (FNO3D + 3D Heat): tutorials/sciml-fno3d-heat.md
+      - Scientific ML (CNN / ResNet + Heat2D): tutorials/sciml-cnn-resnet-heat2d.md
+      - Scientific ML (UNet + Diffusion2D): tutorials/sciml-unet-diffusion2d.md
+      - Scientific ML (PINN + Poisson): tutorials/sciml-pinn-poisson.md
   - Examples: examples/index.md
   - API:
       - api/index.md
       - Methods:
+          - Deep Ensembles API: api/methods/ensembles.md
           - VI API: api/methods/vi.md
           - Laplace API: api/methods/laplace.md
           - MCMC API: api/methods/mcmc.md
           - MC Dropout API: api/methods/mc_dropout.md
       - Models:
           - MLP API: api/models/simple.md
+          - Spatial Models API: api/models/spatial.md
+          - PINN Models API: api/models/pinn.md
           - Gaussian Process API: api/models/gaussian_process.md
       - Utils API: api/utils.md
       - Types API: api/types.md

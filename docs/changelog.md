@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.11 — 2026-03-08
+
+Highlights:
+
+- Added `DeepEnsembleWrapper` as a regression-first multi-model UQ baseline.
+- Added new predictive backbones: `CNNRegressor2D`, `ResNetRegressor2D`, `UNet2D`, `UNet3D`, `PINN1D`, and `PINN2D`.
+- Added the new model architecture inventory page plus API docs for ensembles, spatial models, and PINNs.
+- Added new SciML tutorial notebooks for deep ensembles, CNN / ResNet heat surrogates, U-Net diffusion surrogates, and PINN Poisson problems.
+
 ## 0.1.10 — 2026-03-08
 
 Highlights:
