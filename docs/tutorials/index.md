@@ -42,6 +42,9 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 - [DeepONet + 1D Poisson + Laplace guide](sciml-deeponet-poisson1d.md)
 - Uses the reusable `DeepONet1D` model for a field-to-field 1D operator-learning problem with shaded UQ bands
 - Notebook: [`notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb)
+- [FNO3D + 3D Heat + Laplace guide](sciml-fno3d-heat.md)
+- Uses the reusable `FNO3D` model for a 3D field-to-field heat-diffusion surrogate with slice-based uncertainty maps
+- Notebook: [`notebooks/sciml/FNO3D_Heat_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/FNO3D_Heat_Laplace_Tutorial.ipynb)
 
 ## Notebook Source Directory
 

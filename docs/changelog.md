@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.10 — 2026-03-08
+
+Highlights:
+
+- Added reusable 3D Fourier Neural Operator components: `SpectralConv3D`, `FNOBlock3D`, and `FNO3D`.
+- Added `notebooks/sciml/FNO3D_Heat_Laplace_Tutorial.ipynb` covering a 3D periodic heat-equation surrogate with slice-based uncertainty visualization.
+- Added tests for 3D FNO forward behavior and last-layer Laplace compatibility.
+- Added tutorial docs and site navigation for the new 3D SciML notebook.
+
 ## 0.1.9 — 2026-03-08
 
 Highlights:

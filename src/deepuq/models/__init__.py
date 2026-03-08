@@ -1,3 +1,4 @@
+from .fno import FNO3D, FNOBlock3D, SpectralConv3D
 from .gaussian_process import (
     DeepKernelGaussianProcessRegressor,
     GaussianProcessClassifier,
@@ -21,6 +22,9 @@ from .simple import MLP
 
 __all__ = [
     "MLP",
+    "SpectralConv3D",
+    "FNOBlock3D",
+    "FNO3D",
     "DeepONet1D",
     "DeepONet2D",
     "RBFKernel",

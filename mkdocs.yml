@@ -97,6 +97,7 @@ nav:
       - Gaussian Processes: tutorials/gp.md
       - Scientific ML (DeepONet + Burgers): tutorials/sciml-deeponet-burgers.md
       - Scientific ML (DeepONet + 1D Poisson): tutorials/sciml-deeponet-poisson1d.md
+      - Scientific ML (FNO3D + 3D Heat): tutorials/sciml-fno3d-heat.md
   - Examples: examples/index.md
   - API:
       - api/index.md
