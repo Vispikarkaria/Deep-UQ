@@ -22,3 +22,6 @@ env/
 
 # Benchmark cache artifacts
 benchmarks/cache/
+
+# Scientific ML notebook artifacts
+notebooks/sciml/artifacts/

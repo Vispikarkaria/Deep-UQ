@@ -95,6 +95,7 @@ nav:
       - MC Dropout: tutorials/mc-dropout.md
       - SGLD: tutorials/sgld.md
       - Gaussian Processes: tutorials/gp.md
+      - Scientific ML (DeepONet + Burgers): tutorials/sciml-deeponet-burgers.md
   - Examples: examples/index.md
   - API:
       - api/index.md

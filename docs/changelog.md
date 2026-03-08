@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.8 — 2026-03-07
 
 Highlights:
 
@@ -12,6 +12,10 @@ Highlights:
 - Added tracked-data policy docs and large-file guard script.
 - Added packaging extras in `pyproject.toml` (`dev`, `tests`, `docs`, `benchmarks`, `notebooks`).
 - Updated docs links and usage/examples for the unified uncertainty API.
+- Added `DeepONet2D` for operator-learning experiments in scientific machine learning.
+- Added a new `notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb` tutorial covering 2D viscous Burgers operator learning with Laplace uncertainty.
+- Added tests for DeepONet forward behavior and Laplace last-layer compatibility.
+- Added tutorial docs and navigation for the new SciML notebook section.
 
 ## 0.1.4 — 2026-03-03
 

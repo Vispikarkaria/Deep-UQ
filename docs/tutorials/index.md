@@ -34,8 +34,15 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 - Full method docs: [`/methods/gaussian-processes/`](../methods/gaussian-processes.md)
 - Notebook directory: [`notebooks/gp/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/gp)
 
+### Scientific ML / Operator Learning
+
+- [DeepONet + Burgers + Laplace guide](sciml-deeponet-burgers.md)
+- Uses the reusable `DeepONet2D` model together with the existing Laplace backends
+- Notebook: [`notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb)
+
 ## Notebook Source Directory
 
 - Main notebooks: [`notebooks/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks)
 - Laplace notebooks: [`notebooks/laplace/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/laplace)
 - Gaussian Process notebooks: [`notebooks/gp/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/gp)
+- Scientific ML notebooks: [`notebooks/sciml/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/sciml)
