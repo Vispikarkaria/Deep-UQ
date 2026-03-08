@@ -13,8 +13,8 @@ from .kernels import (
     MaternKernel,
     PeriodicKernel,
     ProductKernel,
-    RBFKernel,
     RationalQuadraticKernel,
+    RBFKernel,
     SpectralMixtureKernel,
     SumKernel,
 )

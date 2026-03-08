@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple
 
 import torch
 from torch import nn, optim
 
 from deepuq.types import UQResult
 
-from .kernels import Kernel, RBFKernel
+from .kernels import Kernel
 from .utils import stable_cholesky
 
 
@@ -32,10 +31,10 @@ class SparseGaussianProcessRegressor:
         num_iterations: int = 500,
         kernel_jitter: float = 1e-6,
         min_noise: float = 1e-6,
-        inducing_points: Optional[torch.Tensor] = None,
-        kernel: Optional[Kernel] = None,
-        device: Optional[torch.device] = None,
-        dtype: Optional[torch.dtype] = torch.float32,
+        inducing_points: torch.Tensor | None = None,
+        kernel: Kernel | None = None,
+        device: torch.device | None = None,
+        dtype: torch.dtype | None = torch.float32,
         verbose: bool = False,
     ) -> None:
         self.num_inducing = num_inducing
@@ -145,7 +144,7 @@ class SparseGaussianProcessRegressor:
         )
         return elbo.squeeze()
 
-    def fit(self, x: torch.Tensor, y: torch.Tensor) -> "SparseGaussianProcessRegressor":
+    def fit(self, x: torch.Tensor, y: torch.Tensor) -> SparseGaussianProcessRegressor:
         """Optimise sparse variational objective and cache posterior state."""
         x = self._prepare(x)
         y = self._prepare(y).reshape(-1, 1)
@@ -239,7 +238,7 @@ class SparseGaussianProcessRegressor:
         x_star: torch.Tensor,
         return_cov: bool = False,
         include_noise: bool = True,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Predict posterior mean and variance/covariance for test inputs."""
         self._ensure_fitted()
         x_star = self._prepare(x_star)

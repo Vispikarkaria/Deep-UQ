@@ -10,13 +10,15 @@ from deepuq.methods import (
     predict_with_samples,
     predict_with_samples_uq,
 )
-from deepuq.models import GaussianProcessRegressor, MLP, SparseGaussianProcessRegressor
 from deepuq.models import (
+    MLP,
     DeepKernelGaussianProcessRegressor,
     GaussianProcessClassifier,
+    GaussianProcessRegressor,
     HeteroscedasticGaussianProcessRegressor,
     MultiTaskGaussianProcessRegressor,
     OneVsRestGaussianProcessClassifier,
+    SparseGaussianProcessRegressor,
     SpectralMixtureGaussianProcessRegressor,
 )
 from deepuq.types import UQResult

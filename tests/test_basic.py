@@ -1,6 +1,7 @@
 import torch
+
+from deepuq.methods import BayesByBackpropMLP, MCDropoutWrapper, vi_elbo_step
 from deepuq.models import MLP
-from deepuq.methods import MCDropoutWrapper, BayesByBackpropMLP, vi_elbo_step
 
 
 def test_mc_dropout_shapes():

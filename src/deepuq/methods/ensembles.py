@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Callable, Optional, Sequence
+from collections.abc import Sequence
+from typing import Callable
 
 import torch
 from torch import nn
@@ -27,13 +28,13 @@ class DeepEnsembleWrapper(nn.Module):
         *,
         epochs: int,
         loss_fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
-        optimizer_cls: type[torch.optim.Optimizer] = torch.optim.Adam,
+        optimizer_cls: Callable[..., torch.optim.Optimizer] = torch.optim.Adam,
         lr: float = 1e-3,
         weight_decay: float = 0.0,
-        device: Optional[torch.device] = None,
-        seed: Optional[int] = None,
+        device: torch.device | None = None,
+        seed: int | None = None,
         verbose: bool = False,
-    ) -> "DeepEnsembleWrapper":
+    ) -> DeepEnsembleWrapper:
         if epochs <= 0:
             raise ValueError("epochs must be positive.")
 
@@ -42,7 +43,9 @@ class DeepEnsembleWrapper(nn.Module):
                 torch.manual_seed(seed + model_idx)
             if device is not None:
                 model.to(device)
-            optimizer = optimizer_cls(model.parameters(), lr=lr, weight_decay=weight_decay)
+            optimizer = optimizer_cls(
+                model.parameters(), lr=lr, weight_decay=weight_decay
+            )
             model.train()
             for _ in range(epochs):
                 for xb, yb in train_loader:

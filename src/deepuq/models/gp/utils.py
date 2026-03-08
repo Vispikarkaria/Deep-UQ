@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Tuple
-
 import torch
 
 
@@ -35,7 +33,7 @@ def stable_cholesky(
     matrix: torch.Tensor,
     jitter_base: float = 1e-6,
     jitter_max: float = 1e-2,
-) -> Tuple[torch.Tensor, float]:
+) -> tuple[torch.Tensor, float]:
     """Compute a numerically stable Cholesky factor with jitter escalation."""
     jitter = 0.0
     eye = torch.eye(matrix.shape[0], device=matrix.device, dtype=matrix.dtype)

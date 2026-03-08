@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from typing import Optional
 
 import torch
 
@@ -18,13 +17,13 @@ class GaussianProcessClassifier:
 
     def __init__(
         self,
-        kernel: Optional[Kernel] = None,
+        kernel: Kernel | None = None,
         max_iter: int = 20,
         tol: float = 1e-4,
         prior_variance: float = 1.0,
         jitter: float = 1e-6,
-        device: Optional[torch.device] = None,
-        dtype: Optional[torch.dtype] = torch.float32,
+        device: torch.device | None = None,
+        dtype: torch.dtype | None = torch.float32,
     ) -> None:
         self.kernel = kernel or RBFKernel()
         self.max_iter = max_iter
@@ -34,18 +33,18 @@ class GaussianProcessClassifier:
         self.device = device
         self.dtype = dtype
 
-        self._x_train: Optional[torch.Tensor] = None
-        self._y_train: Optional[torch.Tensor] = None
-        self._f_hat: Optional[torch.Tensor] = None
-        self._K: Optional[torch.Tensor] = None
-        self._K_chol: Optional[torch.Tensor] = None
-        self._W: Optional[torch.Tensor] = None
-        self._Kinv_f: Optional[torch.Tensor] = None
+        self._x_train: torch.Tensor | None = None
+        self._y_train: torch.Tensor | None = None
+        self._f_hat: torch.Tensor | None = None
+        self._K: torch.Tensor | None = None
+        self._K_chol: torch.Tensor | None = None
+        self._W: torch.Tensor | None = None
+        self._Kinv_f: torch.Tensor | None = None
 
     def _prepare(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.to(device=self.device, dtype=self.dtype, copy=False)
 
-    def fit(self, x: torch.Tensor, y: torch.Tensor) -> "GaussianProcessClassifier":
+    def fit(self, x: torch.Tensor, y: torch.Tensor) -> GaussianProcessClassifier:
         """Fit binary GP classifier.
 
         ``y`` must contain binary labels in {0, 1}.
@@ -174,13 +173,13 @@ class OneVsRestGaussianProcessClassifier:
 
     def __init__(
         self,
-        kernel: Optional[Kernel] = None,
+        kernel: Kernel | None = None,
         max_iter: int = 20,
         tol: float = 1e-4,
         prior_variance: float = 1.0,
         jitter: float = 1e-6,
-        device: Optional[torch.device] = None,
-        dtype: Optional[torch.dtype] = torch.float32,
+        device: torch.device | None = None,
+        dtype: torch.dtype | None = torch.float32,
     ) -> None:
         self.kernel = kernel
         self.max_iter = max_iter
@@ -190,12 +189,12 @@ class OneVsRestGaussianProcessClassifier:
         self.device = device
         self.dtype = dtype
 
-        self.classes_: Optional[torch.Tensor] = None
+        self.classes_: torch.Tensor | None = None
         self.models_: list[GaussianProcessClassifier] = []
 
     def fit(
         self, x: torch.Tensor, y: torch.Tensor
-    ) -> "OneVsRestGaussianProcessClassifier":
+    ) -> OneVsRestGaussianProcessClassifier:
         """Fit one binary GP classifier per class label."""
         y = y.reshape(-1)
         classes = torch.unique(y).sort().values

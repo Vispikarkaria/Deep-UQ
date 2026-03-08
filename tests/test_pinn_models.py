@@ -26,7 +26,9 @@ def test_pinn2d_shape_and_gradients():
 def test_laplace_last_layer_smoke_on_pinns():
     coords_1d = torch.linspace(0.0, 1.0, 24).unsqueeze(-1)
     target_1d = torch.sin(torch.pi * coords_1d)
-    loader_1d = DataLoader(TensorDataset(coords_1d, target_1d), batch_size=8, shuffle=True)
+    loader_1d = DataLoader(
+        TensorDataset(coords_1d, target_1d), batch_size=8, shuffle=True
+    )
 
     model_1d = PINN1D(hidden_dims=(16, 16))
     opt_1d = torch.optim.Adam(model_1d.parameters(), lr=1e-2)
@@ -49,8 +51,12 @@ def test_laplace_last_layer_smoke_on_pinns():
     assert uq_1d.total_var is not None and uq_1d.total_var.shape == (5, 1)
 
     coords_2d = torch.rand(32, 2)
-    target_2d = torch.sin(torch.pi * coords_2d[:, :1]) * torch.cos(torch.pi * coords_2d[:, 1:2])
-    loader_2d = DataLoader(TensorDataset(coords_2d, target_2d), batch_size=8, shuffle=True)
+    target_2d = torch.sin(torch.pi * coords_2d[:, :1]) * torch.cos(
+        torch.pi * coords_2d[:, 1:2]
+    )
+    loader_2d = DataLoader(
+        TensorDataset(coords_2d, target_2d), batch_size=8, shuffle=True
+    )
 
     model_2d = PINN2D(hidden_dims=(16, 16))
     opt_2d = torch.optim.Adam(model_2d.parameters(), lr=1e-2)

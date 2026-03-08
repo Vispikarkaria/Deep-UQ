@@ -14,7 +14,6 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-
 OPERATOR_ONLY = {"=", "-", "+", "*"}
 LIST_PREFIX_RE = re.compile(r"^[+\-*]\s+")
 ORDERED_LIST_PREFIX_RE = re.compile(r"^\d+\.\s+")

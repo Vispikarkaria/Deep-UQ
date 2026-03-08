@@ -21,12 +21,12 @@ class Kernel:
     def __call__(self, x1: torch.Tensor, x2: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError
 
-    def __add__(self, other: "Kernel") -> "Kernel":
+    def __add__(self, other: Kernel) -> Kernel:
         if not isinstance(other, Kernel):
             return NotImplemented
         return SumKernel(self, other)
 
-    def __mul__(self, other: "Kernel") -> "Kernel":
+    def __mul__(self, other: Kernel) -> Kernel:
         if not isinstance(other, Kernel):
             return NotImplemented
         return ProductKernel(self, other)

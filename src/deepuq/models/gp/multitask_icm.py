@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -21,14 +20,14 @@ class MultiTaskGaussianProcessRegressor:
     def __init__(
         self,
         num_tasks: int,
-        kernel: Optional[Kernel] = None,
+        kernel: Kernel | None = None,
         lr: float = 5e-2,
         opt_steps: int = 250,
         noise: float = 1e-3,
         jitter: float = 1e-6,
         full_max_points: int = 2500,
-        device: Optional[torch.device] = None,
-        dtype: Optional[torch.dtype] = torch.float32,
+        device: torch.device | None = None,
+        dtype: torch.dtype | None = torch.float32,
         verbose: bool = False,
     ) -> None:
         self.num_tasks = num_tasks
@@ -42,11 +41,11 @@ class MultiTaskGaussianProcessRegressor:
         self.dtype = dtype
         self.verbose = verbose
 
-        self._x_train: Optional[torch.Tensor] = None
-        self._y_train: Optional[torch.Tensor] = None
-        self._chol: Optional[torch.Tensor] = None
-        self._alpha: Optional[torch.Tensor] = None
-        self._B: Optional[torch.Tensor] = None
+        self._x_train: torch.Tensor | None = None
+        self._y_train: torch.Tensor | None = None
+        self._chol: torch.Tensor | None = None
+        self._alpha: torch.Tensor | None = None
+        self._B: torch.Tensor | None = None
 
         self._fitted = False
 
@@ -67,8 +66,8 @@ class MultiTaskGaussianProcessRegressor:
         self,
         x1: torch.Tensor,
         x2: torch.Tensor,
-        log_lengthscale: Optional[torch.Tensor] = None,
-        log_outputscale: Optional[torch.Tensor] = None,
+        log_lengthscale: torch.Tensor | None = None,
+        log_outputscale: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if self.kernel is not None:
             return self.kernel(x1, x2)
@@ -88,7 +87,7 @@ class MultiTaskGaussianProcessRegressor:
 
     def fit(
         self, x: torch.Tensor, y: torch.Tensor
-    ) -> "MultiTaskGaussianProcessRegressor":
+    ) -> MultiTaskGaussianProcessRegressor:
         """Fit ICM GP on fully-observed multi-output targets ``y:[N, T]``."""
         x = self._prepare(x)
         y = self._prepare(y)
@@ -206,7 +205,7 @@ class MultiTaskGaussianProcessRegressor:
         x_star: torch.Tensor,
         return_cov: bool = False,
         include_noise: bool = True,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Predict per-task means and variances/covariances at ``x_star``."""
         self._check_fit()
         x_star = self._prepare(x_star)
@@ -220,7 +219,7 @@ class MultiTaskGaussianProcessRegressor:
             and self._alpha is not None
         )
 
-        n_train = self._x_train.shape[0]
+        self._x_train.shape[0]
         n_test = x_star.shape[0]
 
         Ksx = self._kernel_predict(x_star, self._x_train).contiguous()  # [N*, N]

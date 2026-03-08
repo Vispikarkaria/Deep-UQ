@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Iterable, Optional, Tuple
+from collections.abc import Iterable
 
 import torch
 from torch import nn
@@ -46,8 +46,8 @@ class DeepKernelGaussianProcessRegressor:
         lr: float = 1e-3,
         noise: float = 1e-3,
         jitter: float = 1e-6,
-        device: Optional[torch.device] = None,
-        dtype: Optional[torch.dtype] = torch.float32,
+        device: torch.device | None = None,
+        dtype: torch.dtype | None = torch.float32,
         verbose: bool = False,
     ) -> None:
         self.feature_dim = feature_dim
@@ -60,15 +60,15 @@ class DeepKernelGaussianProcessRegressor:
         self.dtype = dtype
         self.verbose = verbose
 
-        self.feature_extractor: Optional[_FeatureExtractor] = None
-        self._x_train: Optional[torch.Tensor] = None
-        self._z_train: Optional[torch.Tensor] = None
-        self._y_train: Optional[torch.Tensor] = None
-        self._chol: Optional[torch.Tensor] = None
-        self._alpha: Optional[torch.Tensor] = None
-        self._lengthscale: Optional[torch.Tensor] = None
-        self._outputscale: Optional[torch.Tensor] = None
-        self._noise: Optional[torch.Tensor] = None
+        self.feature_extractor: _FeatureExtractor | None = None
+        self._x_train: torch.Tensor | None = None
+        self._z_train: torch.Tensor | None = None
+        self._y_train: torch.Tensor | None = None
+        self._chol: torch.Tensor | None = None
+        self._alpha: torch.Tensor | None = None
+        self._lengthscale: torch.Tensor | None = None
+        self._outputscale: torch.Tensor | None = None
+        self._noise: torch.Tensor | None = None
 
     def _prepare(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.to(device=self.device, dtype=self.dtype, copy=False)
@@ -89,7 +89,7 @@ class DeepKernelGaussianProcessRegressor:
 
     def fit(
         self, x: torch.Tensor, y: torch.Tensor
-    ) -> "DeepKernelGaussianProcessRegressor":
+    ) -> DeepKernelGaussianProcessRegressor:
         """Fit DKL-GP on regression targets."""
         x = self._prepare(x)
         y = self._prepare(y).reshape(-1, 1)
@@ -191,7 +191,7 @@ class DeepKernelGaussianProcessRegressor:
         x_star: torch.Tensor,
         return_cov: bool = False,
         include_noise: bool = True,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Predict posterior mean and variance/covariance."""
         self._check_fit()
         x_star = self._prepare(x_star)

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from typing import Optional, Tuple
 
 import torch
 
@@ -18,10 +17,10 @@ class GaussianProcessRegressor:
 
     def __init__(
         self,
-        kernel: Optional[Kernel] = None,
+        kernel: Kernel | None = None,
         noise: float = 1e-4,
-        device: Optional[torch.device] = None,
-        dtype: Optional[torch.dtype] = torch.float32,
+        device: torch.device | None = None,
+        dtype: torch.dtype | None = torch.float32,
         jitter_base: float = 1e-6,
         jitter_max: float = 1e-2,
     ) -> None:
@@ -32,16 +31,16 @@ class GaussianProcessRegressor:
         self.jitter_base = jitter_base
         self.jitter_max = jitter_max
 
-        self._x_train: Optional[torch.Tensor] = None
-        self._y_train: Optional[torch.Tensor] = None
-        self._chol: Optional[torch.Tensor] = None
-        self._alpha: Optional[torch.Tensor] = None
+        self._x_train: torch.Tensor | None = None
+        self._y_train: torch.Tensor | None = None
+        self._chol: torch.Tensor | None = None
+        self._alpha: torch.Tensor | None = None
         self._effective_jitter: float = 0.0
 
     def _prepare(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.to(device=self.device, dtype=self.dtype, copy=False)
 
-    def fit(self, x: torch.Tensor, y: torch.Tensor) -> "GaussianProcessRegressor":
+    def fit(self, x: torch.Tensor, y: torch.Tensor) -> GaussianProcessRegressor:
         """Fit model on training features ``x`` and targets ``y``."""
         x = self._prepare(x)
         y = self._prepare(y).reshape(-1, 1)
@@ -76,7 +75,7 @@ class GaussianProcessRegressor:
         x_star: torch.Tensor,
         return_cov: bool = False,
         return_var: bool = True,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute posterior predictive mean and variance/covariance."""
         self._check_is_fit()
         x_star = self._prepare(x_star)

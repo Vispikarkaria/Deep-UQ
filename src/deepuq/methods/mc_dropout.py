@@ -31,15 +31,15 @@ class MCDropoutWrapper(nn.Module):
     def predict(self, x: torch.Tensor):
         """Run stochastic dropout passes and return predictive mean/variance."""
         self.model.train(True)  # enable dropout
-        preds = []
+        pred_samples = []
         for _ in range(self.n_mc):
             out = self.model(x)
             if self.apply_softmax:
                 out = torch.softmax(out, dim=-1)
-            preds.append(out.unsqueeze(0))
-        preds = torch.cat(preds, dim=0)  # [K,B,C]
-        mean = preds.mean(dim=0)
-        var = preds.var(dim=0, unbiased=False)
+            pred_samples.append(out.unsqueeze(0))
+        pred_tensor = torch.cat(pred_samples, dim=0)  # [K,B,C]
+        mean = pred_tensor.mean(dim=0)
+        var = pred_tensor.var(dim=0, unbiased=False)
         self.model.eval()
         return mean, var
 

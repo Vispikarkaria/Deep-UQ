@@ -63,10 +63,12 @@ where = ["src"]
 [tool.black]
 line-length = 88
 target-version = ["py39"]
+extend-exclude = "/(benchmarks|examples|notebooks)/"
 
 [tool.ruff]
 line-length = 88
 target-version = "py39"
+extend-exclude = ["benchmarks", "examples", "notebooks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]

@@ -4,8 +4,8 @@ from deepuq.models import (
     LinearKernel,
     MaternKernel,
     PeriodicKernel,
-    RBFKernel,
     RationalQuadraticKernel,
+    RBFKernel,
     SpectralMixtureKernel,
 )
 

@@ -33,7 +33,9 @@ def test_unet3d_shape():
 
 
 def test_mc_dropout_smoke_on_cnn_and_unet():
-    cnn = CNNRegressor2D(in_channels=1, out_channels=1, hidden_channels=(8, 8), dropout_p=0.1)
+    cnn = CNNRegressor2D(
+        in_channels=1, out_channels=1, hidden_channels=(8, 8), dropout_p=0.1
+    )
     unet = UNet2D(in_channels=1, out_channels=1, base_channels=8, dropout_p=0.1)
     x = torch.randn(2, 1, 16, 16)
 

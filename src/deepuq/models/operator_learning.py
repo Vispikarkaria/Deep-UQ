@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
-
 import torch
 from torch import nn
 
@@ -13,7 +11,9 @@ def _build_tanh_mlp(
     depth: int,
 ) -> nn.Sequential:
     if depth < 2:
-        raise ValueError("depth must be at least 2 (one hidden layer and one output layer).")
+        raise ValueError(
+            "depth must be at least 2 (one hidden layer and one output layer)."
+        )
 
     layers = [nn.Linear(input_dim, hidden_dim), nn.Tanh()]
     for _ in range(depth - 2):
@@ -37,7 +37,7 @@ class _DeepONetFixedGrid(nn.Module):
         latent_dim: int = 128,
         hidden_dim: int = 128,
         depth: int = 4,
-        query_grid: Optional[torch.Tensor] = None,
+        query_grid: torch.Tensor | None = None,
     ) -> None:
         super().__init__()
         self.branch_input_dim = int(branch_input_dim)
@@ -66,9 +66,7 @@ class _DeepONetFixedGrid(nn.Module):
 
     def set_query_grid(self, query_grid: torch.Tensor) -> None:
         if query_grid.dim() != 2 or query_grid.size(-1) != self.trunk_input_dim:
-            raise ValueError(
-                "query_grid must have shape [n_query, trunk_input_dim]."
-            )
+            raise ValueError("query_grid must have shape [n_query, trunk_input_dim].")
         self.query_grid = query_grid.detach().clone().to(self.output_head.weight.device)
 
     def predict_on_coords(
@@ -106,7 +104,7 @@ class DeepONet1D(_DeepONetFixedGrid):
         latent_dim: int = 128,
         hidden_dim: int = 128,
         depth: int = 4,
-        query_grid: Optional[torch.Tensor] = None,
+        query_grid: torch.Tensor | None = None,
     ) -> None:
         super().__init__(
             branch_input_dim=branch_input_dim,
@@ -128,7 +126,7 @@ class DeepONet2D(_DeepONetFixedGrid):
         latent_dim: int = 128,
         hidden_dim: int = 128,
         depth: int = 4,
-        query_grid: Optional[torch.Tensor] = None,
+        query_grid: torch.Tensor | None = None,
     ) -> None:
         super().__init__(
             branch_input_dim=branch_input_dim,

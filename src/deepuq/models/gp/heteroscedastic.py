@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional, Tuple
-
 import torch
 
 from deepuq.types import UQResult
@@ -17,14 +15,14 @@ class HeteroscedasticGaussianProcessRegressor:
 
     def __init__(
         self,
-        mean_kernel: Optional[Kernel] = None,
-        noise_kernel: Optional[Kernel] = None,
+        mean_kernel: Kernel | None = None,
+        noise_kernel: Kernel | None = None,
         num_alternations: int = 6,
         mean_noise: float = 1e-3,
         noise_floor: float = 1e-5,
         residual_eps: float = 1e-6,
-        device: Optional[torch.device] = None,
-        dtype: Optional[torch.dtype] = torch.float32,
+        device: torch.device | None = None,
+        dtype: torch.dtype | None = torch.float32,
     ) -> None:
         self.mean_kernel = mean_kernel or RBFKernel(lengthscale=1.0, outputscale=1.0)
         self.noise_kernel = noise_kernel or RBFKernel(lengthscale=1.0, outputscale=0.5)
@@ -35,8 +33,8 @@ class HeteroscedasticGaussianProcessRegressor:
         self.device = device
         self.dtype = dtype
 
-        self._mean_gp: Optional[GaussianProcessRegressor] = None
-        self._noise_gp: Optional[GaussianProcessRegressor] = None
+        self._mean_gp: GaussianProcessRegressor | None = None
+        self._noise_gp: GaussianProcessRegressor | None = None
 
     def _prepare(self, tensor: torch.Tensor) -> torch.Tensor:
         return tensor.to(device=self.device, dtype=self.dtype, copy=False)
@@ -45,7 +43,7 @@ class HeteroscedasticGaussianProcessRegressor:
         self,
         x: torch.Tensor,
         y: torch.Tensor,
-    ) -> "HeteroscedasticGaussianProcessRegressor":
+    ) -> HeteroscedasticGaussianProcessRegressor:
         """Fit mean and log-noise GPs via alternating residual updates."""
         x = self._prepare(x)
         y = self._prepare(y).reshape(-1, 1)
@@ -99,7 +97,7 @@ class HeteroscedasticGaussianProcessRegressor:
         x_star: torch.Tensor,
         return_cov: bool = False,
         include_noise: bool = True,
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Predict mean and variance/covariance at test inputs."""
         self._check_fit()
         assert self._mean_gp is not None and self._noise_gp is not None

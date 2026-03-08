@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional, Tuple
+from collections.abc import Iterable
+from typing import cast
 
 import torch
 from torch import nn
@@ -9,8 +10,8 @@ from torch.nn.utils import parameters_to_vector, vector_to_parameters
 from deepuq.types import UQResult
 
 
-def _find_last_linear_layer(model: nn.Module) -> nn.Module:
-    last_linear: Optional[nn.Module] = None
+def _find_last_linear_layer(model: nn.Module) -> nn.Linear:
+    last_linear: nn.Linear | None = None
     for module in model.modules():
         if isinstance(module, nn.Linear):
             last_linear = module
@@ -21,7 +22,7 @@ def _find_last_linear_layer(model: nn.Module) -> nn.Module:
     return last_linear
 
 
-def _select_parameters(model: nn.Module, subset_of_weights: str) -> List[nn.Parameter]:
+def _select_parameters(model: nn.Module, subset_of_weights: str) -> list[nn.Parameter]:
     if subset_of_weights not in {"last_layer", "all"}:
         raise ValueError('subset_of_weights must be "last_layer" or "all".')
 
@@ -38,10 +39,10 @@ def _select_parameters(model: nn.Module, subset_of_weights: str) -> List[nn.Para
 def _safe_cholesky(matrix: torch.Tensor, damping: float) -> torch.Tensor:
     eye = torch.eye(matrix.size(-1), device=matrix.device, dtype=matrix.dtype)
     jitter = float(max(damping, 1e-12))
-    last_error: Optional[RuntimeError] = None
+    last_error: RuntimeError | None = None
     for _ in range(7):
         try:
-            return torch.linalg.cholesky(matrix + jitter * eye)
+            return cast(torch.Tensor, torch.linalg.cholesky(matrix + jitter * eye))
         except (
             RuntimeError
         ) as exc:  # pragma: no cover - exercised only on ill-conditioned cases
@@ -81,21 +82,21 @@ class _NativeLaplaceBase:
         self.device = next(model.parameters()).device
         self._param_dim = parameters_to_vector(self._parameter_modules).numel()
 
-        self.mean_vector: Optional[torch.Tensor] = None
-        self.prior_precision: Optional[torch.Tensor] = None
-        self.empirical_noise_variance: Optional[torch.Tensor] = None
+        self.mean_vector: torch.Tensor | None = None
+        self.prior_precision: torch.Tensor | None = None
+        self.empirical_noise_variance: torch.Tensor | None = None
 
     def _compute_batch_statistics(
         self,
         train_loader: Iterable,
-    ) -> Tuple[torch.Tensor, torch.Tensor, int, float, int]:
+    ) -> tuple[torch.Tensor, torch.Tensor, int, float, int]:
         _ensure_iterable_train_loader(train_loader)
 
         self.model.eval()
         mse_loss = nn.MSELoss(reduction="sum")
         ce_loss = nn.CrossEntropyLoss(reduction="sum")
 
-        batch_grads: List[torch.Tensor] = []
+        batch_grads: list[torch.Tensor] = []
         diag_accumulator = torch.zeros(self._param_dim, device=self.device)
         residual_sum_squares = 0.0
         count_outputs = 0
@@ -155,7 +156,7 @@ class _NativeLaplaceBase:
     def _finalize_common_fit(
         self,
         param_vector: torch.Tensor,
-        prior_precision: Optional[float],
+        prior_precision: float | None,
         residual_sum_squares: float,
         count_outputs: int,
     ) -> torch.Tensor:
@@ -187,7 +188,7 @@ class _NativeLaplaceBase:
         x = x.to(self.device)
         originals = parameters_to_vector(self._parameter_modules).detach().clone()
 
-        outputs: List[torch.Tensor] = []
+        outputs: list[torch.Tensor] = []
         with torch.no_grad():
             for sample_vec in sample_vectors:
                 vector_to_parameters(sample_vec, self._parameter_modules)
@@ -198,7 +199,7 @@ class _NativeLaplaceBase:
 
     def _predict_from_outputs(
         self, stacked: torch.Tensor
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         if self.likelihood == "regression":
             mean = stacked.mean(dim=0)
             var = stacked.var(dim=0, unbiased=False).clamp_min(0.0)
@@ -227,13 +228,13 @@ class _SimpleDiagonalLaplace(_NativeLaplaceBase):
             subset_of_weights=subset_of_weights,
             damping=damping,
         )
-        self.posterior_precision_diag: Optional[torch.Tensor] = None
-        self.posterior_variance_diag: Optional[torch.Tensor] = None
-        self.hessian_diag: Optional[torch.Tensor] = None
+        self.posterior_precision_diag: torch.Tensor | None = None
+        self.posterior_variance_diag: torch.Tensor | None = None
+        self.hessian_diag: torch.Tensor | None = None
 
     def fit(
-        self, train_loader: Iterable, prior_precision: Optional[float] = 1.0
-    ) -> "_SimpleDiagonalLaplace":
+        self, train_loader: Iterable, prior_precision: float | None = 1.0
+    ) -> _SimpleDiagonalLaplace:
         (
             grad_matrix,
             diag_accumulator,
@@ -270,7 +271,7 @@ class _SimpleDiagonalLaplace(_NativeLaplaceBase):
 
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         if self.posterior_variance_diag is None or self.mean_vector is None:
             raise RuntimeError("Laplace approximation not fitted yet.")
         if n_samples <= 0:
@@ -306,14 +307,14 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
             damping=damping,
         )
         self.lowrank_rank = int(max(lowrank_rank, 0))
-        self.posterior_precision_diag: Optional[torch.Tensor] = None
-        self.posterior_variance_diag: Optional[torch.Tensor] = None
-        self.lowrank_u: Optional[torch.Tensor] = None
-        self.lowrank_lam: Optional[torch.Tensor] = None
+        self.posterior_precision_diag: torch.Tensor | None = None
+        self.posterior_variance_diag: torch.Tensor | None = None
+        self.lowrank_u: torch.Tensor | None = None
+        self.lowrank_lam: torch.Tensor | None = None
 
     def fit(
-        self, train_loader: Iterable, prior_precision: Optional[float] = 1.0
-    ) -> "_LowRankDiagonalLaplace":
+        self, train_loader: Iterable, prior_precision: float | None = 1.0
+    ) -> _LowRankDiagonalLaplace:
         (
             grad_matrix,
             diag_accumulator,
@@ -384,11 +385,11 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
         z = torch.randn(n_samples, self._param_dim, device=self.device)
         proj = z @ u_b
         adjusted = z - (proj * coeff.unsqueeze(0)) @ u_b.transpose(0, 1)
-        return adjusted * inv_sqrt_d.unsqueeze(0)
+        return cast(torch.Tensor, adjusted * inv_sqrt_d.unsqueeze(0))
 
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         if self.posterior_precision_diag is None or self.mean_vector is None:
             raise RuntimeError("Laplace approximation not fitted yet.")
         if n_samples <= 0:
@@ -419,25 +420,25 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
         )
 
         if subset_of_weights == "last_layer":
-            self._blocks: List[List[nn.Parameter]] = [self._parameter_modules]
+            self._blocks: list[list[nn.Parameter]] = [self._parameter_modules]
         else:
             self._blocks = [[param] for param in self._parameter_modules]
 
         self._block_sizes = [
             parameters_to_vector(block).numel() for block in self._blocks
         ]
-        self._block_offsets: List[Tuple[int, int]] = []
+        self._block_offsets: list[tuple[int, int]] = []
         start = 0
         for size in self._block_sizes:
             end = start + size
             self._block_offsets.append((start, end))
             start = end
 
-        self.block_precision_cholesky: List[torch.Tensor] = []
+        self.block_precision_cholesky: list[torch.Tensor] = []
 
     def fit(
-        self, train_loader: Iterable, prior_precision: Optional[float] = 1.0
-    ) -> "_BlockDiagonalLaplace":
+        self, train_loader: Iterable, prior_precision: float | None = 1.0
+    ) -> _BlockDiagonalLaplace:
         _ensure_iterable_train_loader(train_loader)
 
         self.model.eval()
@@ -513,7 +514,7 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
 
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         if self.mean_vector is None or len(self.block_precision_cholesky) == 0:
             raise RuntimeError("Laplace approximation not fitted yet.")
         if n_samples <= 0:
@@ -555,11 +556,11 @@ class _FullLaplace(_NativeLaplaceBase):
             subset_of_weights=subset_of_weights,
             damping=damping,
         )
-        self.posterior_precision_cholesky: Optional[torch.Tensor] = None
+        self.posterior_precision_cholesky: torch.Tensor | None = None
 
     def fit(
-        self, train_loader: Iterable, prior_precision: Optional[float] = 1.0
-    ) -> "_FullLaplace":
+        self, train_loader: Iterable, prior_precision: float | None = 1.0
+    ) -> _FullLaplace:
         grad_matrix, _, num_datapoints, residual_sum_squares, count_outputs = (
             self._compute_batch_statistics(train_loader)
         )
@@ -583,7 +584,7 @@ class _FullLaplace(_NativeLaplaceBase):
 
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         if self.posterior_precision_cholesky is None or self.mean_vector is None:
             raise RuntimeError("Laplace approximation not fitted yet.")
         if n_samples <= 0:
@@ -626,7 +627,7 @@ class _KronLaplace(_NativeLaplaceBase):
         )
 
         if subset_of_weights == "last_layer":
-            self._layers: List[nn.Linear] = [_find_last_linear_layer(model)]
+            self._layers: list[nn.Linear] = [_find_last_linear_layer(model)]
         else:
             self._layers = [m for m in model.modules() if isinstance(m, nn.Linear)]
         if len(self._layers) == 0:
@@ -643,7 +644,7 @@ class _KronLaplace(_NativeLaplaceBase):
             )
 
         # Keep layer blocks aligned with the flattened parameter vector order.
-        self._layer_groups: List[Dict[str, object]] = []
+        self._layer_groups: list[dict[str, object]] = []
         cursor = 0
         offset = 0
         for layer in self._layers:
@@ -670,19 +671,19 @@ class _KronLaplace(_NativeLaplaceBase):
         if cursor != len(self._parameter_modules) or offset != self._param_dim:
             raise RuntimeError("Internal kron block construction mismatch.")
 
-        self._factors: List[Dict[str, torch.Tensor]] = []
+        self._factors: list[dict[str, torch.Tensor]] = []
         self._prior_scalar: float = 1.0
 
     def fit(
-        self, train_loader: Iterable, prior_precision: Optional[float] = 1.0
-    ) -> "_KronLaplace":
+        self, train_loader: Iterable, prior_precision: float | None = 1.0
+    ) -> _KronLaplace:
         _ensure_iterable_train_loader(train_loader)
 
         self.model.eval()
         mse_loss = nn.MSELoss(reduction="sum")
         ce_loss = nn.CrossEntropyLoss(reduction="sum")
 
-        layer_stats: Dict[nn.Linear, Dict[str, torch.Tensor]] = {}
+        layer_stats: dict[nn.Linear, dict[str, torch.Tensor]] = {}
         for group in self._layer_groups:
             layer = group["layer"]
             assert isinstance(layer, nn.Linear)
@@ -693,8 +694,8 @@ class _KronLaplace(_NativeLaplaceBase):
                 "G": torch.zeros(out_dim, out_dim, device=self.device),
             }
 
-        activations: Dict[nn.Linear, torch.Tensor] = {}
-        grad_outputs: Dict[nn.Linear, torch.Tensor] = {}
+        activations: dict[nn.Linear, torch.Tensor] = {}
+        grad_outputs: dict[nn.Linear, torch.Tensor] = {}
 
         def _fwd_hook(module: nn.Module, inputs, _outputs):
             if len(inputs) == 0:
@@ -708,7 +709,7 @@ class _KronLaplace(_NativeLaplaceBase):
             assert isinstance(module, nn.Linear)
             grad_outputs[module] = grad_output[0].detach()
 
-        handles: List[torch.utils.hooks.RemovableHandle] = []
+        handles: list[torch.utils.hooks.RemovableHandle] = []
         for layer in self._layers:
             handles.append(layer.register_forward_hook(_fwd_hook))
             handles.append(layer.register_full_backward_hook(_bwd_hook))
@@ -801,8 +802,14 @@ class _KronLaplace(_NativeLaplaceBase):
 
             self._factors.append(
                 {
-                    "start": torch.tensor(int(group["start"]), device=self.device),
-                    "end": torch.tensor(int(group["end"]), device=self.device),
+                    "start": torch.tensor(
+                        cast(int, group["start"]),
+                        device=self.device,
+                    ),
+                    "end": torch.tensor(
+                        cast(int, group["end"]),
+                        device=self.device,
+                    ),
                     "has_bias": torch.tensor(
                         1 if bool(group["has_bias"]) else 0, device=self.device
                     ),
@@ -819,7 +826,7 @@ class _KronLaplace(_NativeLaplaceBase):
         return self
 
     def _sample_layer_block(
-        self, factor: Dict[str, torch.Tensor], n_samples: int
+        self, factor: dict[str, torch.Tensor], n_samples: int
     ) -> torch.Tensor:
         u_a = factor["u_a"]
         u_g = factor["u_g"]
@@ -827,13 +834,12 @@ class _KronLaplace(_NativeLaplaceBase):
         eig_g = factor["eig_g"]
         has_bias = bool(int(factor["has_bias"].item()))
         in_features = int(factor["in_features"].item())
-        out_features = int(factor["out_features"].item())
 
         denom = eig_a.unsqueeze(1) * eig_g.unsqueeze(0)
         denom = denom + (self._prior_scalar + self.damping)
         denom = denom.clamp_min(1e-12)
 
-        block_samples: List[torch.Tensor] = []
+        block_samples: list[torch.Tensor] = []
         for _ in range(n_samples):
             z = torch.randn(
                 eig_a.numel(),
@@ -856,7 +862,7 @@ class _KronLaplace(_NativeLaplaceBase):
 
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
         if self.mean_vector is None or len(self._factors) == 0:
             raise RuntimeError("Laplace approximation not fitted yet.")
         if n_samples <= 0:
@@ -927,7 +933,7 @@ class LaplaceWrapper:
         self.la = None
 
     @staticmethod
-    def supported_hessian_structures() -> Tuple[str, ...]:
+    def supported_hessian_structures() -> tuple[str, ...]:
         return LaplaceWrapper._SUPPORTED_STRUCTURES
 
     def _build_backend(self):
@@ -976,7 +982,7 @@ class LaplaceWrapper:
         )
 
     def fit(
-        self, train_loader: Iterable, prior_precision: Optional[float] = 1.0, **_
+        self, train_loader: Iterable, prior_precision: float | None = 1.0, **_
     ) -> object:
         # Guardrail: dense full Hessian over all parameters can become intractable.
         if self.hessian_structure == "full" and self.subset_of_weights == "all":

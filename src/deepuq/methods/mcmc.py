@@ -62,7 +62,7 @@ def collect_posterior_samples(
         loss_fn = nn.CrossEntropyLoss()
     samples = []
     step = 0
-    for epoch in range(10**6):  # loop until enough steps
+    for _epoch in range(10**6):  # loop until enough steps
         for x, y in data_loader:
             x, y = x.to(device), y.to(device)
             opt.zero_grad(set_to_none=True)
@@ -86,15 +86,15 @@ def predict_with_samples(
     model: nn.Module, samples, x, apply_softmax=True, device="cpu"
 ):
     """Predictive mean and variance from stored parameter samples."""
-    preds = []
+    pred_samples = []
     for s in samples:
         model.load_state_dict(s, strict=True)
         out = model(x.to(device))
         if apply_softmax:
             out = torch.softmax(out, dim=-1)
-        preds.append(out.unsqueeze(0).cpu())
-    preds = torch.cat(preds, dim=0)
-    return preds.mean(0), preds.var(0, unbiased=False)
+        pred_samples.append(out.unsqueeze(0).cpu())
+    pred_tensor = torch.cat(pred_samples, dim=0)
+    return pred_tensor.mean(0), pred_tensor.var(0, unbiased=False)
 
 
 @torch.inference_mode()

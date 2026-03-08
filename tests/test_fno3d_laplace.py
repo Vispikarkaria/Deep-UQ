@@ -28,9 +28,7 @@ def _make_heat_dataset(
         for fx in range(1, 3):
             for fy in range(1, 3):
                 for fz in range(1, 3):
-                    amp = torch.randn((), generator=generator) / (
-                        fx * fy * fz
-                    ) ** 1.5
+                    amp = torch.randn((), generator=generator) / (fx * fy * fz) ** 1.5
                     phase = 2.0 * math.pi * torch.rand((), generator=generator)
                     field = field + amp * torch.sin(
                         2.0 * math.pi * (fx * xx + fy * yy + fz * zz) + phase

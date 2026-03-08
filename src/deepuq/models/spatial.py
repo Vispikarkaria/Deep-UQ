@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
 from torch import nn
@@ -128,7 +128,9 @@ class _UpBlock2D(nn.Module):
         dropout_p: float = 0.0,
     ) -> None:
         super().__init__()
-        self.upsample = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=False)
+        self.upsample = nn.Upsample(
+            scale_factor=2, mode="bilinear", align_corners=False
+        )
         self.block = _ConvBlock2D(
             in_channels + skip_channels,
             out_channels,
@@ -200,7 +202,9 @@ class _UpBlock3D(nn.Module):
         dropout_p: float = 0.0,
     ) -> None:
         super().__init__()
-        self.upsample = nn.Upsample(scale_factor=2, mode="trilinear", align_corners=False)
+        self.upsample = nn.Upsample(
+            scale_factor=2, mode="trilinear", align_corners=False
+        )
         self.block = _ConvBlock3D(
             in_channels + skip_channels,
             out_channels,

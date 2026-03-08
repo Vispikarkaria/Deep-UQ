@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Sequence, Tuple
+from collections.abc import Sequence
 
 import torch
 from torch import nn
 
 
-def _as_mode_tuple(modes: Sequence[int]) -> Tuple[int, int, int]:
+def _as_mode_tuple(modes: Sequence[int]) -> tuple[int, int, int]:
     if len(modes) != 3:
         raise ValueError("modes must contain exactly three integers for 3D FNO.")
     mode_tuple = tuple(int(max(m, 1)) for m in modes)
@@ -39,18 +39,10 @@ class SpectralConv3D(nn.Module):
             self.modes[2],
             2,
         )
-        self.weights_x0_y0 = nn.Parameter(
-            scale * torch.randn(weight_shape)
-        )
-        self.weights_x1_y0 = nn.Parameter(
-            scale * torch.randn(weight_shape)
-        )
-        self.weights_x0_y1 = nn.Parameter(
-            scale * torch.randn(weight_shape)
-        )
-        self.weights_x1_y1 = nn.Parameter(
-            scale * torch.randn(weight_shape)
-        )
+        self.weights_x0_y0 = nn.Parameter(scale * torch.randn(weight_shape))
+        self.weights_x1_y0 = nn.Parameter(scale * torch.randn(weight_shape))
+        self.weights_x0_y1 = nn.Parameter(scale * torch.randn(weight_shape))
+        self.weights_x1_y1 = nn.Parameter(scale * torch.randn(weight_shape))
 
     @staticmethod
     def _compl_mul3d(
@@ -165,7 +157,7 @@ class FNO3D(nn.Module):
 
     @staticmethod
     def _coordinate_grid(
-        shape: Tuple[int, int, int],
+        shape: tuple[int, int, int],
         device: torch.device,
         dtype: torch.dtype,
     ) -> torch.Tensor:

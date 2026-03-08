@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any
 
 import torch
 
@@ -17,9 +17,9 @@ class UQResult:
     """
 
     mean: torch.Tensor
-    epistemic_var: Optional[torch.Tensor] = None
-    aleatoric_var: Optional[torch.Tensor] = None
-    total_var: Optional[torch.Tensor] = None
-    probs: Optional[torch.Tensor] = None
-    probs_var: Optional[torch.Tensor] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    epistemic_var: torch.Tensor | None = None
+    aleatoric_var: torch.Tensor | None = None
+    total_var: torch.Tensor | None = None
+    probs: torch.Tensor | None = None
+    probs_var: torch.Tensor | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)

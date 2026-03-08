@@ -9,7 +9,7 @@ The implementation here follows a mean-field setup:
 
 import math
 import warnings
-from typing import Optional, Tuple
+from typing import Optional, cast
 
 import torch
 import torch.nn as nn
@@ -43,11 +43,14 @@ class GaussianPosterior(nn.Module):
 
     def log_prob(self, w: torch.Tensor) -> torch.Tensor:
         """Return log q(w) for a given sample ``w``."""
-        return (
-            -0.5 * ((w - self.mu) / self.sigma).pow(2)
-            - torch.log(self.sigma)
-            - 0.5 * math.log(2 * math.pi)
-        ).sum()
+        return cast(
+            torch.Tensor,
+            (
+                -0.5 * ((w - self.mu) / self.sigma).pow(2)
+                - torch.log(self.sigma)
+                - 0.5 * math.log(2 * math.pi)
+            ).sum(),
+        )
 
 
 class GaussianPrior:
@@ -118,7 +121,7 @@ class BayesianLinear(nn.Module):
             + (qb_sigma**2 + qb_mu**2) / (2 * pb_sigma**2)
             - 0.5
         ).sum()
-        return kl_w + kl_b
+        return cast(torch.Tensor, kl_w + kl_b)
 
 
 class BayesByBackpropMLP(nn.Module):
@@ -150,7 +153,14 @@ class BayesByBackpropMLP(nn.Module):
 
     def kl(self) -> torch.Tensor:
         """Sum KL terms from all Bayesian layers."""
-        return sum(m.kl() for m in self.layers if isinstance(m, BayesianLinear))
+        kl_terms = [m.kl() for m in self.layers if isinstance(m, BayesianLinear)]
+        if not kl_terms:
+            return torch.zeros((), device=next(self.parameters()).device)
+
+        total = kl_terms[0]
+        for term in kl_terms[1:]:
+            total = total + term
+        return total
 
 
 def vi_elbo_step(
@@ -162,7 +172,7 @@ def vi_elbo_step(
     criterion=None,
     kl_weight: float = 1.0,
     mc_samples: int = 1,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Compute one Bayes-by-Backprop ELBO step.
 
     Parameters
@@ -212,8 +222,8 @@ def vi_elbo_step(
     if criterion is None:
         criterion = nn.CrossEntropyLoss(reduction="mean")
 
-    nll_acc = 0.0
-    kl_acc = 0.0
+    nll_acc = torch.zeros((), device=x.device)
+    kl_acc = torch.zeros((), device=x.device)
     for _ in range(mc_samples):
         # Each pass samples a new weight realization through model.forward(..., sample=True).
         logits = model(x, sample=True)
