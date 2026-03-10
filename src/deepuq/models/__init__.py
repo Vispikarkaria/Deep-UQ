@@ -1,5 +1,5 @@
-from .fno import FNO2D, FNO3D, FNOBlock2D, FNOBlock3D, SpectralConv2D, SpectralConv3D
 from .diffusion import ConditionalUNet2D, SinusoidalTimeEmbedding
+from .fno import FNO2D, FNO3D, FNOBlock2D, FNOBlock3D, SpectralConv2D, SpectralConv3D
 from .gaussian_process import (
     DeepKernelGaussianProcessRegressor,
     GaussianProcessClassifier,
