@@ -57,6 +57,18 @@ and trunk networks, while FNO performs global spectral mixing on regular grids.
 </div>
 
 <div class="family-table-block architecture-matrix reveal" markdown="1">
+### Generative / Diffusion Models
+
+These models represent uncertainty through the spread of generated conditional
+samples rather than by wrapping a deterministic predictor with Laplace,
+dropout, or ensembles.
+
+| Model | 1D | 2D | 3D | Laplace | MC Dropout | Deep Ensemble | Primary Use | Notebook |
+|---|---|---|---|---|---|---|---|---|
+| `ConditionalUNet2D` | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | Conditional field reconstruction with sample-based UQ | [Conditional Diffusion + Heat2D](../tutorials/sciml-conditional-diffusion-heat2d.md) |
+</div>
+
+<div class="family-table-block architecture-matrix reveal" markdown="1">
 ### Gaussian Process Models
 
 The GP family is function-space Bayesian from the start, so the uncertainty

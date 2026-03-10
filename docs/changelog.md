@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.15 — 2026-03-10
+
+Highlights:
+
+- Added `ConditionalUNet2D` and `SinusoidalTimeEmbedding` in `deepuq.models.diffusion` for conditional diffusion tutorials on scientific fields.
+- Added `notebooks/sciml/ConditionalDiffusion_Heat2D_Tutorial.ipynb` for sparse-sensor 2D heat-field reconstruction with sample-based uncertainty.
+- Added diffusion-model docs coverage via `docs/tutorials/sciml-conditional-diffusion-heat2d.md` and `docs/api/models/diffusion.md`.
+- Updated the model-architecture inventory and tutorial index to include generative / diffusion models.
+- Added diffusion-model unit tests and fixed the notebook diffusion schedule to avoid CPU/CUDA device mismatch during execution.
+
 ## 0.1.14 — 2026-03-10
 
 Highlights:

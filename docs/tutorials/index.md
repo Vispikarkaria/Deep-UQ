@@ -60,6 +60,9 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 - [UNet + Diffusion2D UQ guide](sciml-unet-diffusion2d.md)
 - Uses `UNet2D` for 2D field-to-field diffusion prediction with stochastic uncertainty bands/maps
 - Notebook: [`notebooks/sciml/UNet_Diffusion2D_UQ_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/UNet_Diffusion2D_UQ_Tutorial.ipynb)
+- [Conditional Diffusion + Heat2D guide](sciml-conditional-diffusion-heat2d.md)
+- Uses `ConditionalUNet2D` for sparse-sensor heat-field reconstruction with sample-based predictive uncertainty
+- Notebook: [`notebooks/sciml/ConditionalDiffusion_Heat2D_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/ConditionalDiffusion_Heat2D_Tutorial.ipynb)
 - [PINN + Poisson + Laplace guide](sciml-pinn-poisson.md)
 - Uses `PINN1D` and `PINN2D` for physics-informed Poisson problems with last-layer Laplace uncertainty
 - Notebook: [`notebooks/sciml/PINN_Poisson_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/PINN_Poisson_Laplace_Tutorial.ipynb)

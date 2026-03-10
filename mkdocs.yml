@@ -105,6 +105,7 @@ nav:
       - Scientific ML (FNO3D + 3D Heat): tutorials/sciml-fno3d-heat.md
       - Scientific ML (CNN / ResNet + Heat2D): tutorials/sciml-cnn-resnet-heat2d.md
       - Scientific ML (UNet + Diffusion2D): tutorials/sciml-unet-diffusion2d.md
+      - Scientific ML (Conditional Diffusion + Heat2D): tutorials/sciml-conditional-diffusion-heat2d.md
       - Scientific ML (PINN + Poisson): tutorials/sciml-pinn-poisson.md
   - Examples: examples/index.md
   - API:
@@ -118,6 +119,7 @@ nav:
       - Models:
           - MLP API: api/models/simple.md
           - Spatial Models API: api/models/spatial.md
+          - Diffusion Models API: api/models/diffusion.md
           - PINN Models API: api/models/pinn.md
           - Gaussian Process API: api/models/gaussian_process.md
       - Utils API: api/utils.md
