@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.14 — 2026-03-10
+
+Highlights:
+
+- Added reusable 2D Fourier Neural Operator components: `SpectralConv2D`, `FNOBlock2D`, and `FNO2D`.
+- Added `notebooks/sciml/FNO2D_Darcy_Laplace_Tutorial.ipynb` covering a 2D Darcy-flow operator surrogate with three input fields and last-layer Laplace uncertainty maps.
+- Added tests for 2D FNO forward behavior and last-layer Laplace compatibility.
+- Added tutorial docs and architecture-table coverage for the new Darcy operator-learning example.
+- Added GIF export in the Darcy notebook to compare input fields, true pressure, predictive mean, error, and epistemic uncertainty across samples.
+
 ## 0.1.13 — 2026-03-10
 
 Highlights:

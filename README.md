@@ -130,7 +130,7 @@ Compact summary:
 |---|---|---|---|
 | Dense / Parametric | `MLP`, `PINN1D`, `PINN2D` | Laplace, MC Dropout, Deep Ensembles | [Poisson1D / PINN tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
 | Spatial Convolutional | `CNNRegressor2D`, `ResNetRegressor2D`, `UNet2D`, `UNet3D` | MC Dropout, Deep Ensembles | [Heat2D / Diffusion2D tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
-| Operator Learning | `DeepONet1D`, `DeepONet2D`, `FNO3D` | Laplace (DeepONet/FNO), task-specific comparisons | [SciML tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
+| Operator Learning | `DeepONet1D`, `DeepONet2D`, `FNO2D`, `FNO3D` | Laplace (DeepONet/FNO), task-specific comparisons | [SciML tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
 | Gaussian Processes | GP classes and kernels | Native Bayesian | [GP tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/) |
 
 ## Documentation Website

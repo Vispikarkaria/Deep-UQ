@@ -1,4 +1,4 @@
-from .fno import FNO3D, FNOBlock3D, SpectralConv3D
+from .fno import FNO2D, FNO3D, FNOBlock2D, FNOBlock3D, SpectralConv2D, SpectralConv3D
 from .gaussian_process import (
     DeepKernelGaussianProcessRegressor,
     GaussianProcessClassifier,
@@ -30,6 +30,9 @@ __all__ = [
     "UNet3D",
     "PINN1D",
     "PINN2D",
+    "SpectralConv2D",
+    "FNOBlock2D",
+    "FNO2D",
     "SpectralConv3D",
     "FNOBlock3D",
     "FNO3D",

@@ -51,6 +51,9 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 - [FNO3D + 3D Heat + Laplace guide](sciml-fno3d-heat.md)
 - Uses the reusable `FNO3D` model for a 3D field-to-field heat-diffusion surrogate with slice-based uncertainty maps
 - Notebook: [`notebooks/sciml/FNO3D_Heat_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/FNO3D_Heat_Laplace_Tutorial.ipynb)
+- [FNO2D + Darcy Flow + Laplace guide](sciml-fno2d-darcy.md)
+- Uses the reusable `FNO2D` model for a 2D Darcy operator surrogate with three input fields and Laplace uncertainty maps
+- Notebook: [`notebooks/sciml/FNO2D_Darcy_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/FNO2D_Darcy_Laplace_Tutorial.ipynb)
 - [CNN / ResNet + Heat2D UQ guide](sciml-cnn-resnet-heat2d.md)
 - Uses `CNNRegressor2D` and `ResNetRegressor2D` on a 2D heat source-to-solution map with MC Dropout and optional ensembles
 - Notebook: [`notebooks/sciml/CNN_ResNet_Heat2D_UQ_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/CNN_ResNet_Heat2D_UQ_Tutorial.ipynb)

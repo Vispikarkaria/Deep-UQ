@@ -101,6 +101,7 @@ nav:
       - Gaussian Processes: tutorials/gp.md
       - Scientific ML (DeepONet + Burgers): tutorials/sciml-deeponet-burgers.md
       - Scientific ML (DeepONet + 1D Poisson): tutorials/sciml-deeponet-poisson1d.md
+      - Scientific ML (FNO2D + Darcy): tutorials/sciml-fno2d-darcy.md
       - Scientific ML (FNO3D + 3D Heat): tutorials/sciml-fno3d-heat.md
       - Scientific ML (CNN / ResNet + Heat2D): tutorials/sciml-cnn-resnet-heat2d.md
       - Scientific ML (UNet + Diffusion2D): tutorials/sciml-unet-diffusion2d.md
