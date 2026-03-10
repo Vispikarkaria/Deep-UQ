@@ -4,7 +4,10 @@ Notebook: [PINN_Poisson_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria
 
 This tutorial introduces `PINN1D` and `PINN2D` on analytic Poisson problems.
 The networks are trained with physics-informed residuals, and uncertainty is
-quantified with last-layer Laplace over sparse supervised anchor data.
+quantified with last-layer Laplace over sparse supervised anchor data. The
+current notebook version uses richer interior anchors, an `Adam -> LBFGS`
+schedule, and compares `diag` with `block_diag` last-layer curvature before
+displaying the final uncertainty map.
 
 Primary references:
 

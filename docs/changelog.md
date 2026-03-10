@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.13 — 2026-03-10
+
+Highlights:
+
+- Refined the SciML PINN Poisson tutorial with richer interior anchors, an `Adam -> LBFGS` training schedule, and a higher-prior last-layer Laplace fit.
+- Updated the PINN notebook to compare `diag` and `block_diag` last-layer Laplace backends and keep the more stable posterior view.
+- Clarified the deep-ensemble Poisson tutorial to distinguish parameter-space OOD uncertainty from physical-space data sparsity.
+- Refreshed the affected notebooks and tutorial pages so the GitHub repo and docs site stay aligned with the improved notebook behavior.
+
 ## 0.1.12 — 2026-03-08
 
 Highlights:
