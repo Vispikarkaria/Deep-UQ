@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.16 — 2026-03-10
+
+Highlights:
+
+- Expanded the deep-ensemble method guide to document all five ensemble variants with equations, uncertainty decompositions, and paper citations.
+- Added five scientific deep-ensemble tutorials: ADR regression, heteroscedastic ADR regression, elasticity failure classification, elastic-bar multi-output regression, and heteroscedastic transport regression.
+- Extended ensemble tests and the package API to cover regression, classification, multi-output, and heteroscedastic ensemble variants.
+
 ## 0.1.15 — 2026-03-10
 
 Highlights:

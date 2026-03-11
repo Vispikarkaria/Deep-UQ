@@ -3,9 +3,14 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from deepuq.methods import (
     BayesByBackpropMLP,
+    DeepEnsembleClassifier,
+    DeepEnsembleRegressor,
     DeepEnsembleWrapper,
+    HeteroscedasticDeepEnsembleRegressor,
+    HeteroscedasticMultiOutputDeepEnsembleRegressor,
     LaplaceWrapper,
     MCDropoutWrapper,
+    MultiOutputDeepEnsembleRegressor,
     predict_vi_uq,
     predict_with_samples,
     predict_with_samples_uq,
@@ -159,6 +164,39 @@ def test_deep_ensemble_predict_uq_shapes():
     assert uq.epistemic_var is not None and uq.epistemic_var.shape == (6, 1)
     assert uq.total_var is not None and uq.total_var.shape == (6, 1)
     assert uq.metadata["method"] == "deep_ensemble"
+
+
+def test_additional_deep_ensemble_uq_contracts():
+    x = torch.randn(8, 3)
+
+    reg = DeepEnsembleRegressor([MLP(3, [8], 1, p_drop=0.0) for _ in range(2)])
+    reg_uq = reg.predict_uq(x)
+    assert reg_uq.metadata["method"] == "deep_ensemble_regressor"
+
+    hetero = HeteroscedasticDeepEnsembleRegressor(
+        [MLP(3, [8], 2, p_drop=0.0) for _ in range(2)]
+    )
+    hetero_uq = hetero.predict_uq(x)
+    assert hetero_uq.aleatoric_var is not None
+    assert hetero_uq.metadata["method"] == "heteroscedastic_deep_ensemble_regressor"
+
+    classifier = DeepEnsembleClassifier([MLP(3, [8], 4, p_drop=0.0) for _ in range(2)])
+    classifier_uq = classifier.predict_uq(x)
+    assert classifier_uq.probs is not None and classifier_uq.probs.shape == (8, 4)
+    assert classifier_uq.probs_var is not None
+
+    multi = MultiOutputDeepEnsembleRegressor(
+        [MLP(3, [8], 2, p_drop=0.0) for _ in range(2)]
+    )
+    multi_uq = multi.predict_uq(x)
+    assert multi_uq.mean.shape == (8, 2)
+
+    hetero_multi = HeteroscedasticMultiOutputDeepEnsembleRegressor(
+        [MLP(3, [8], 4, p_drop=0.0) for _ in range(2)]
+    )
+    hetero_multi_uq = hetero_multi.predict_uq(x)
+    assert hetero_multi_uq.mean.shape == (8, 2)
+    assert hetero_multi_uq.aleatoric_var is not None
 
 
 def test_gp_predict_uq_shapes():

@@ -1,4 +1,11 @@
-from .ensembles import DeepEnsembleWrapper
+from .ensembles import (
+    DeepEnsembleClassifier,
+    DeepEnsembleRegressor,
+    DeepEnsembleWrapper,
+    HeteroscedasticDeepEnsembleRegressor,
+    HeteroscedasticMultiOutputDeepEnsembleRegressor,
+    MultiOutputDeepEnsembleRegressor,
+)
 from .laplace import LaplaceWrapper
 from .mc_dropout import MCDropoutWrapper
 from .mcmc import (
@@ -10,6 +17,11 @@ from .mcmc import (
 from .vi import BayesByBackpropMLP, predict_vi_uq, vi_elbo_step
 
 __all__ = [
+    "DeepEnsembleRegressor",
+    "HeteroscedasticDeepEnsembleRegressor",
+    "DeepEnsembleClassifier",
+    "MultiOutputDeepEnsembleRegressor",
+    "HeteroscedasticMultiOutputDeepEnsembleRegressor",
     "DeepEnsembleWrapper",
     "MCDropoutWrapper",
     "BayesByBackpropMLP",

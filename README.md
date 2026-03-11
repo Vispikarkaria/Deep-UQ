@@ -36,7 +36,11 @@ Read more:
 
 | Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
 |---|---|---|---|---|---|---|---|
-| Deep Ensembles | ✓ | ✗ | ✗ | ✓ | ✗ | `DeepEnsembleWrapper` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/ensembles/)<br>[Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/sciml-deep-ensemble-poisson1d/) |
+| Deep Ensemble Regressor | ✓ | ✗ | ✗ | ✓ | ✗ | `DeepEnsembleRegressor`, `DeepEnsembleWrapper` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/)<br>[API](https://vispikarkaria.github.io/Deep-UQ/api/methods/ensembles/)<br>[ADR Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/sciml-deep-ensemble-adr1d/) |
+| Heteroscedastic Deep Ensemble Regressor | ✓ | ✗ | ✗ | ✓ | ✓ | `HeteroscedasticDeepEnsembleRegressor` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/)<br>[ADR + Noise Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/sciml-heteroscedastic-deep-ensemble-adr1d/) |
+| Deep Ensemble Classifier | ✗ | ✓ | ✗ | ✓ | ✗ | `DeepEnsembleClassifier` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/)<br>[Elasticity Classification](https://vispikarkaria.github.io/Deep-UQ/tutorials/sciml-deep-ensemble-elasticity-classification/) |
+| Multi-Output Deep Ensemble Regressor | ✓ | ✗ | ✓ | ✓ | ✗ | `MultiOutputDeepEnsembleRegressor` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/)<br>[Elastic Bar Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/sciml-multioutput-deep-ensemble-elastic-bar/) |
+| Heteroscedastic Multi-Output Deep Ensemble | ✓ | ✗ | ✓ | ✓ | ✓ | `HeteroscedasticMultiOutputDeepEnsembleRegressor` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/deep-ensembles/)<br>[Transport2D Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/sciml-heteroscedastic-multioutput-deep-ensemble-transport2d/) |
 
 ### Variational Inference
 

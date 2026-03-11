@@ -93,6 +93,11 @@ nav:
       - Model Architectures: models/architectures.md
   - Tutorials:
       - tutorials/index.md
+      - Deep Ensemble + 1D ADR: tutorials/sciml-deep-ensemble-adr1d.md
+      - Heteroscedastic Deep Ensemble + 1D ADR: tutorials/sciml-heteroscedastic-deep-ensemble-adr1d.md
+      - Deep Ensemble Classifier + Elasticity Failure Map: tutorials/sciml-deep-ensemble-elasticity-classification.md
+      - Multi-Output Deep Ensemble + Elastic Bar: tutorials/sciml-multioutput-deep-ensemble-elastic-bar.md
+      - Heteroscedastic Multi-Output Deep Ensemble + Transport2D: tutorials/sciml-heteroscedastic-multioutput-deep-ensemble-transport2d.md
       - Deep Ensembles + Parametric Poisson1D: tutorials/sciml-deep-ensemble-poisson1d.md
       - Bayes by Backprop: tutorials/bayes-by-backprop.md
       - Laplace Comparison: tutorials/laplace-comparison.md

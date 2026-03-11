@@ -6,9 +6,14 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 
 ### Deep Ensembles
 
-- [Deep Ensembles + Parametric Poisson1D](sciml-deep-ensemble-poisson1d.md)
+- [Deep Ensemble + 1D ADR](sciml-deep-ensemble-adr1d.md)
+- [Heteroscedastic Deep Ensemble + 1D ADR](sciml-heteroscedastic-deep-ensemble-adr1d.md)
+- [Deep Ensemble Classifier + Elasticity Failure Map](sciml-deep-ensemble-elasticity-classification.md)
+- [Multi-Output Deep Ensemble + Elastic Bar](sciml-multioutput-deep-ensemble-elastic-bar.md)
+- [Heteroscedastic Multi-Output Deep Ensemble + Transport2D](sciml-heteroscedastic-multioutput-deep-ensemble-transport2d.md)
+- [Legacy: Deep Ensembles + Parametric Poisson1D](sciml-deep-ensemble-poisson1d.md)
 - Full method docs: [`/methods/deep-ensembles/`](../methods/deep-ensembles.md)
-- Notebook: [`notebooks/sciml/DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb)
+- Notebook family directory: [`notebooks/sciml/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/sciml)
 
 ### Variational Inference
 
