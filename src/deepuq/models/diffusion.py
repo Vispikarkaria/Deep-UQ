@@ -1,3 +1,9 @@
+"""Diffusion-model building blocks for scientific field reconstruction.
+
+The classes here support conditional denoising notebooks where uncertainty is
+estimated from sample spread rather than Bayesian posterior moments.
+"""
+
 from __future__ import annotations
 
 import math
@@ -7,7 +13,18 @@ from torch import nn
 
 
 class SinusoidalTimeEmbedding(nn.Module):
-    """Sinusoidal timestep embedding used by diffusion denoisers."""
+    """Sinusoidal timestep embedding used by diffusion denoisers.
+
+    Parameters
+    ----------
+    embedding_dim:
+        Width of the returned timestep embedding.
+
+    Shape contract
+    --------------
+    - input: ``timesteps`` with shape ``[batch]``
+    - output: embedding tensor with shape ``[batch, embedding_dim]``
+    """
 
     def __init__(self, embedding_dim: int) -> None:
         super().__init__()
@@ -91,7 +108,37 @@ class _Upsample2D(nn.Module):
 
 
 class ConditionalUNet2D(nn.Module):
-    """A compact conditional U-Net denoiser for 2D diffusion notebooks."""
+    """A compact conditional U-Net denoiser for 2D diffusion notebooks.
+
+    Parameters
+    ----------
+    x_channels:
+        Number of noisy input channels to denoise.
+    cond_channels:
+        Number of conditioning channels supplied alongside the noisy input.
+    base_channels:
+        Base feature width used by the U-Net encoder/decoder.
+    time_dim:
+        Width of the timestep embedding processed by the residual blocks.
+    dropout_p:
+        Spatial dropout probability inside the residual blocks.
+    use_coordinate_features:
+        Whether to append normalized ``(x, y)`` coordinate channels.
+
+    Shape contract
+    --------------
+    - ``x_t``: ``[batch, x_channels, height, width]``
+    - ``timesteps``: ``[batch]``
+    - ``condition``: ``[batch, cond_channels, height, width]``
+    - output: denoised tensor with shape ``[batch, x_channels, height, width]``
+
+    Example
+    -------
+    ```python
+    model = ConditionalUNet2D(x_channels=1, cond_channels=2, base_channels=32)
+    eps_hat = model(x_t, timesteps, condition)
+    ```
+    """
 
     def __init__(
         self,
@@ -152,6 +199,7 @@ class ConditionalUNet2D(nn.Module):
         device: torch.device,
         dtype: torch.dtype,
     ) -> torch.Tensor:
+        """Create a normalized coordinate grid with shape ``[2, H, W]``."""
         y = torch.linspace(0.0, 1.0, height, device=device, dtype=dtype)
         x = torch.linspace(0.0, 1.0, width, device=device, dtype=dtype)
         yy, xx = torch.meshgrid(y, x, indexing="ij")
@@ -175,6 +223,7 @@ class ConditionalUNet2D(nn.Module):
         timesteps: torch.Tensor,
         condition: torch.Tensor,
     ) -> torch.Tensor:
+        """Predict the noise or residual field for a conditioned diffusion step."""
         if x_t.dim() != 4:
             raise ValueError("x_t must have shape [B, C, H, W].")
         if condition.dim() != 4:

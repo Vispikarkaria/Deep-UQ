@@ -1,3 +1,10 @@
+"""Deep ensemble wrappers for regression and classification uncertainty.
+
+The ensemble variants in this module aggregate independently trained
+deterministic models. ``predict_uq`` returns a :class:`deepuq.types.UQResult`
+with either regression moments or class-probability moments.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
@@ -25,7 +32,14 @@ def _move_batch(
 
 
 class _BaseDeepEnsemble(nn.Module):
-    """Shared training and aggregation logic for deep ensembles."""
+    """Shared training and aggregation logic for deep ensembles.
+
+    Parameters
+    ----------
+    models:
+        Sequence of pre-instantiated PyTorch models. All members must share the
+        same input/output contract.
+    """
 
     method_name = "deep_ensemble"
 
@@ -58,6 +72,12 @@ class _BaseDeepEnsemble(nn.Module):
         seed: int | None = None,
         verbose: bool = False,
     ) -> _BaseDeepEnsemble:
+        """Train each ensemble member independently.
+
+        The dataloader is expected to yield ``(xb, yb)`` tensor batches. Each
+        member is re-seeded with ``seed + member_index`` when ``seed`` is
+        provided.
+        """
         if epochs <= 0:
             raise ValueError("epochs must be positive.")
 
@@ -94,7 +114,22 @@ class _BaseDeepEnsemble(nn.Module):
 
 
 class DeepEnsembleRegressor(_BaseDeepEnsemble):
-    """Deterministic regression ensemble with epistemic uncertainty."""
+    """Deterministic regression ensemble with epistemic uncertainty.
+
+    Shape contract
+    --------------
+    - input: any tensor accepted by the wrapped regressor
+    - member output: ``[batch, ...]``
+    - ``predict`` returns ``(mean, variance)`` with the same prediction shape
+
+    Example
+    -------
+    ```python
+    ensemble = DeepEnsembleRegressor([model_a, model_b, model_c])
+    ensemble.fit(train_loader, epochs=50, lr=1e-3)
+    uq = ensemble.predict_uq(x_test)
+    ```
+    """
 
     method_name = "deep_ensemble_regressor"
 
@@ -105,6 +140,7 @@ class DeepEnsembleRegressor(_BaseDeepEnsemble):
 
     @torch.inference_mode()
     def predict_members(self, x: torch.Tensor) -> torch.Tensor:
+        """Return stacked member predictions with shape ``[n_members, batch, ...]``."""
         preds = []
         for model in self.models:
             model.eval()
@@ -120,6 +156,7 @@ class DeepEnsembleRegressor(_BaseDeepEnsemble):
 
     @torch.inference_mode()
     def predict_uq(self, x: torch.Tensor) -> UQResult:
+        """Return predictive mean and epistemic variance in a ``UQResult``."""
         mean, var = self.predict(x)
         return UQResult(
             mean=mean,
@@ -136,7 +173,12 @@ class DeepEnsembleRegressor(_BaseDeepEnsemble):
 
 
 class HeteroscedasticDeepEnsembleRegressor(_BaseDeepEnsemble):
-    """Regression ensemble with predicted aleatoric noise per member."""
+    """Regression ensemble with predicted aleatoric noise per member.
+
+    Each member must output concatenated mean and log-variance tensors. For
+    vector outputs the concatenation is along the last dimension. For field
+    outputs it is along channel dimension ``1``.
+    """
 
     method_name = "heteroscedastic_deep_ensemble_regressor"
 
@@ -202,6 +244,7 @@ class HeteroscedasticDeepEnsembleRegressor(_BaseDeepEnsemble):
 
     @torch.inference_mode()
     def predict_uq(self, x: torch.Tensor) -> UQResult:
+        """Return predictive mean plus epistemic, aleatoric, and total variance."""
         mean, epistemic_var, aleatoric_var, total_var = self.predict_components(x)
         return UQResult(
             mean=mean,
@@ -219,7 +262,14 @@ class HeteroscedasticDeepEnsembleRegressor(_BaseDeepEnsemble):
 
 
 class DeepEnsembleClassifier(_BaseDeepEnsemble):
-    """Classification ensemble using member-wise logits and probability averaging."""
+    """Classification ensemble using member-wise logits and probability averaging.
+
+    Shape contract
+    --------------
+    - input: any tensor accepted by the wrapped classifier
+    - member output: logits with shape ``[batch, n_classes]``
+    - ``predict`` returns ``(mean_probs, probs_var)``
+    """
 
     method_name = "deep_ensemble_classifier"
 
@@ -248,6 +298,7 @@ class DeepEnsembleClassifier(_BaseDeepEnsemble):
 
     @torch.inference_mode()
     def predict_uq(self, x: torch.Tensor) -> UQResult:
+        """Return mean class probabilities and probability variance."""
         probs, probs_var = self.predict(x)
         return UQResult(
             mean=probs,
@@ -264,7 +315,11 @@ class DeepEnsembleClassifier(_BaseDeepEnsemble):
 
 
 class MultiOutputDeepEnsembleRegressor(DeepEnsembleRegressor):
-    """Multi-output regression ensemble with epistemic uncertainty."""
+    """Multi-output regression ensemble with epistemic uncertainty.
+
+    Member predictions are vector-valued, typically with shape
+    ``[batch, n_outputs]``.
+    """
 
     method_name = "multi_output_deep_ensemble_regressor"
 
