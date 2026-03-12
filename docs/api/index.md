@@ -1,6 +1,11 @@
 # API Reference
 
-Auto-generated API docs from source code and docstrings.
+Auto-generated API docs from source code and docstrings, with handwritten guides for workflow, tensor shapes, and return semantics.
+
+## Shared conventions
+
+- [UQ API Conventions](uq-conventions.md)
+- [Types API](types.md)
 
 ## Modules
 
@@ -20,5 +25,3 @@ Auto-generated API docs from source code and docstrings.
   - [Gaussian Process API](models/gaussian_process.md)
 - Utilities
   - [Utils API](utils.md)
-- Shared Types
-  - [Types API](types.md)

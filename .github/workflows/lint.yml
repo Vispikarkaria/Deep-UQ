@@ -38,3 +38,6 @@ jobs:
 
       - name: Math markdown guard
         run: python scripts/check_math_blocks.py --glob "docs/methods/*.md"
+
+      - name: API docs coverage guard
+        run: python scripts/check_api_doc_coverage.py

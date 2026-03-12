@@ -27,6 +27,16 @@ class GaussianPosterior(nn.Module):
     """
 
     def __init__(self, mu: torch.Tensor, rho: torch.Tensor):
+        """Create a diagonal Gaussian posterior.
+
+        Parameters
+        ----------
+        mu:
+            Initial posterior mean tensor.
+        rho:
+            Unconstrained scale parameter. ``softplus(rho)`` defines the
+            posterior standard deviation.
+        """
         super().__init__()
         self.mu = nn.Parameter(mu)
         self.rho = nn.Parameter(rho)
@@ -57,6 +67,15 @@ class GaussianPrior:
     """Isotropic Gaussian prior used by Bayesian layers."""
 
     def __init__(self, mu: float = 0.0, sigma: float = 0.1):
+        """Initialize the Gaussian prior.
+
+        Parameters
+        ----------
+        mu:
+            Prior mean.
+        sigma:
+            Prior standard deviation.
+        """
         self.mu = mu
         self.sigma = sigma
 
@@ -77,6 +96,17 @@ class BayesianLinear(nn.Module):
     """
 
     def __init__(self, in_features: int, out_features: int, prior_sigma: float = 0.1):
+        """Build a Bayesian fully connected layer.
+
+        Parameters
+        ----------
+        in_features:
+            Input feature dimension.
+        out_features:
+            Output feature dimension.
+        prior_sigma:
+            Standard deviation of the isotropic Gaussian prior.
+        """
         super().__init__()
         self.in_features = in_features
         self.out_features = out_features
@@ -91,6 +121,16 @@ class BayesianLinear(nn.Module):
         self.prior = GaussianPrior(0.0, prior_sigma)
 
     def forward(self, x: torch.Tensor, sample: bool = True) -> torch.Tensor:
+        """Apply the Bayesian affine transform.
+
+        Parameters
+        ----------
+        x:
+            Input tensor with trailing feature dimension ``in_features``.
+        sample:
+            If ``True``, sample weights and biases from the variational
+            posterior. If ``False``, use posterior means.
+        """
         # ``sample=False`` is useful for deterministic warmup or debugging.
         w = self.weight_posterior.sample() if sample else self.weight_posterior.mu
         b = self.bias_posterior.sample() if sample else self.bias_posterior.mu
@@ -125,7 +165,19 @@ class BayesianLinear(nn.Module):
 
 
 class BayesByBackpropMLP(nn.Module):
-    """Convenience MLP composed from ``BayesianLinear`` layers."""
+    """Convenience MLP composed from ``BayesianLinear`` layers.
+
+    Parameters
+    ----------
+    input_dim:
+        Input feature dimension.
+    hidden_dims:
+        Sequence of hidden layer sizes.
+    output_dim:
+        Output feature dimension.
+    prior_sigma:
+        Standard deviation of the Gaussian prior shared by all Bayesian layers.
+    """
 
     def __init__(
         self,
@@ -143,6 +195,17 @@ class BayesByBackpropMLP(nn.Module):
         self.layers = nn.ModuleList(layers)
 
     def forward(self, x: torch.Tensor, sample: bool = True) -> torch.Tensor:
+        """Evaluate the MLP with sampled or mean weights.
+
+        Parameters
+        ----------
+        x:
+            Input tensor with shape ``[batch, input_dim]`` or compatible
+            leading dimensions.
+        sample:
+            If ``True``, sample every Bayesian layer. If ``False``, use the
+            posterior means for a deterministic pass.
+        """
         h = x
         for layer in self.layers:
             if isinstance(layer, BayesianLinear):
@@ -259,6 +322,13 @@ def predict_vi_uq(
         If True, treat outputs as logits and return probability moments.
     aleatoric_var:
         Optional additive aleatoric variance term for regression.
+
+    Returns
+    -------
+    UQResult
+        Regression calls populate ``mean`` and variance fields. Classification
+        calls additionally populate ``probs`` and ``probs_var`` after softmax
+        averaging.
     """
     if not isinstance(n_samples, int) or n_samples <= 0:
         raise ValueError(f"n_samples must be a positive integer, got {n_samples!r}.")

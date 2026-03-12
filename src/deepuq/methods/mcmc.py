@@ -11,6 +11,15 @@ class SGLDOptimizer(torch.optim.Optimizer):
 
     This optimizer performs an SGD-like update with additive Gaussian noise
     calibrated by the step size, following Welling & Teh (2011).
+
+    Parameters
+    ----------
+    params:
+        Iterable of parameters to optimize.
+    lr:
+        SGLD step size.
+    weight_decay:
+        Optional L2 penalty added to the stochastic gradient.
     """
 
     def __init__(self, params, lr=1e-3, weight_decay=0.0):
@@ -19,7 +28,13 @@ class SGLDOptimizer(torch.optim.Optimizer):
 
     @torch.no_grad()
     def step(self):
-        """Apply one SGLD parameter update in-place."""
+        """Apply one SGLD parameter update in-place.
+
+        Returns
+        -------
+        None
+            The update is applied directly to the optimizer parameters.
+        """
         for group in self.param_groups:
             lr = group["lr"]
             wd = group["weight_decay"]
@@ -55,6 +70,16 @@ def collect_posterior_samples(
         Total SGLD updates.
     burn_in:
         Fraction of updates to skip before collecting snapshots.
+    loss_fn:
+        Loss used to compute stochastic gradients. Defaults to cross-entropy.
+    device:
+        Device on which optimization runs.
+
+    Returns
+    -------
+    list[dict[str, torch.Tensor]]
+        State-dict snapshots collected after burn-in. Each element can be fed
+        into ``predict_with_samples`` or ``predict_with_samples_uq``.
     """
     model.train()
     opt = SGLDOptimizer(model.parameters(), lr=lr, weight_decay=weight_decay)
@@ -85,7 +110,27 @@ def collect_posterior_samples(
 def predict_with_samples(
     model: nn.Module, samples, x, apply_softmax=True, device="cpu"
 ):
-    """Predictive mean and variance from stored parameter samples."""
+    """Predictive mean and variance from stored parameter samples.
+
+    Parameters
+    ----------
+    model:
+        Model architecture compatible with the saved state dicts.
+    samples:
+        Posterior parameter snapshots, typically from
+        ``collect_posterior_samples``.
+    x:
+        Evaluation inputs.
+    apply_softmax:
+        If ``True``, convert logits into probabilities before aggregation.
+    device:
+        Device used for model evaluation.
+
+    Returns
+    -------
+    (mean, var):
+        Predictive mean and variance over the posterior sample dimension.
+    """
     pred_samples = []
     for s in samples:
         model.load_state_dict(s, strict=True)
@@ -101,7 +146,11 @@ def predict_with_samples(
 def predict_with_samples_uq(
     model: nn.Module, samples, x, apply_softmax=True, device="cpu"
 ) -> UQResult:
-    """Predictive uncertainty summary from posterior samples."""
+    """Return posterior-sample predictive moments in ``UQResult`` form.
+
+    ``epistemic_var`` stores the variance across posterior samples. No separate
+    aleatoric component is estimated.
+    """
     mean, var = predict_with_samples(
         model=model,
         samples=samples,

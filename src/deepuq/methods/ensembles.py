@@ -178,6 +178,14 @@ class HeteroscedasticDeepEnsembleRegressor(_BaseDeepEnsemble):
     Each member must output concatenated mean and log-variance tensors. For
     vector outputs the concatenation is along the last dimension. For field
     outputs it is along channel dimension ``1``.
+
+    Parameters
+    ----------
+    models:
+        Ensemble members. Each member must emit mean and log-variance in a
+        single concatenated tensor.
+    min_variance:
+        Floor applied after exponentiating predicted log-variance.
     """
 
     method_name = "heteroscedastic_deep_ensemble_regressor"
@@ -269,6 +277,11 @@ class DeepEnsembleClassifier(_BaseDeepEnsemble):
     - input: any tensor accepted by the wrapped classifier
     - member output: logits with shape ``[batch, n_classes]``
     - ``predict`` returns ``(mean_probs, probs_var)``
+
+    Parameters
+    ----------
+    models:
+        Ensemble members that output logits with a shared class dimension.
     """
 
     method_name = "deep_ensemble_classifier"
@@ -298,7 +311,11 @@ class DeepEnsembleClassifier(_BaseDeepEnsemble):
 
     @torch.inference_mode()
     def predict_uq(self, x: torch.Tensor) -> UQResult:
-        """Return mean class probabilities and probability variance."""
+        """Return mean class probabilities and probability variance.
+
+        Classification ensembles populate ``probs`` and ``probs_var``. The
+        regression variance fields mirror probability variance for convenience.
+        """
         probs, probs_var = self.predict(x)
         return UQResult(
             mean=probs,
@@ -319,6 +336,8 @@ class MultiOutputDeepEnsembleRegressor(DeepEnsembleRegressor):
 
     Member predictions are vector-valued, typically with shape
     ``[batch, n_outputs]``.
+
+    ``predict_uq`` reports one epistemic variance value per output component.
     """
 
     method_name = "multi_output_deep_ensemble_regressor"
@@ -327,12 +346,19 @@ class MultiOutputDeepEnsembleRegressor(DeepEnsembleRegressor):
 class HeteroscedasticMultiOutputDeepEnsembleRegressor(
     HeteroscedasticDeepEnsembleRegressor
 ):
-    """Multi-output regression ensemble with epistemic and aleatoric uncertainty."""
+    """Multi-output regression ensemble with epistemic and aleatoric uncertainty.
+
+    Each member must emit concatenated mean and log-variance tensors for every
+    output component.
+    """
 
     method_name = "heteroscedastic_multi_output_deep_ensemble_regressor"
 
 
 class DeepEnsembleWrapper(DeepEnsembleRegressor):
-    """Backward-compatible alias for the original regression-first ensemble wrapper."""
+    """Backward-compatible alias for the original regression-first wrapper.
+
+    Prefer :class:`DeepEnsembleRegressor` in new code.
+    """
 
     method_name = "deep_ensemble"

@@ -115,6 +115,7 @@ nav:
   - Examples: examples/index.md
   - API:
       - api/index.md
+      - UQ API Conventions: api/uq-conventions.md
       - Methods:
           - Deep Ensembles API: api/methods/ensembles.md
           - VI API: api/methods/vi.md

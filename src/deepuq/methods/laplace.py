@@ -881,21 +881,36 @@ class _KronLaplace(_NativeLaplaceBase):
 
 
 class LaplaceWrapper:
-    """
-    Fit a Laplace approximation around a MAP-trained model.
+    """Fit a Laplace approximation around a MAP-trained model.
 
-    Supported Hessian structures:
-      - diag
-      - fisher_diag
-      - lowrank_diag
-      - block_diag
-      - kron
-      - full
+    Parameters
+    ----------
+    model:
+        MAP-trained neural network to approximate locally with a Gaussian
+        posterior.
+    likelihood:
+        Either ``"regression"`` or ``"classification"``. Controls predictive
+        output interpretation.
+    hessian_structure:
+        Curvature backend. Supported values are ``diag``, ``fisher_diag``,
+        ``lowrank_diag``, ``block_diag``, ``kron``, and ``full``.
+    subset_of_weights:
+        ``"last_layer"`` for a lightweight approximation around the last linear
+        module, or ``"all"`` for all trainable parameters when the selected
+        backend supports it.
+    lowrank_rank:
+        Target rank for the ``lowrank_diag`` backend.
+    damping:
+        Numerical stabilization term added to precision approximations.
+    full_max_params:
+        Safety guard for ``hessian_structure="full"`` with
+        ``subset_of_weights="all"``.
 
-    Example:
-        la = LaplaceWrapper(model, likelihood='classification', hessian_structure='diag')
-        la.fit(dataloader, prior_precision=1.0)
-        probs, var = la.predict(x)
+    Examples
+    --------
+    >>> la = LaplaceWrapper(model, likelihood="classification", hessian_structure="diag")
+    >>> la.fit(train_loader, prior_precision=1.0)
+    >>> probs, probs_var = la.predict(x_test)
     """
 
     _SUPPORTED_STRUCTURES = (
@@ -934,6 +949,7 @@ class LaplaceWrapper:
 
     @staticmethod
     def supported_hessian_structures() -> tuple[str, ...]:
+        """Return the supported Hessian structure names."""
         return LaplaceWrapper._SUPPORTED_STRUCTURES
 
     def _build_backend(self):
@@ -984,6 +1000,27 @@ class LaplaceWrapper:
     def fit(
         self, train_loader: Iterable, prior_precision: float | None = 1.0, **_
     ) -> object:
+        """Fit the selected Laplace backend.
+
+        Parameters
+        ----------
+        train_loader:
+            Iterable of ``(inputs, targets)`` mini-batches used to accumulate
+            curvature statistics around the MAP solution.
+        prior_precision:
+            Isotropic Gaussian prior precision. Higher values keep the
+            approximation closer to the MAP point.
+
+        Returns
+        -------
+        object
+            The concrete backend instance used internally.
+
+        Raises
+        ------
+        ValueError
+            If ``full`` curvature is requested over too many parameters.
+        """
         # Guardrail: dense full Hessian over all parameters can become intractable.
         if self.hessian_structure == "full" and self.subset_of_weights == "all":
             param_count = sum(param.numel() for param in self.model.parameters())
@@ -1002,12 +1039,43 @@ class LaplaceWrapper:
         return backend
 
     def predict(self, x: torch.Tensor, **predict_kwargs):
+        """Return the legacy predictive tuple from the fitted backend.
+
+        Parameters
+        ----------
+        x:
+            Evaluation inputs.
+        **predict_kwargs:
+            Forwarded to the backend predictive routine. Common options include
+            sample counts for structured backends.
+        """
         if self.la is None:
             raise RuntimeError("Call fit() before predict().")
         return self.la.predictive(x, **predict_kwargs)
 
     def predict_uq(self, x: torch.Tensor, **predict_kwargs) -> UQResult:
-        """Return standardized uncertainty fields without changing legacy predict()."""
+        """Return predictive moments in standardized ``UQResult`` form.
+
+        Parameters
+        ----------
+        x:
+            Evaluation inputs.
+        **predict_kwargs:
+            Forwarded to the backend predictive routine.
+
+        Returns
+        -------
+        UQResult
+            For regression, ``mean`` plus variance fields. For classification,
+            ``probs`` and optional ``probs_var`` with regression variance fields
+            left unset.
+
+        Raises
+        ------
+        RuntimeError
+            If ``fit()`` has not been called or if a regression backend fails
+            to produce predictive variance.
+        """
         if self.la is None:
             raise RuntimeError("Call fit() before predict_uq().")
 

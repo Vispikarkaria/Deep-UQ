@@ -1,4 +1,9 @@
-"""Monte-Carlo dropout inference wrappers."""
+"""Monte-Carlo dropout inference wrappers.
+
+The wrapper in this module keeps dropout layers active at inference time,
+collects repeated stochastic forward passes, and summarizes their spread as a
+predictive uncertainty estimate.
+"""
 
 import torch
 import torch.nn as nn
@@ -7,13 +12,17 @@ from deepuq.types import UQResult
 
 
 class MCDropoutWrapper(nn.Module):
-    """
-    Wrap any model with dropout to perform MC Dropout at inference.
+    """Wrap a dropout-enabled model to perform MC Dropout at inference.
 
-    Args:
-        model: torch.nn.Module with Dropout layers
-        n_mc: number of stochastic forward passes
-        apply_softmax: whether to convert logits to probabilities
+    Parameters
+    ----------
+    model:
+        ``torch.nn.Module`` that already contains dropout layers.
+    n_mc:
+        Number of stochastic forward passes used at prediction time.
+    apply_softmax:
+        If ``True``, interpret model outputs as logits and return
+        probability-space moments.
     """
 
     def __init__(self, model: nn.Module, n_mc: int = 20, apply_softmax: bool = True):
@@ -23,13 +32,31 @@ class MCDropoutWrapper(nn.Module):
         self.apply_softmax = apply_softmax
 
     def train(self, mode: bool = True):
+        """Mirror the wrapped model's train/eval state.
+
+        MC Dropout still forces dropout-active behavior inside ``predict`` and
+        ``predict_uq`` by temporarily calling ``self.model.train(True)``.
+        """
         # Override: we want to be able to force dropout at eval-time
         self.model.train(mode)
         return super().train(mode)
 
     @torch.inference_mode()
     def predict(self, x: torch.Tensor):
-        """Run stochastic dropout passes and return predictive mean/variance."""
+        """Run stochastic dropout passes and return predictive mean/variance.
+
+        Parameters
+        ----------
+        x:
+            Input batch with shape accepted by the wrapped model.
+
+        Returns
+        -------
+        (mean, var):
+            Tensors with the same trailing shape as a single model prediction.
+            For classification with ``apply_softmax=True``, the last dimension
+            is class probability.
+        """
         self.model.train(True)  # enable dropout
         pred_samples = []
         for _ in range(self.n_mc):
@@ -45,7 +72,11 @@ class MCDropoutWrapper(nn.Module):
 
     @torch.inference_mode()
     def predict_uq(self, x: torch.Tensor) -> UQResult:
-        """Return standardized uncertainty fields."""
+        """Return predictive moments as a :class:`deepuq.types.UQResult`.
+
+        The wrapper reports dropout spread as ``epistemic_var``. No explicit
+        aleatoric component is modeled.
+        """
         mean, var = self.predict(x)
         probs = mean if self.apply_softmax else None
         probs_var = var if self.apply_softmax else None
