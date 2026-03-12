@@ -1,25 +1,25 @@
 # Tutorial: Bayes by Backprop
 
-Notebook: [BayesByBackprop_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/BayesByBackprop_Tutorial.ipynb)
+Notebook: [BayesByBackprop_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/vi/BayesByBackprop_Tutorial.ipynb)
 
 ## Purpose
 
-Train a Bayesian neural network with variational inference and analyze predictive uncertainty behavior in interpolation and extrapolation settings.
+Train a mean-field Bayesian neural network with Bayes by Backprop and analyze predictive uncertainty in interpolation and extrapolation settings.
 
 ## Data Setup
 
-- Synthetic 1D nonlinear regression
-- In-distribution and OOD evaluation ranges
-- Controlled noise level to separate epistemic and aleatoric effects
+- synthetic 1D nonlinear regression
+- in-domain and OOD evaluation ranges
+- controlled observation noise to separate model uncertainty from the noise floor
 
 ## Core Logic
 
-- Bayesian linear layers with sampled weights
-- ELBO optimization using `vi_elbo_step`
-- MC-based predictive mean and confidence intervals
+- `BayesianLinear` layers sample weights during each forward pass
+- `vi_elbo_step(...)` optimizes the ELBO with mini-batch KL scaling
+- `predict_vi_uq(...)` aggregates Monte Carlo predictive draws into a `UQResult`
 
 ## Expected Outputs
 
-- ELBO/NLL/KL training curves
-- fit quality on train/test
-- uncertainty widening in OOD regions
+- ELBO / NLL / KL curves
+- fit quality on train and held-out ranges
+- wider uncertainty outside the training support

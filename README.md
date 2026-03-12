@@ -9,7 +9,7 @@ Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
 Implements **six** widely used UQ families with multiple variants:
 
 1. **Deep Ensembles** — Independent deterministic models aggregated into a predictive mean and variance.
-2. **Variational Inference (VI)** — Bayes by Backprop with BayesianLinear layers.
+2. **Variational Inference (VI)** — Bayes by Backprop, heteroscedastic and multi-output variants, plus scalable last-layer VI.
 3. **Laplace Approximation** — native backends for all supported structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`).
 4. **MCMC (SGLD)** — Stochastic Gradient Langevin Dynamics sampler for NN posteriors.
 5. **MC Dropout** — Keep dropout active at test-time and aggregate Monte Carlo predictions.
@@ -44,10 +44,10 @@ Read more:
 
 ### Variational Inference
 
-Variational Inference in Deep-UQ currently focuses on Bayes by Backprop: a
-mean-field Bayesian neural network trained with an ELBO objective. Use it when
-you want end-to-end Bayesian weight learning rather than a posterior
-approximation around a pretrained deterministic model.
+Variational Inference in Deep-UQ covers mean-field Bayes by Backprop for plain
+regression and classification, heteroscedastic variants that predict
+data-dependent noise, multi-output regression heads, and last-layer VI for
+scalable Bayesian heads on deterministic feature extractors.
 
 Read more:
 - https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/
@@ -55,6 +55,10 @@ Read more:
 | Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
 |---|---|---|---|---|---|---|---|
 | Bayes by Backprop | ✓ | ✓ | ✗ | ✓ | ✗ | `BayesianLinear`, `BayesByBackpropMLP`, `vi_elbo_step`, `predict_vi_uq` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/)<br>[Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/bayes-by-backprop/) |
+| Heteroscedastic Bayes by Backprop | ✓ | ✗ | ✗ | ✓ | ✓ | `HeteroscedasticBayesByBackpropRegressor`, `predict_vi_uq` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/)<br>[ADR1D Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/vi-heteroscedastic-bbb-adr1d/) |
+| Multi-Output Bayes by Backprop | ✓ | ✗ | ✓ | ✓ | ✗ | `MultiOutputBayesByBackpropRegressor`, `predict_vi_uq` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/)<br>[Elastic Bar Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/vi-multioutput-bbb-elastic-bar/) |
+| Heteroscedastic Multi-Output Bayes by Backprop | ✓ | ✗ | ✓ | ✓ | ✓ | `HeteroscedasticMultiOutputBayesByBackpropRegressor`, `predict_vi_uq` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/)<br>[Transport2D Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/vi-heteroscedastic-multioutput-bbb-transport2d/) |
+| Last-Layer Variational Inference | ✓ | ✓ | ✓ | ✓ | optional | `LastLayerVariationalInference`, `predict_vi_uq` | [Guide](https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/)<br>[Heat2D Classification Tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/vi-last-layer-heat2d-classification/) |
 
 ### Laplace Approximation
 
@@ -166,8 +170,8 @@ Releases are tag-driven via `.github/workflows/release.yml` and PyPI trusted pub
 2. Commit and push to `master`.
 3. Tag and push:
 ```bash
-git tag v0.1.11
-git push origin v0.1.11
+git tag v0.1.17
+git push origin v0.1.17
 ```
 4. Verify package on PyPI:
 ```bash
@@ -236,9 +240,16 @@ Notebook navigation guide: `notebooks/README.md`
 
 ### Core UQ
 
-- `notebooks/BayesByBackprop_Tutorial.ipynb`: Variational Inference (Bayes by Backprop) for regression with predictive uncertainty.
 - `notebooks/MC_Dropout_Tutorial.ipynb`: MC Dropout tutorial on a nonlinear beam-style regression case.
 - `notebooks/SGLD_Tutorial.ipynb`: MCMC posterior sampling with SGLD.
+
+### Variational Inference
+
+- `notebooks/vi/BayesByBackprop_Tutorial.ipynb`: Bayes by Backprop baseline for regression with predictive uncertainty.
+- `notebooks/vi/Heteroscedastic_BayesByBackprop_ADR1D_Tutorial.ipynb`: heteroscedastic VI on 1D advection-diffusion-reaction.
+- `notebooks/vi/MultiOutput_BayesByBackprop_ElasticBar1D_Tutorial.ipynb`: multi-output VI for elastic-bar displacement and stress.
+- `notebooks/vi/HeteroscedasticMultiOutput_BayesByBackprop_Transport2D_Tutorial.ipynb`: multi-output heteroscedastic VI on 2D transport.
+- `notebooks/vi/LastLayerVI_Heat2D_Classification_Tutorial.ipynb`: last-layer VI for a heat-equation failure-classification map.
 
 ### Laplace
 

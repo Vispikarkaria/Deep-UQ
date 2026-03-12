@@ -6,10 +6,14 @@ from deepuq.methods import (
     DeepEnsembleClassifier,
     DeepEnsembleRegressor,
     DeepEnsembleWrapper,
+    HeteroscedasticBayesByBackpropRegressor,
     HeteroscedasticDeepEnsembleRegressor,
+    HeteroscedasticMultiOutputBayesByBackpropRegressor,
     HeteroscedasticMultiOutputDeepEnsembleRegressor,
     LaplaceWrapper,
+    LastLayerVariationalInference,
     MCDropoutWrapper,
+    MultiOutputBayesByBackpropRegressor,
     MultiOutputDeepEnsembleRegressor,
     predict_vi_uq,
     predict_with_samples,
@@ -151,6 +155,37 @@ def test_vi_predict_uq_shapes():
     assert uq.mean.shape == (7, 1)
     assert uq.epistemic_var is not None and uq.epistemic_var.shape == (7, 1)
     assert uq.total_var is not None and uq.total_var.shape == (7, 1)
+
+
+def test_vi_predict_uq_new_variants_contracts():
+    x = torch.randn(9, 3)
+
+    hetero = HeteroscedasticBayesByBackpropRegressor(3, hidden_dims=(8,))
+    hetero_uq = predict_vi_uq(hetero, x, n_samples=5)
+    assert hetero_uq.aleatoric_var is not None
+    assert hetero_uq.mean.shape == (9, 1)
+
+    multi = MultiOutputBayesByBackpropRegressor(3, output_dim=2, hidden_dims=(8,))
+    multi_uq = predict_vi_uq(multi, x, n_samples=5)
+    assert multi_uq.mean.shape == (9, 2)
+
+    hetero_multi = HeteroscedasticMultiOutputBayesByBackpropRegressor(
+        3, output_dim=2, hidden_dims=(8,)
+    )
+    hetero_multi_uq = predict_vi_uq(hetero_multi, x, n_samples=5)
+    assert hetero_multi_uq.mean.shape == (9, 2)
+    assert hetero_multi_uq.aleatoric_var is not None
+
+    feature_extractor = torch.nn.Sequential(torch.nn.Linear(3, 6), torch.nn.ReLU())
+    last_layer = LastLayerVariationalInference(
+        feature_extractor,
+        feature_dim=6,
+        output_dim=4,
+        task="classification",
+    )
+    classifier_uq = predict_vi_uq(last_layer, x, n_samples=5)
+    assert classifier_uq.probs is not None and classifier_uq.probs.shape == (9, 4)
+    assert classifier_uq.probs_var is not None
 
 
 def test_deep_ensemble_predict_uq_shapes():

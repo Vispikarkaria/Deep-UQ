@@ -14,7 +14,17 @@ from .mcmc import (
     predict_with_samples,
     predict_with_samples_uq,
 )
-from .vi import BayesByBackpropMLP, predict_vi_uq, vi_elbo_step
+from .vi import (
+    BayesByBackpropMLP,
+    BayesByBackpropRegressor,
+    BayesianLinear,
+    HeteroscedasticBayesByBackpropRegressor,
+    HeteroscedasticMultiOutputBayesByBackpropRegressor,
+    LastLayerVariationalInference,
+    MultiOutputBayesByBackpropRegressor,
+    predict_vi_uq,
+    vi_elbo_step,
+)
 
 __all__ = [
     "DeepEnsembleRegressor",
@@ -24,7 +34,13 @@ __all__ = [
     "HeteroscedasticMultiOutputDeepEnsembleRegressor",
     "DeepEnsembleWrapper",
     "MCDropoutWrapper",
+    "BayesianLinear",
     "BayesByBackpropMLP",
+    "BayesByBackpropRegressor",
+    "HeteroscedasticBayesByBackpropRegressor",
+    "MultiOutputBayesByBackpropRegressor",
+    "HeteroscedasticMultiOutputBayesByBackpropRegressor",
+    "LastLayerVariationalInference",
     "predict_vi_uq",
     "vi_elbo_step",
     "LaplaceWrapper",

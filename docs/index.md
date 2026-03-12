@@ -83,14 +83,19 @@ Dropout is natural and last-layer Laplace is not.
 <div class="family-table-block family-matrix reveal" markdown="1">
 ### Variational Inference
 
-Bayes by Backprop is Deep-UQ's end-to-end Bayesian neural network family. Use
-it when you want weight uncertainty learned directly during training.
+The VI family covers end-to-end Bayesian neural networks, including plain Bayes
+by Backprop, heteroscedastic regression variants, multi-output heads, and
+last-layer VI for scalable Bayesian heads on deterministic feature extractors.
 
 <p class="family-table-readmore"><strong>Read more:</strong> <a href="methods/variational-inference/">Variational Inference method guide</a></p>
 
 | Method | Reg. | Cls. | Multi | Model UQ | Noise UQ | Main Interface | Learn More |
 |---|---|---|---|---|---|---|---|
 | Bayes by Backprop | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `BayesianLinear`, `BayesByBackpropMLP`, `vi_elbo_step`, `predict_vi_uq` | [Guide](methods/variational-inference.md)<br>[API](api/methods/vi.md)<br>[Tutorial](tutorials/bayes-by-backprop.md) |
+| Heteroscedastic Bayes by Backprop | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `HeteroscedasticBayesByBackpropRegressor`, `predict_vi_uq` | [Guide](methods/variational-inference.md)<br>[ADR1D Tutorial](tutorials/vi-heteroscedastic-bbb-adr1d.md) |
+| Multi-Output Bayes by Backprop | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | `MultiOutputBayesByBackpropRegressor`, `predict_vi_uq` | [Guide](methods/variational-inference.md)<br>[Elastic Bar Tutorial](tutorials/vi-multioutput-bbb-elastic-bar.md) |
+| Heteroscedastic Multi-Output Bayes by Backprop | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | `HeteroscedasticMultiOutputBayesByBackpropRegressor`, `predict_vi_uq` | [Guide](methods/variational-inference.md)<br>[Transport2D Tutorial](tutorials/vi-heteroscedastic-multioutput-bbb-transport2d.md) |
+| Last-Layer Variational Inference | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--yes">✓</span> | optional | `LastLayerVariationalInference`, `predict_vi_uq` | [Guide](methods/variational-inference.md)<br>[Heat2D Classification Tutorial](tutorials/vi-last-layer-heat2d-classification.md) |
 </div>
 
 <div class="family-table-block family-matrix reveal" markdown="1">

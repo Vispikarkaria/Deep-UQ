@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.17 — 2026-03-12
+
+Highlights:
+
+- Expanded the VI family with heteroscedastic regression, multi-output regression, and last-layer VI wrappers.
+- Added a dedicated `notebooks/vi/` notebook family with five executable VI tutorials covering regression, aleatoric noise, multi-output prediction, and classification.
+- Strengthened the VI API docs with workflow conventions, tensor-shape guidance, and `UQResult` field mapping.
+- Added notebook smoke validation support for end-to-end execution checks.
+
 ## 0.1.16 — 2026-03-10
 
 Highlights:

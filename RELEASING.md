@@ -19,8 +19,8 @@ trusted publishing.
 4. Create and push a version tag:
 
 ```bash
-git tag v0.1.9
-git push origin v0.1.9
+git tag v0.1.17
+git push origin v0.1.17
 ```
 
 5. Workflow `release.yml` will:

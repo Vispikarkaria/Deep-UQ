@@ -4,9 +4,16 @@ Deep-UQ notebooks are organized by method family and scientific role.
 
 ## Core UQ Tutorials
 
-- `BayesByBackprop_Tutorial.ipynb`
 - `MC_Dropout_Tutorial.ipynb`
 - `SGLD_Tutorial.ipynb`
+
+## Variational Inference Tutorials
+
+- `vi/BayesByBackprop_Tutorial.ipynb`
+- `vi/Heteroscedastic_BayesByBackprop_ADR1D_Tutorial.ipynb`
+- `vi/MultiOutput_BayesByBackprop_ElasticBar1D_Tutorial.ipynb`
+- `vi/HeteroscedasticMultiOutput_BayesByBackprop_Transport2D_Tutorial.ipynb`
+- `vi/LastLayerVI_Heat2D_Classification_Tutorial.ipynb`
 
 ## Laplace Tutorials
 

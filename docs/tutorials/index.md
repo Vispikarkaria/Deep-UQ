@@ -18,8 +18,12 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 ### Variational Inference
 
 - [Bayes by Backprop guide](bayes-by-backprop.md)
+- [Heteroscedastic Bayes by Backprop + ADR1D](vi-heteroscedastic-bbb-adr1d.md)
+- [Multi-Output Bayes by Backprop + Elastic Bar](vi-multioutput-bbb-elastic-bar.md)
+- [Heteroscedastic Multi-Output Bayes by Backprop + Transport2D](vi-heteroscedastic-multioutput-bbb-transport2d.md)
+- [Last-Layer VI + Heat2D Classification](vi-last-layer-heat2d-classification.md)
 - Full method docs: [`/methods/variational-inference/`](../methods/variational-inference.md)
-- Notebook: [`notebooks/BayesByBackprop_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/BayesByBackprop_Tutorial.ipynb)
+- Notebook family directory: [`notebooks/vi/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/vi)
 
 ### Laplace Approximation
 
@@ -75,8 +79,8 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 ## Notebook Source Directory
 
 - Notebook guide: [`notebooks/README.md`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/README.md)
-- SciML layout guide: [`notebooks/sciml/README.md`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/README.md)
-- Main notebooks: [`notebooks/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks)
+- Variational Inference notebooks: [`notebooks/vi/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/vi)
+- Ensemble notebooks: [`notebooks/ensembles/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/ensembles)
 - Laplace notebooks: [`notebooks/laplace/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/laplace)
 - Gaussian Process notebooks: [`notebooks/gp/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/gp)
 - Scientific ML notebooks: [`notebooks/sciml/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/sciml)

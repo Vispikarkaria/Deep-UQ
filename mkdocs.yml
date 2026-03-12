@@ -100,6 +100,10 @@ nav:
       - Heteroscedastic Multi-Output Deep Ensemble + Transport2D: tutorials/sciml-heteroscedastic-multioutput-deep-ensemble-transport2d.md
       - Deep Ensembles + Parametric Poisson1D: tutorials/sciml-deep-ensemble-poisson1d.md
       - Bayes by Backprop: tutorials/bayes-by-backprop.md
+      - Heteroscedastic Bayes by Backprop + ADR1D: tutorials/vi-heteroscedastic-bbb-adr1d.md
+      - Multi-Output Bayes by Backprop + Elastic Bar: tutorials/vi-multioutput-bbb-elastic-bar.md
+      - Heteroscedastic Multi-Output Bayes by Backprop + Transport2D: tutorials/vi-heteroscedastic-multioutput-bbb-transport2d.md
+      - Last-Layer VI + Heat2D Classification: tutorials/vi-last-layer-heat2d-classification.md
       - Laplace Comparison: tutorials/laplace-comparison.md
       - MC Dropout: tutorials/mc-dropout.md
       - SGLD: tutorials/sgld.md

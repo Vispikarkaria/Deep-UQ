@@ -19,7 +19,7 @@ import deepuq
 ## Included methods
 
 - Deep Ensembles
-- Variational Inference (Bayes by Backprop)
+- Variational Inference (Bayes by Backprop, heteroscedastic VI, multi-output VI, and last-layer VI)
 - Laplace Approximation
 - MCMC via SGLD
 - MC Dropout
@@ -38,6 +38,7 @@ import deepuq
 - Docs: https://vispikarkaria.github.io/Deep-UQ/
 - Tutorials: https://vispikarkaria.github.io/Deep-UQ/tutorials/
 - API reference: https://vispikarkaria.github.io/Deep-UQ/api/
+- Variational Inference guide: https://vispikarkaria.github.io/Deep-UQ/methods/variational-inference/
 - GitHub: https://github.com/Vispikarkaria/Deep-UQ
 
 ## Package names

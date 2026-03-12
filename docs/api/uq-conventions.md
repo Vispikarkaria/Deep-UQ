@@ -72,10 +72,10 @@ Classification APIs usually populate `probs`, may mirror `probs` into `mean`, an
 | `n_mc` | number of dropout forward passes | `K` |
 | `n_samples` | number of stochastic predictive draws | `S` |
 | `num_batches` | optimizer steps per epoch used to scale the VI KL term | batch-count normalization |
-| `kl_weight` | weight on the KL contribution in VI | `eta` |
+| `kl_weight` | weight on the KL contribution in VI | `$\\beta$` |
 | `prior_precision` | Gaussian prior precision in Laplace | `\lambda` |
-| `hessian_structure` | curvature approximation family in Laplace | approximation to `H` or posterior precision `\Lambda` |
-| `subset_of_weights` | parameter subset used in Laplace | subset of `	heta` |
+| `hessian_structure` | curvature approximation family in Laplace | approximation to `$H$` or posterior precision `$\\Lambda$` |
+| `subset_of_weights` | parameter subset used in Laplace | subset of `$\\theta$` |
 | `burn_in` | fraction of SGLD steps discarded before collecting samples | warm-up / transient phase |
 
 ## Common failure modes
