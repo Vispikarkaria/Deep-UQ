@@ -1,3 +1,10 @@
+"""Fourier Neural Operator components for regular-grid field surrogates.
+
+The 2D and 3D variants in this module accept channels-last field tensors and
+end with a pointwise ``nn.Linear`` head so they remain compatible with the
+package's last-layer Laplace workflow.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -21,7 +28,18 @@ def _as_mode_tuple_3d(modes: Sequence[int]) -> tuple[int, int, int]:
 
 
 class SpectralConv2D(nn.Module):
-    """2D spectral convolution with truncated Fourier modes."""
+    """2D spectral convolution with truncated Fourier modes.
+
+    Parameters
+    ----------
+    in_channels:
+        Number of incoming feature channels.
+    out_channels:
+        Number of output feature channels.
+    modes:
+        Truncated low-frequency mode counts ``(mx, my)`` retained along the two
+        spatial axes.
+    """
 
     def __init__(
         self,
@@ -118,7 +136,11 @@ class FNOBlock2D(nn.Module):
 
 
 class FNO2D(nn.Module):
-    """A compact 2D Fourier Neural Operator for scalar field-to-field maps."""
+    """A compact 2D Fourier Neural Operator for scalar field-to-field maps.
+
+    The public ``forward`` expects a tensor with shape ``[batch, nx, ny, C]``
+    and returns a scalar field with shape ``[batch, nx, ny]``.
+    """
 
     def __init__(
         self,
@@ -192,6 +214,7 @@ class FNO2D(nn.Module):
         device: torch.device,
         dtype: torch.dtype,
     ) -> torch.Tensor:
+        """Create a normalized ``(x, y)`` coordinate grid."""
         nx, ny = shape
         x = torch.arange(nx, device=device, dtype=dtype) / max(nx - 1, 1)
         y = torch.arange(ny, device=device, dtype=dtype) / max(ny - 1, 1)
@@ -199,6 +222,7 @@ class FNO2D(nn.Module):
         return torch.stack((grid_x, grid_y), dim=-1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Map input fields on a 2D lattice to a scalar output field."""
         if x.dim() != 4:
             raise ValueError("FNO2D expects inputs with shape [B, Nx, Ny, C].")
         if x.size(-1) != self.in_channels:
@@ -325,7 +349,11 @@ class FNOBlock3D(nn.Module):
 
 
 class FNO3D(nn.Module):
-    """A compact 3D Fourier Neural Operator for scalar field-to-field maps."""
+    """A compact 3D Fourier Neural Operator for scalar field-to-field maps.
+
+    The public ``forward`` expects a tensor with shape ``[batch, nx, ny, nz, C]``
+    and returns a scalar volume with shape ``[batch, nx, ny, nz]``.
+    """
 
     def __init__(
         self,

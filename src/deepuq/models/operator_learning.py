@@ -1,3 +1,10 @@
+"""DeepONet-style operator-learning models for fixed query grids.
+
+The implementations here keep ``forward`` compatible with the package's current
+``LaplaceWrapper`` convention: the default call accepts only the branch-input
+tensor and evaluates the learned operator on an internally stored query grid.
+"""
+
 from __future__ import annotations
 
 import torch
@@ -65,6 +72,7 @@ class _DeepONetFixedGrid(nn.Module):
             self.set_query_grid(query_grid)
 
     def set_query_grid(self, query_grid: torch.Tensor) -> None:
+        """Store the coordinates used by the default ``forward`` call."""
         if query_grid.dim() != 2 or query_grid.size(-1) != self.trunk_input_dim:
             raise ValueError("query_grid must have shape [n_query, trunk_input_dim].")
         self.query_grid = query_grid.detach().clone().to(self.output_head.weight.device)
@@ -74,6 +82,17 @@ class _DeepONetFixedGrid(nn.Module):
         branch_inputs: torch.Tensor,
         coords: torch.Tensor,
     ) -> torch.Tensor:
+        """Evaluate the operator on arbitrary coordinates.
+
+        Parameters
+        ----------
+        branch_inputs:
+            Tensor with shape ``[batch, branch_input_dim]`` containing the
+            discretized input function for each sample.
+        coords:
+            Tensor with shape ``[n_query, trunk_input_dim]`` containing query
+            coordinates.
+        """
         if branch_inputs.dim() != 2:
             raise ValueError("branch_inputs must have shape [batch, branch_input_dim].")
         if coords.dim() != 2 or coords.size(-1) != self.trunk_input_dim:
@@ -86,6 +105,7 @@ class _DeepONetFixedGrid(nn.Module):
         return outputs.reshape(branch_inputs.size(0), coords.size(0))
 
     def forward(self, branch_inputs: torch.Tensor) -> torch.Tensor:
+        """Evaluate the operator on the stored fixed query grid."""
         if self.query_grid.numel() == 0:
             raise RuntimeError(
                 "query_grid is not set. Provide query_grid at construction time "

@@ -123,6 +123,8 @@ nav:
           - MC Dropout API: api/methods/mc_dropout.md
       - Models:
           - MLP API: api/models/simple.md
+          - FNO Models API: api/models/fno.md
+          - Operator-Learning Models API: api/models/operator_learning.md
           - Spatial Models API: api/models/spatial.md
           - Diffusion Models API: api/models/diffusion.md
           - PINN Models API: api/models/pinn.md
