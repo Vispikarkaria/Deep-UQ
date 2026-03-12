@@ -98,7 +98,9 @@ class DeepEnsembleRegressor(_BaseDeepEnsemble):
 
     method_name = "deep_ensemble_regressor"
 
-    def _default_loss(self, prediction: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def _default_loss(
+        self, prediction: torch.Tensor, target: torch.Tensor
+    ) -> torch.Tensor:
         return F.mse_loss(prediction, target)
 
     @torch.inference_mode()
@@ -158,7 +160,9 @@ class HeteroscedasticDeepEnsembleRegressor(_BaseDeepEnsemble):
         var = torch.exp(log_var).clamp_min(self.min_variance)
         return mean, var
 
-    def _default_loss(self, prediction: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def _default_loss(
+        self, prediction: torch.Tensor, target: torch.Tensor
+    ) -> torch.Tensor:
         mean, var = self._split_prediction(prediction)
         return 0.5 * (((target - mean) ** 2) / var + torch.log(var)).mean()
 
@@ -219,7 +223,9 @@ class DeepEnsembleClassifier(_BaseDeepEnsemble):
 
     method_name = "deep_ensemble_classifier"
 
-    def _default_loss(self, prediction: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def _default_loss(
+        self, prediction: torch.Tensor, target: torch.Tensor
+    ) -> torch.Tensor:
         if target.dim() > 1 and target.shape[-1] == 1:
             target = target.squeeze(-1)
         return F.cross_entropy(prediction, target.long())

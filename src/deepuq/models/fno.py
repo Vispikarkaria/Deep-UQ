@@ -172,7 +172,11 @@ class FNO2D(nn.Module):
         for block in self.blocks:
             block.reset_parameters()
 
-        head_linears = [module for module in self.output_head.modules() if isinstance(module, nn.Linear)]
+        head_linears = [
+            module
+            for module in self.output_head.modules()
+            if isinstance(module, nn.Linear)
+        ]
         for linear in head_linears[:-1]:
             nn.init.xavier_uniform_(linear.weight, gain=0.2)
             if linear.bias is not None:

@@ -54,9 +54,7 @@ def test_heteroscedastic_deep_ensemble_components():
     assert uq.mean.shape == (6, 1)
     assert uq.epistemic_var is not None and uq.epistemic_var.shape == (6, 1)
     assert uq.aleatoric_var is not None and uq.aleatoric_var.shape == (6, 1)
-    assert uq.total_var is not None and torch.all(
-        uq.total_var >= uq.epistemic_var
-    )
+    assert uq.total_var is not None and torch.all(uq.total_var >= uq.epistemic_var)
 
 
 def test_deep_ensemble_classifier_predict_uq():
@@ -75,7 +73,9 @@ def test_deep_ensemble_classifier_predict_uq():
 def test_multioutput_regression_variants():
     x = torch.randn(5, 3)
 
-    reg = MultiOutputDeepEnsembleRegressor([MLP(3, [8], 2, p_drop=0.0) for _ in range(2)])
+    reg = MultiOutputDeepEnsembleRegressor(
+        [MLP(3, [8], 2, p_drop=0.0) for _ in range(2)]
+    )
     reg_uq = reg.predict_uq(x)
     assert reg_uq.mean.shape == (5, 2)
     assert reg_uq.total_var is not None and reg_uq.total_var.shape == (5, 2)
@@ -116,7 +116,10 @@ def test_heteroscedastic_fit_smoke():
 
 
 def test_heteroscedastic_field_output_split():
-    models = [CNNRegressor2D(in_channels=1, out_channels=4, hidden_channels=(8, 8)) for _ in range(2)]
+    models = [
+        CNNRegressor2D(in_channels=1, out_channels=4, hidden_channels=(8, 8))
+        for _ in range(2)
+    ]
     ensemble = HeteroscedasticMultiOutputDeepEnsembleRegressor(models)
     x = torch.randn(3, 1, 12, 12)
     uq = ensemble.predict_uq(x)

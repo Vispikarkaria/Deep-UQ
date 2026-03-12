@@ -20,7 +20,9 @@ def _make_darcy_like_dataset(
         log_k = 0.15 * torch.sin(2.0 * math.pi * xx) + 0.1 * torch.cos(
             2.0 * math.pi * yy
         )
-        log_k = log_k + 0.05 * torch.randn((resolution, resolution), generator=generator)
+        log_k = log_k + 0.05 * torch.randn(
+            (resolution, resolution), generator=generator
+        )
         k = torch.exp(log_k).clamp(0.6, 2.0)
         q = 0.2 * torch.sin(2.0 * math.pi * (xx + yy))
         q = q + 0.05 * torch.randn((resolution, resolution), generator=generator)
