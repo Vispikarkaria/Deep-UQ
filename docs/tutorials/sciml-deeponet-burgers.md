@@ -1,6 +1,6 @@
 # Tutorial: DeepONet + Burgers + Laplace
 
-Notebook: [DeepONet_Burgers_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb)
+Notebook: [DeepONet_Burgers_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/operators/DeepONet_Burgers_Laplace_Tutorial.ipynb)
 
 ## Purpose
 

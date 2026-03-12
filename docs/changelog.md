@@ -13,7 +13,7 @@ Highlights:
 Highlights:
 
 - Added `ConditionalUNet2D` and `SinusoidalTimeEmbedding` in `deepuq.models.diffusion` for conditional diffusion tutorials on scientific fields.
-- Added `notebooks/sciml/ConditionalDiffusion_Heat2D_Tutorial.ipynb` for sparse-sensor 2D heat-field reconstruction with sample-based uncertainty.
+- Added `notebooks/sciml/generative/ConditionalDiffusion_Heat2D_Tutorial.ipynb` for sparse-sensor 2D heat-field reconstruction with sample-based uncertainty.
 - Added diffusion-model docs coverage via `docs/tutorials/sciml-conditional-diffusion-heat2d.md` and `docs/api/models/diffusion.md`.
 - Updated the model-architecture inventory and tutorial index to include generative / diffusion models.
 - Added diffusion-model unit tests and fixed the notebook diffusion schedule to avoid CPU/CUDA device mismatch during execution.
@@ -23,7 +23,7 @@ Highlights:
 Highlights:
 
 - Added reusable 2D Fourier Neural Operator components: `SpectralConv2D`, `FNOBlock2D`, and `FNO2D`.
-- Added `notebooks/sciml/FNO2D_Darcy_Laplace_Tutorial.ipynb` covering a 2D Darcy-flow operator surrogate with three input fields and last-layer Laplace uncertainty maps.
+- Added `notebooks/sciml/operators/FNO2D_Darcy_Laplace_Tutorial.ipynb` covering a 2D Darcy-flow operator surrogate with three input fields and last-layer Laplace uncertainty maps.
 - Added tests for 2D FNO forward behavior and last-layer Laplace compatibility.
 - Added tutorial docs and architecture-table coverage for the new Darcy operator-learning example.
 - Added GIF export in the Darcy notebook to compare input fields, true pressure, predictive mean, error, and epistemic uncertainty across samples.
@@ -59,7 +59,7 @@ Highlights:
 Highlights:
 
 - Added reusable 3D Fourier Neural Operator components: `SpectralConv3D`, `FNOBlock3D`, and `FNO3D`.
-- Added `notebooks/sciml/FNO3D_Heat_Laplace_Tutorial.ipynb` covering a 3D periodic heat-equation surrogate with slice-based uncertainty visualization.
+- Added `notebooks/sciml/operators/FNO3D_Heat_Laplace_Tutorial.ipynb` covering a 3D periodic heat-equation surrogate with slice-based uncertainty visualization.
 - Added tests for 3D FNO forward behavior and last-layer Laplace compatibility.
 - Added tutorial docs and site navigation for the new 3D SciML notebook.
 
@@ -68,7 +68,7 @@ Highlights:
 Highlights:
 
 - Added `DeepONet1D` for fixed-grid 1D operator-learning workflows that remain compatible with `LaplaceWrapper`.
-- Added `notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb` covering a 1D Poisson problem with sparse forcing sensors, residual DeepONet training, and last-layer Laplace uncertainty bands.
+- Added `notebooks/sciml/operators/DeepONet_Poisson1D_Laplace_Tutorial.ipynb` covering a 1D Poisson problem with sparse forcing sensors, residual DeepONet training, and last-layer Laplace uncertainty bands.
 - Extended DeepONet tests to cover the 1D model and last-layer Laplace compatibility.
 - Expanded the 2D Burgers SciML notebook explanations and comments for easier first-time reading.
 - Added tutorial docs and site navigation for the new 1D SciML notebook.
@@ -86,7 +86,7 @@ Highlights:
 - Added packaging extras in `pyproject.toml` (`dev`, `tests`, `docs`, `benchmarks`, `notebooks`).
 - Updated docs links and usage/examples for the unified uncertainty API.
 - Added `DeepONet2D` for operator-learning experiments in scientific machine learning.
-- Added a new `notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb` tutorial covering 2D viscous Burgers operator learning with Laplace uncertainty.
+- Added a new `notebooks/sciml/operators/DeepONet_Burgers_Laplace_Tutorial.ipynb` tutorial covering 2D viscous Burgers operator learning with Laplace uncertainty.
 - Added tests for DeepONet forward behavior and Laplace last-layer compatibility.
 - Added tutorial docs and navigation for the new SciML notebook section.
 

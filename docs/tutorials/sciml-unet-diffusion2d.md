@@ -1,6 +1,6 @@
 # U-Net + Diffusion2D UQ
 
-Notebook: [UNet_Diffusion2D_UQ_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/UNet_Diffusion2D_UQ_Tutorial.ipynb)
+Notebook: [UNet_Diffusion2D_UQ_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/spatial/UNet_Diffusion2D_UQ_Tutorial.ipynb)
 
 This tutorial uses `UNet2D` for a 2D diffusion field-to-field mapping. The main
 UQ path is MC Dropout, while the tutorial also discusses how the same backbone

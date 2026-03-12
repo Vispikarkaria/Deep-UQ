@@ -1,6 +1,6 @@
 # Multi-Output Deep Ensemble for a 1D Elastic Bar
 
-Notebook: [MultiOutputDeepEnsemble_ElasticBar1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/MultiOutputDeepEnsemble_ElasticBar1D_Tutorial.ipynb)
+Notebook: [MultiOutputDeepEnsemble_ElasticBar1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/ensembles/MultiOutputDeepEnsemble_ElasticBar1D_Tutorial.ipynb)
 
 This tutorial uses `MultiOutputDeepEnsembleRegressor` on a 1D elastic bar. The model predicts two coupled scientific outputs at once: displacement and stress.
 

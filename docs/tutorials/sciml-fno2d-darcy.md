@@ -1,6 +1,6 @@
 # FNO2D + Darcy Flow + Laplace
 
-Notebook: [FNO2D_Darcy_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/FNO2D_Darcy_Laplace_Tutorial.ipynb)
+Notebook: [FNO2D_Darcy_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/operators/FNO2D_Darcy_Laplace_Tutorial.ipynb)
 
 This tutorial builds a 2D scientific machine learning example around the
 Darcy-flow equation

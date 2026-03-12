@@ -232,27 +232,39 @@ For Laplace users:
 
 ## Tutorials
 
+Notebook navigation guide: `notebooks/README.md`
+
+### Core UQ
+
 - `notebooks/BayesByBackprop_Tutorial.ipynb`: Variational Inference (Bayes by Backprop) for regression with predictive uncertainty.
 - `notebooks/MC_Dropout_Tutorial.ipynb`: MC Dropout tutorial on a nonlinear beam-style regression case.
+- `notebooks/SGLD_Tutorial.ipynb`: MCMC posterior sampling with SGLD.
+
+### Laplace
+
 - `notebooks/laplace/Laplace_Tutorial.ipynb`: Core Laplace workflow around a MAP model.
 - `notebooks/laplace/Laplace_FullHessian_Tutorial.ipynb`: Full-Hessian Laplace example.
 - `notebooks/laplace/Laplace_HessianComparison_Tutorial.ipynb`: Side-by-side comparison of all Hessian structures (`diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, `full`) using shared MAP weights and common metrics (RMSE, NLL, coverage, interval width, ID/OOD uncertainty ratio).
-- `notebooks/SGLD_Tutorial.ipynb`: MCMC posterior sampling with SGLD.
-- `notebooks/gp/GP_Exact_Tutorial.ipynb`: Exact Gaussian Process regression on an engineering-style deflection task.
-- `notebooks/gp/GP_Sparse_Tutorial.ipynb`: Sparse variational GP with inducing points and ELBO trend.
-- `notebooks/gp/GP_Kernel_Zoo_Tutorial.ipynb`: Kernel misspecification and calibration comparison.
-- `notebooks/gp/GP_Classification_Tutorial.ipynb`: Binary and OvR GP classification uncertainty.
-- `notebooks/gp/GP_Heteroscedastic_Tutorial.ipynb`: Input-dependent noise decomposition.
-- `notebooks/gp/GP_MultiTask_ICM_Tutorial.ipynb`: Correlated multi-output ICM GP.
-- `notebooks/gp/GP_SpectralMixture_Tutorial.ipynb`: Multi-frequency spectral mixture GP.
-- `notebooks/gp/GP_DeepKernel_Tutorial.ipynb`: Deep kernel GP for representation-rich inputs.
-- `notebooks/gp/GP_Model_Comparison.ipynb`: Calibration and runtime comparison across GP families.
-- `notebooks/sciml/DeepONet_Burgers_Laplace_Tutorial.ipynb`: 2D viscous Burgers operator learning with DeepONet and spatial Laplace uncertainty maps.
-- `notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb`: 1D Poisson operator learning with sparse forcing sensors, residual DeepONet training, and 1D uncertainty bands.
-- `notebooks/sciml/DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb`: Deep ensemble uncertainty bands for a parametric 1D Poisson response map.
-- `notebooks/sciml/CNN_ResNet_Heat2D_UQ_Tutorial.ipynb`: CNN / ResNet baselines with MC Dropout on a 2D heat source-to-solution problem.
-- `notebooks/sciml/UNet_Diffusion2D_UQ_Tutorial.ipynb`: U-Net field-to-field uncertainty on a 2D transient diffusion problem.
-- `notebooks/sciml/PINN_Poisson_Laplace_Tutorial.ipynb`: Physics-informed Poisson solutions with last-layer Laplace uncertainty.
+
+### Deep Ensembles
+
+- `notebooks/ensembles/DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb`: Deep ensemble uncertainty bands for a parametric 1D Poisson response map.
+- `notebooks/ensembles/DeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb`: Deep ensemble regression for 1D advection-diffusion-reaction.
+- `notebooks/ensembles/HeteroscedasticDeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb`: Heteroscedastic deep ensemble on ADR with epistemic/aleatoric decomposition.
+- `notebooks/ensembles/DeepEnsemble_Elasticity2D_Classification_Tutorial.ipynb`: Deep ensemble classification for an elasticity-inspired safe/failure map.
+- `notebooks/ensembles/MultiOutputDeepEnsemble_ElasticBar1D_Tutorial.ipynb`: Multi-output deep ensemble for elastic-bar displacement and stress.
+- `notebooks/ensembles/HeteroscedasticMultiOutputDeepEnsemble_Transport2D_Tutorial.ipynb`: Multi-output heteroscedastic deep ensemble for transport concentration and flux.
+
+### Scientific ML
+
+- `notebooks/sciml/operators/DeepONet_Burgers_Laplace_Tutorial.ipynb`: 2D viscous Burgers operator learning with DeepONet and spatial Laplace uncertainty maps.
+- `notebooks/sciml/operators/DeepONet_Poisson1D_Laplace_Tutorial.ipynb`: 1D Poisson operator learning with sparse forcing sensors, residual DeepONet training, and 1D uncertainty bands.
+- `notebooks/sciml/operators/FNO2D_Darcy_Laplace_Tutorial.ipynb`: 2D Darcy operator learning with FNO and Laplace uncertainty maps.
+- `notebooks/sciml/operators/FNO3D_Heat_Laplace_Tutorial.ipynb`: 3D heat operator learning with FNO and slice-based uncertainty visualization.
+- `notebooks/sciml/spatial/CNN_ResNet_Heat2D_UQ_Tutorial.ipynb`: CNN / ResNet baselines with MC Dropout on a 2D heat source-to-solution problem.
+- `notebooks/sciml/spatial/UNet_Diffusion2D_UQ_Tutorial.ipynb`: U-Net field-to-field uncertainty on a 2D transient diffusion problem.
+- `notebooks/sciml/pinns/PINN_Poisson_Laplace_Tutorial.ipynb`: Physics-informed Poisson solutions with last-layer Laplace uncertainty.
+- `notebooks/sciml/generative/ConditionalDiffusion_Heat2D_Tutorial.ipynb`: Conditional diffusion for sparse-sensor heat-field reconstruction with sample-based uncertainty.
 
 ### Gaussian Processes
 

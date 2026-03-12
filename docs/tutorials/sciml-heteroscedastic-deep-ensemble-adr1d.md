@@ -1,6 +1,6 @@
 # Heteroscedastic Deep Ensemble for 1D Advection-Diffusion-Reaction
 
-Notebook: [HeteroscedasticDeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/HeteroscedasticDeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb)
+Notebook: [HeteroscedasticDeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/ensembles/HeteroscedasticDeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb)
 
 This tutorial extends the 1D ADR problem with spatially varying observation noise. Each ensemble member predicts both a mean response and a local noise variance, allowing the notebook to separate epistemic and aleatoric uncertainty.
 

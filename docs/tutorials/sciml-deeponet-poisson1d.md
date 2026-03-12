@@ -1,6 +1,6 @@
 # DeepONet + 1D Poisson + Laplace
 
-Notebook: [DeepONet_Poisson1D_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepONet_Poisson1D_Laplace_Tutorial.ipynb)
+Notebook: [DeepONet_Poisson1D_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/operators/DeepONet_Poisson1D_Laplace_Tutorial.ipynb)
 
 This tutorial builds a 1D scientific machine learning example around the boundary value problem
 

@@ -1,6 +1,6 @@
 # CNN / ResNet + Heat2D UQ
 
-Notebook: [CNN_ResNet_Heat2D_UQ_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/CNN_ResNet_Heat2D_UQ_Tutorial.ipynb)
+Notebook: [CNN_ResNet_Heat2D_UQ_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/spatial/CNN_ResNet_Heat2D_UQ_Tutorial.ipynb)
 
 This tutorial trains `CNNRegressor2D` and `ResNetRegressor2D` on a 2D heat
 source-to-solution problem. MC Dropout is the primary uncertainty path, with an

@@ -1,6 +1,6 @@
 # PINN + Poisson + Laplace
 
-Notebook: [PINN_Poisson_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/PINN_Poisson_Laplace_Tutorial.ipynb)
+Notebook: [PINN_Poisson_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/pinns/PINN_Poisson_Laplace_Tutorial.ipynb)
 
 This tutorial introduces `PINN1D` and `PINN2D` on analytic Poisson problems.
 The networks are trained with physics-informed residuals, and uncertainty is

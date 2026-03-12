@@ -1,6 +1,6 @@
 # Scientific Conditional Diffusion for Heat Fields
 
-Notebook: [ConditionalDiffusion_Heat2D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/ConditionalDiffusion_Heat2D_Tutorial.ipynb)
+Notebook: [ConditionalDiffusion_Heat2D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/generative/ConditionalDiffusion_Heat2D_Tutorial.ipynb)
 
 This tutorial builds a **conditional diffusion model** for 2D heat fields.
 The task is a scientific field-reconstruction problem rather than a deterministic

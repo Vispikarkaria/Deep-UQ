@@ -1,6 +1,6 @@
 # FNO3D + 3D Heat Equation + Laplace
 
-Notebook: [FNO3D_Heat_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/FNO3D_Heat_Laplace_Tutorial.ipynb)
+Notebook: [FNO3D_Heat_Laplace_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/operators/FNO3D_Heat_Laplace_Tutorial.ipynb)
 
 This tutorial builds a 3D scientific machine learning example around the periodic heat equation
 

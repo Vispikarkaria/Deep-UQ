@@ -1,6 +1,6 @@
 # Scientific Deep Ensemble for 1D Advection-Diffusion-Reaction
 
-Notebook: [DeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb)
+Notebook: [DeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/ensembles/DeepEnsemble_AdvectionDiffusionReaction1D_Tutorial.ipynb)
 
 This tutorial uses `DeepEnsembleRegressor` on a steady 1D advection-diffusion-reaction boundary-value problem. The ensemble learns a pointwise surrogate for the PDE response and visualizes epistemic uncertainty bands over the spatial coordinate.
 

@@ -1,6 +1,6 @@
 # Deep Ensemble Classifier for Elasticity Failure Maps
 
-Notebook: [DeepEnsemble_Elasticity2D_Classification_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepEnsemble_Elasticity2D_Classification_Tutorial.ipynb)
+Notebook: [DeepEnsemble_Elasticity2D_Classification_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/ensembles/DeepEnsemble_Elasticity2D_Classification_Tutorial.ipynb)
 
 This tutorial uses `DeepEnsembleClassifier` on a notch-mechanics-inspired failure map. The input space is scientific parameter space rather than physical coordinates, and the ensemble highlights uncertainty near the safe/failure boundary.
 

@@ -1,6 +1,6 @@
 # Deep Ensembles + Parametric Poisson 1D
 
-Notebook: [DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb)
+Notebook: [DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/ensembles/DeepEnsemble_ParametricPoisson1D_Tutorial.ipynb)
 
 This tutorial uses an ensemble of `MLP` models to learn a parametric 1D Poisson
 response map. Inputs are the coordinate and source parameters, output is the

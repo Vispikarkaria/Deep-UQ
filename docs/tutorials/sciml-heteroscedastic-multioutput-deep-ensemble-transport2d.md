@@ -1,6 +1,6 @@
 # Heteroscedastic Multi-Output Deep Ensemble for 2D Transport
 
-Notebook: [HeteroscedasticMultiOutputDeepEnsemble_Transport2D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/HeteroscedasticMultiOutputDeepEnsemble_Transport2D_Tutorial.ipynb)
+Notebook: [HeteroscedasticMultiOutputDeepEnsemble_Transport2D_Tutorial.ipynb](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/ensembles/HeteroscedasticMultiOutputDeepEnsemble_Transport2D_Tutorial.ipynb)
 
 This tutorial uses `HeteroscedasticMultiOutputDeepEnsembleRegressor` on a 2D advection-diffusion transport problem. The ensemble predicts both concentration and flux magnitude fields, together with per-pixel aleatoric noise.
 
