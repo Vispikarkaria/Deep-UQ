@@ -1,5 +1,6 @@
 from .diffusion import ConditionalUNet2D, SinusoidalTimeEmbedding
 from .fno import FNO2D, FNO3D, FNOBlock2D, FNOBlock3D, SpectralConv2D, SpectralConv3D
+from .graph_operator import GraphNeuralOperator2D
 from .gaussian_process import (
     DeepKernelGaussianProcessRegressor,
     GaussianProcessClassifier,
@@ -39,6 +40,7 @@ __all__ = [
     "FNO3D",
     "SinusoidalTimeEmbedding",
     "ConditionalUNet2D",
+    "GraphNeuralOperator2D",
     "DeepONet1D",
     "DeepONet2D",
     "RBFKernel",

@@ -57,6 +57,18 @@ and trunk networks, while FNO performs global spectral mixing on regular grids.
 </div>
 
 <div class="family-table-block architecture-matrix reveal" markdown="1">
+### Graph Operator Models
+
+These models treat a regular grid as a graph and use local message passing
+instead of global spectral mixing. They are a good bridge between grid-based
+operator learning and future unstructured-mesh models.
+
+| Model | 1D | 2D | 3D | Laplace | MC Dropout | Deep Ensemble | Primary Use | Notebook |
+|---|---|---|---|---|---|---|---|---|
+| `GraphNeuralOperator2D` | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | <span class="family-mark family-mark--no">✗</span> | <span class="family-mark family-mark--yes">✓</span> | Grid-as-graph operator learning for reaction-diffusion and mesh-style surrogates | [Graph Operator + Gray-Scott](../tutorials/graph-operator-grayscott-ensemble.md) |
+</div>
+
+<div class="family-table-block architecture-matrix reveal" markdown="1">
 ### Generative / Diffusion Models
 
 These models represent uncertainty through the spread of generated conditional

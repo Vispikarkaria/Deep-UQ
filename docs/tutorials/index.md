@@ -76,6 +76,12 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 - Uses `PINN1D` and `PINN2D` for physics-informed Poisson problems with last-layer Laplace uncertainty
 - Notebook: [`notebooks/sciml/pinns/PINN_Poisson_Laplace_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/sciml/pinns/PINN_Poisson_Laplace_Tutorial.ipynb)
 
+### Graph Neural Operators
+
+- [Graph Operator + Gray-Scott + Deep Ensembles](graph-operator-grayscott-ensemble.md)
+- Uses `GraphNeuralOperator2D` on Gray-Scott reaction-diffusion data from The Well when available, with a synthetic quick-mode fallback for local execution
+- Notebook: [`notebooks/graphs/GraphOperator_GrayScott_Ensemble_Tutorial.ipynb`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/graphs/GraphOperator_GrayScott_Ensemble_Tutorial.ipynb)
+
 ## Notebook Source Directory
 
 - Notebook guide: [`notebooks/README.md`](https://github.com/Vispikarkaria/Deep-UQ/blob/master/notebooks/README.md)
@@ -84,3 +90,4 @@ These guides summarize each notebook and link directly to source notebooks in Gi
 - Laplace notebooks: [`notebooks/laplace/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/laplace)
 - Gaussian Process notebooks: [`notebooks/gp/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/gp)
 - Scientific ML notebooks: [`notebooks/sciml/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/sciml)
+- Graph notebooks: [`notebooks/graphs/`](https://github.com/Vispikarkaria/Deep-UQ/tree/master/notebooks/graphs)

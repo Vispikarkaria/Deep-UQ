@@ -27,6 +27,10 @@ Deep-UQ notebooks are organized by method family and scientific role.
 
 - `ensembles/`
 
+## Graph Neural Operator Tutorials
+
+- `graphs/`
+
 ## Scientific Machine Learning Tutorials
 
 - `sciml/operators/` — DeepONet and FNO operator-learning notebooks

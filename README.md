@@ -15,7 +15,7 @@ Implements **six** widely used UQ families with multiple variants:
 5. **MC Dropout** — Keep dropout active at test-time and aggregate Monte Carlo predictions.
 6. **Gaussian Processes (GPs)** — Exact, sparse, classification, heteroscedastic, multitask, spectral-mixture, and deep-kernel GP variants.
 
-Examples and tutorials now cover beam-style regression, Gaussian-process benchmarks, and scientific machine learning cases such as DeepONet, FNO, convolutional surrogates, and PINNs.
+Examples and tutorials now cover beam-style regression, Gaussian-process benchmarks, and scientific machine learning cases such as DeepONet, FNO, graph neural operators, convolutional surrogates, and PINNs.
 
 ## Method Families
 
@@ -139,6 +139,7 @@ Compact summary:
 | Dense / Parametric | `MLP`, `PINN1D`, `PINN2D` | Laplace, MC Dropout, Deep Ensembles | [Poisson1D / PINN tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
 | Spatial Convolutional | `CNNRegressor2D`, `ResNetRegressor2D`, `UNet2D`, `UNet3D` | MC Dropout, Deep Ensembles | [Heat2D / Diffusion2D tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
 | Operator Learning | `DeepONet1D`, `DeepONet2D`, `FNO2D`, `FNO3D` | Laplace (DeepONet/FNO), task-specific comparisons | [SciML tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/) |
+| Graph Operators | `GraphNeuralOperator2D` | Deep Ensembles, optional last-layer Laplace | [Gray-Scott graph tutorial](https://vispikarkaria.github.io/Deep-UQ/tutorials/graph-operator-grayscott-ensemble/) |
 | Gaussian Processes | GP classes and kernels | Native Bayesian | [GP tutorials](https://vispikarkaria.github.io/Deep-UQ/tutorials/gp/) |
 
 ## Documentation Website
@@ -276,6 +277,10 @@ Notebook navigation guide: `notebooks/README.md`
 - `notebooks/sciml/spatial/UNet_Diffusion2D_UQ_Tutorial.ipynb`: U-Net field-to-field uncertainty on a 2D transient diffusion problem.
 - `notebooks/sciml/pinns/PINN_Poisson_Laplace_Tutorial.ipynb`: Physics-informed Poisson solutions with last-layer Laplace uncertainty.
 - `notebooks/sciml/generative/ConditionalDiffusion_Heat2D_Tutorial.ipynb`: Conditional diffusion for sparse-sensor heat-field reconstruction with sample-based uncertainty.
+
+### Graph Neural Operators
+
+- `notebooks/graphs/GraphOperator_GrayScott_Ensemble_Tutorial.ipynb`: Gray-Scott reaction-diffusion forecasting on a grid graph with deep-ensemble UQ and optional last-layer Laplace comparison.
 
 ### Gaussian Processes
 

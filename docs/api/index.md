@@ -18,6 +18,7 @@ Auto-generated API docs from source code and docstrings, with handwritten guides
 - Models
   - [MLP API](models/simple.md)
   - [FNO Models API](models/fno.md)
+  - [Graph Operator Models API](models/graph_operator.md)
   - [Operator-Learning Models API](models/operator_learning.md)
   - [Spatial Models API](models/spatial.md)
   - [Diffusion Models API](models/diffusion.md)

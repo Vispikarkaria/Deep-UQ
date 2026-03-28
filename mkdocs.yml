@@ -112,6 +112,7 @@ nav:
       - Scientific ML (DeepONet + 1D Poisson): tutorials/sciml-deeponet-poisson1d.md
       - Scientific ML (FNO2D + Darcy): tutorials/sciml-fno2d-darcy.md
       - Scientific ML (FNO3D + 3D Heat): tutorials/sciml-fno3d-heat.md
+      - Graph Operator (Gray-Scott + Ensembles): tutorials/graph-operator-grayscott-ensemble.md
       - Scientific ML (CNN / ResNet + Heat2D): tutorials/sciml-cnn-resnet-heat2d.md
       - Scientific ML (UNet + Diffusion2D): tutorials/sciml-unet-diffusion2d.md
       - Scientific ML (Conditional Diffusion + Heat2D): tutorials/sciml-conditional-diffusion-heat2d.md
@@ -129,6 +130,7 @@ nav:
       - Models:
           - MLP API: api/models/simple.md
           - FNO Models API: api/models/fno.md
+          - Graph Operator Models API: api/models/graph_operator.md
           - Operator-Learning Models API: api/models/operator_learning.md
           - Spatial Models API: api/models/spatial.md
           - Diffusion Models API: api/models/diffusion.md

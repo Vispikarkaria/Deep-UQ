@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.18 — 2026-03-28
+
+Highlights:
+
+- Added `GraphNeuralOperator2D` as a grid-as-graph message-passing neural operator with optional last-layer Laplace compatibility.
+- Added local The Well Gray-Scott loading utilities plus a new graph-neural-operator ensemble tutorial under `notebooks/graphs/`.
+- Extended the docs site and model architecture inventory to cover graph operators and their UQ workflows.
+
 ## 0.1.17 — 2026-03-12
 
 Highlights:

@@ -29,9 +29,15 @@ import deepuq
 
 - DeepONet
 - Fourier Neural Operator (FNO)
+- Graph Neural Operators
 - CNN / ResNet spatial surrogates
 - U-Net backbones
 - Physics-Informed Neural Networks (PINNs)
+
+## Included data utilities and examples
+
+- The Well Gray-Scott loader for graph-operator tutorials
+- Scientific notebooks for operators, graph models, ensembles, VI, PINNs, diffusion, and Laplace UQ
 
 ## Documentation
 
