@@ -20,6 +20,17 @@ The notes below explain the public control variables and workflow; the generated
 | `prior_precision` | Gaussian prior precision used during `fit(...)` |
 | `predict_kwargs` | backend-specific predictive options forwarded unchanged |
 
+For `hessian_structure="kron"` and `"full"`, Deep-UQ now prefers the legacy
+`laplace-torch` backend when that optional dependency is installed. Install it
+with:
+
+```bash
+pip install "uqdeepnn[laplace]"
+```
+
+Without that extra, those two structures fall back to the native Deep-UQ
+implementations.
+
 ## Workflow expectations
 
 1. train the base model to a MAP solution with ordinary optimization

@@ -65,7 +65,12 @@ Read more:
 Laplace methods in Deep-UQ wrap a trained MAP model with a Gaussian posterior
 defined by a chosen curvature structure. They are useful when you want stronger
 post-training uncertainty than MC Dropout without retraining a Bayesian network
-from scratch.
+from scratch. For the legacy `kron` and `full` behavior used in older tutorials,
+install the optional extra:
+
+```bash
+pip install "uqdeepnn[laplace]"
+```
 
 Read more:
 - https://vispikarkaria.github.io/Deep-UQ/methods/laplace/

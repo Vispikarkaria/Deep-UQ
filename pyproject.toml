@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "uqdeepnn"
-version = "0.1.18"
+version = "0.1.19"
 description = "PyTorch uncertainty quantification toolkit with deep ensembles, Bayes-by-Backprop VI, Laplace, SGLD, MC Dropout, Gaussian Processes, and scientific ML backbones."
 readme = {file = "README_PYPI.md", content-type = "text/markdown"}
 requires-python = ">=3.9"
@@ -32,6 +32,9 @@ Repository = "https://github.com/Vispikarkaria/Deep-UQ"
 Documentation = "https://vispikarkaria.github.io/Deep-UQ/"
 
 [project.optional-dependencies]
+laplace = [
+    "laplace-torch>=0.1.7",
+]
 dev = [
     "black>=24,<25",
     "mypy>=1.11,<2",

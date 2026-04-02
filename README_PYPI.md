@@ -10,6 +10,13 @@ predictive uncertainty for regression, classification, and field-to-field surrog
 pip install uqdeepnn
 ```
 
+For the legacy `kron` and `full` Laplace backends used in older Deep-UQ
+tutorials, install the optional Laplace extra:
+
+```bash
+pip install "uqdeepnn[laplace]"
+```
+
 ## Import
 
 ```python

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.19 — 2026-04-01
+
+Highlights:
+
+- Restored automatic `laplace-torch` integration for `hessian_structure="kron"` and `"full"` when the optional dependency is installed.
+- Added a `laplace` extra (`uqdeepnn[laplace]`) so PyPI users can reproduce the older full-Hessian and Kronecker-backed Laplace behavior.
+- Clarified the PyPI install instructions for legacy Laplace tutorials that rely on the `laplace-torch` backend.
+
 ## 0.1.18 — 2026-03-28
 
 Highlights:

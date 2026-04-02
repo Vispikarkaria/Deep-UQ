@@ -3,6 +3,18 @@
 `deepuq` exposes Laplace methods through `LaplaceWrapper` with six Hessian structures:
 `diag`, `fisher_diag`, `lowrank_diag`, `block_diag`, `kron`, and `full`.
 
+For `kron` and `full`, the package automatically prefers the legacy
+`laplace-torch` backend when it is installed. This preserves the behavior used
+in earlier Deep-UQ releases and older tutorials. Install the optional extra
+with:
+
+```bash
+pip install "uqdeepnn[laplace]"
+```
+
+If the extra is not installed, those backends fall back to the native
+implementations bundled with `deepuq`.
+
 ## 1) Motivation
 
 Modern neural networks are often accurate in-domain but can be confidently wrong away from training support. Laplace approximation adds a Bayesian posterior layer on top of a trained MAP network, so predictions include both central tendency and confidence.
