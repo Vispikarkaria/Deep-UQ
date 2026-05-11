@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from torch.nn.utils import parameters_to_vector
 
-from ._base import _NativeLaplaceBase, _ensure_iterable_train_loader, _safe_cholesky
+from ._base import _ensure_iterable_train_loader, _NativeLaplaceBase, _safe_cholesky
 
 
 class _FullLaplace(_NativeLaplaceBase):
@@ -68,7 +68,9 @@ class _FullLaplace(_NativeLaplaceBase):
                 f_i_flat = f_i.reshape(-1)
                 for j in range(n_out):
                     grads = torch.autograd.grad(
-                        f_i_flat[j], params, retain_graph=(j < n_out - 1),
+                        f_i_flat[j],
+                        params,
+                        retain_graph=(j < n_out - 1),
                         create_graph=False,
                     )
                     j_vec = torch.cat([g.detach().reshape(-1) for g in grads])
@@ -89,7 +91,9 @@ class _FullLaplace(_NativeLaplaceBase):
         sigma_sq = 1.0
 
         precision = (1.0 / sigma_sq) * ggn + (prior_scalar + self.damping) * torch.eye(
-            self._param_dim, device=self.device, dtype=ggn.dtype,
+            self._param_dim,
+            device=self.device,
+            dtype=ggn.dtype,
         )
         self.posterior_precision_cholesky = _safe_cholesky(precision, self.damping)
         return self

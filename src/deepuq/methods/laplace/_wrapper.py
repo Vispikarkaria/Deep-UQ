@@ -7,9 +7,13 @@ from torch import nn
 
 from deepuq.types import UQResult
 
-from ._base import _NativeLaplaceBase, _find_last_linear_layer, _safe_cholesky
+from ._base import _find_last_linear_layer, _safe_cholesky
 from ._block import _BlockDiagonalLaplace
-from ._diag import _EmpiricalFisherDiagonalLaplace, _LowRankDiagonalLaplace, _SimpleDiagonalLaplace
+from ._diag import (
+    _EmpiricalFisherDiagonalLaplace,
+    _LowRankDiagonalLaplace,
+    _SimpleDiagonalLaplace,
+)
 from ._full import _FullLaplace
 from ._kron import _KronLaplace
 
@@ -219,13 +223,26 @@ class LaplaceWrapper:
         if isinstance(backend, _FullLaplace):
             L = backend.posterior_precision_cholesky
             P = L @ L.transpose(0, 1)
-            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
-            H = P - (old_prior + backend.damping) * torch.eye(P.shape[0], device=P.device)
+            old_prior = (
+                backend.prior_precision[0].item()
+                if backend.prior_precision is not None
+                else 1.0
+            )
+            H = P - (old_prior + backend.damping) * torch.eye(
+                P.shape[0], device=P.device
+            )
             eigvals = torch.linalg.eigvalsh(H).clamp_min(1e-12)
-        elif isinstance(backend, _SimpleDiagonalLaplace) and backend.hessian_diag is not None:
+        elif (
+            isinstance(backend, _SimpleDiagonalLaplace)
+            and backend.hessian_diag is not None
+        ):
             eigvals = backend.hessian_diag.clamp_min(1e-12)
         elif isinstance(backend, _BlockDiagonalLaplace):
-            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
+            old_prior = (
+                backend.prior_precision[0].item()
+                if backend.prior_precision is not None
+                else 1.0
+            )
             all_eigvals = []
             for chol in backend.block_precision_cholesky:
                 P_block = chol @ chol.transpose(0, 1)
@@ -242,9 +259,18 @@ class LaplaceWrapper:
                 kron_eigs = (eig_a.unsqueeze(1) * eig_g.unsqueeze(0)).reshape(-1)
                 all_eigvals.append(kron_eigs.clamp_min(1e-12))
             eigvals = torch.cat(all_eigvals)
-        elif isinstance(backend, _LowRankDiagonalLaplace) and backend.posterior_precision_diag is not None:
-            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
-            eigvals = (backend.posterior_precision_diag - old_prior - backend.damping).clamp_min(1e-12)
+        elif (
+            isinstance(backend, _LowRankDiagonalLaplace)
+            and backend.posterior_precision_diag is not None
+        ):
+            old_prior = (
+                backend.prior_precision[0].item()
+                if backend.prior_precision is not None
+                else 1.0
+            )
+            eigvals = (
+                backend.posterior_precision_diag - old_prior - backend.damping
+            ).clamp_min(1e-12)
         else:
             return self._grid_search_prior(backend)
 
@@ -271,14 +297,20 @@ class LaplaceWrapper:
             precision = H + (optimal_alpha + backend.damping) * torch.eye(
                 H.shape[0], device=H.device, dtype=H.dtype
             )
-            backend.posterior_precision_cholesky = _safe_cholesky(precision, backend.damping)
+            backend.posterior_precision_cholesky = _safe_cholesky(
+                precision, backend.damping
+            )
             backend.prior_precision = torch.full(
                 (backend._param_dim,), optimal_alpha, device=backend.device
             )
         elif isinstance(backend, _SimpleDiagonalLaplace):
             backend.optimize_prior_precision(optimal_alpha)
         elif isinstance(backend, _BlockDiagonalLaplace):
-            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
+            old_prior = (
+                backend.prior_precision[0].item()
+                if backend.prior_precision is not None
+                else 1.0
+            )
             new_chols = []
             for chol_old in backend.block_precision_cholesky:
                 P_block = chol_old @ chol_old.transpose(0, 1)
@@ -299,10 +331,20 @@ class LaplaceWrapper:
                 (backend._param_dim,), optimal_alpha, device=backend.device
             )
         elif isinstance(backend, _LowRankDiagonalLaplace):
-            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
-            hessian_contrib = backend.posterior_precision_diag - old_prior - backend.damping
-            backend.posterior_precision_diag = hessian_contrib + optimal_alpha + backend.damping
-            backend.posterior_variance_diag = 1.0 / backend.posterior_precision_diag.clamp_min(1e-12)
+            old_prior = (
+                backend.prior_precision[0].item()
+                if backend.prior_precision is not None
+                else 1.0
+            )
+            hessian_contrib = (
+                backend.posterior_precision_diag - old_prior - backend.damping
+            )
+            backend.posterior_precision_diag = (
+                hessian_contrib + optimal_alpha + backend.damping
+            )
+            backend.posterior_variance_diag = (
+                1.0 / backend.posterior_precision_diag.clamp_min(1e-12)
+            )
             backend.prior_precision = torch.full(
                 (backend._param_dim,), optimal_alpha, device=backend.device
             )

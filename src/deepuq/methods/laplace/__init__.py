@@ -1,12 +1,16 @@
 from ._base import (
-    _NativeLaplaceBase,
     _ensure_iterable_train_loader,
     _find_last_linear_layer,
+    _NativeLaplaceBase,
     _safe_cholesky,
     _select_parameters,
 )
 from ._block import _BlockDiagonalLaplace
-from ._diag import _EmpiricalFisherDiagonalLaplace, _LowRankDiagonalLaplace, _SimpleDiagonalLaplace
+from ._diag import (
+    _EmpiricalFisherDiagonalLaplace,
+    _LowRankDiagonalLaplace,
+    _SimpleDiagonalLaplace,
+)
 from ._full import _FullLaplace
 from ._kron import _KronLaplace
 from ._wrapper import LaplaceWrapper

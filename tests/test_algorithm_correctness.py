@@ -15,12 +15,9 @@ from deepuq.methods import (
     LaplaceWrapper,
     MCDropoutWrapper,
     SGLDOptimizer,
-    collect_posterior_samples,
-    predict_with_samples_uq,
 )
-from deepuq.models import GaussianProcessRegressor, MLP, RBFKernel
+from deepuq.models import MLP, GaussianProcessRegressor, RBFKernel
 from deepuq.types import UQResult
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -118,9 +115,9 @@ class TestConvergence:
             gp.fit(x, y)
             _, var = gp.predict(x_test)
             variances.append(var.item())
-        assert variances[0] > variances[1] > variances[2], (
-            f"GP variance should decrease with more data: {variances}"
-        )
+        assert (
+            variances[0] > variances[1] > variances[2]
+        ), f"GP variance should decrease with more data: {variances}"
 
     def test_ensemble_variance_decreases_with_members(self):
         """More ensemble members should give tighter epistemic uncertainty."""
@@ -139,9 +136,9 @@ class TestConvergence:
             variances.append(uq.epistemic_var.item())
         # With more well-trained members, disagreement typically decreases
         # or at minimum doesn't blow up. Check last < 10x first.
-        assert variances[-1] < variances[0] * 10, (
-            f"Ensemble variance should not explode with more members: {variances}"
-        )
+        assert (
+            variances[-1] < variances[0] * 10
+        ), f"Ensemble variance should not explode with more members: {variances}"
 
 
 # ---------------------------------------------------------------------------
@@ -160,15 +157,17 @@ class TestKnownPosteriors:
 
         from deepuq.models import LinearKernel
 
-        gp = GaussianProcessRegressor(kernel=LinearKernel(variance=10.0), noise=noise_std**2)
+        gp = GaussianProcessRegressor(
+            kernel=LinearKernel(variance=10.0), noise=noise_std**2
+        )
         gp.fit(x, y)
         x_test = torch.tensor([[1.0], [-1.0]])
         mean, var = gp.predict(x_test)
 
         # Prediction at x=1 should be ~true_w, at x=-1 should be ~-true_w
-        assert abs(mean[0].item() - true_w) < 0.5, (
-            f"GP mean at x=1 should be ~{true_w}, got {mean[0].item():.3f}"
-        )
+        assert (
+            abs(mean[0].item() - true_w) < 0.5
+        ), f"GP mean at x=1 should be ~{true_w}, got {mean[0].item():.3f}"
         # Variance should be positive and finite
         assert (var > 0).all() and torch.isfinite(var).all()
 
@@ -180,7 +179,9 @@ class TestKnownPosteriors:
         gp.fit(x, y)
         mean, var = gp.predict(x)
         # GP predict returns 1D tensor
-        assert torch.allclose(mean, y.squeeze(), atol=1e-3), "GP should interpolate training data"
+        assert torch.allclose(
+            mean, y.squeeze(), atol=1e-3
+        ), "GP should interpolate training data"
         assert (var < 1e-3).all(), "GP variance at training points should be ~0"
 
 
@@ -198,9 +199,9 @@ class TestConsistency:
         ens = DeepEnsembleRegressor([model])
         ens.fit(loader, epochs=100, lr=1e-3, seed=7)
         uq = ens.predict_uq(x[:5])
-        assert (uq.epistemic_var == 0).all(), (
-            "Single-member ensemble should have zero epistemic variance"
-        )
+        assert (
+            uq.epistemic_var == 0
+        ).all(), "Single-member ensemble should have zero epistemic variance"
 
     def test_mc_dropout_zero_dropout_has_zero_variance(self):
         """MC Dropout with p=0 should produce zero variance."""
@@ -208,9 +209,9 @@ class TestConsistency:
         model = _train_mlp(x, y, p_drop=0.0, epochs=100, seed=8)
         wrapper = MCDropoutWrapper(model, n_mc=20, apply_softmax=False)
         uq = wrapper.predict_uq(x[:10])
-        assert (uq.epistemic_var < 1e-10).all(), (
-            "Zero dropout should produce zero MC variance"
-        )
+        assert (
+            uq.epistemic_var < 1e-10
+        ).all(), "Zero dropout should produce zero MC variance"
 
 
 # ---------------------------------------------------------------------------
@@ -249,9 +250,9 @@ class TestOODDetection:
         x_ood = torch.tensor([[5.0]])
         var_id = ens.predict_uq(x_id).epistemic_var.item()
         var_ood = ens.predict_uq(x_ood).epistemic_var.item()
-        assert var_ood > var_id, (
-            f"Ensemble OOD var ({var_ood:.6f}) should exceed ID var ({var_id:.6f})"
-        )
+        assert (
+            var_ood > var_id
+        ), f"Ensemble OOD var ({var_ood:.6f}) should exceed ID var ({var_id:.6f})"
 
     def test_laplace_ood_higher_variance(self):
         """Laplace should show higher uncertainty far from training data."""
@@ -264,9 +265,9 @@ class TestOODDetection:
 
         uq_id = la.predict_uq(torch.tensor([[0.0]]), n_samples=100)
         uq_ood = la.predict_uq(torch.tensor([[5.0]]), n_samples=100)
-        assert uq_ood.total_var.item() > uq_id.total_var.item(), (
-            "Laplace OOD variance should exceed ID variance"
-        )
+        assert (
+            uq_ood.total_var.item() > uq_id.total_var.item()
+        ), "Laplace OOD variance should exceed ID variance"
 
 
 # ---------------------------------------------------------------------------
@@ -302,9 +303,9 @@ class TestVarianceDecomposition:
         assert uq.aleatoric_var is not None
         assert uq.total_var is not None
         reconstructed = uq.epistemic_var + uq.aleatoric_var
-        assert torch.allclose(uq.total_var, reconstructed, atol=1e-5), (
-            "Total variance should equal epistemic + aleatoric"
-        )
+        assert torch.allclose(
+            uq.total_var, reconstructed, atol=1e-5
+        ), "Total variance should equal epistemic + aleatoric"
 
     def test_homoscedastic_ensemble_no_aleatoric(self):
         """Homoscedastic ensemble should have aleatoric_var=None and total=epistemic."""
@@ -402,9 +403,9 @@ class TestDeterminism:
             ens.fit(loader, epochs=50, lr=1e-3, seed=100)
             results.append(ens.predict_uq(x_test).mean)
 
-        assert torch.allclose(results[0], results[1], atol=1e-5), (
-            "Same seed should give identical ensemble results"
-        )
+        assert torch.allclose(
+            results[0], results[1], atol=1e-5
+        ), "Same seed should give identical ensemble results"
 
     def test_gp_deterministic(self):
         """GP predictions should be deterministic (no randomness in posterior mean)."""
@@ -434,9 +435,9 @@ class TestDeterminism:
                 opt.step()
             results.append(model(x[:3]).detach())
 
-        assert torch.allclose(results[0], results[1], atol=1e-5), (
-            "Same seed should give identical SGLD trajectories"
-        )
+        assert torch.allclose(
+            results[0], results[1], atol=1e-5
+        ), "Same seed should give identical SGLD trajectories"
 
 
 # ---------------------------------------------------------------------------

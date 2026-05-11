@@ -194,6 +194,8 @@ def test_kron_backend_uses_native():
 
     # Multi-output uses true KronLaplace
     model_multi = MLP(4, [8], 3)
-    wrapper_multi = LaplaceWrapper(model_multi, likelihood="classification", hessian_structure="kron")
+    wrapper_multi = LaplaceWrapper(
+        model_multi, likelihood="classification", hessian_structure="kron"
+    )
     backend_multi = wrapper_multi._build_backend()
     assert isinstance(backend_multi, laplace_module._KronLaplace)

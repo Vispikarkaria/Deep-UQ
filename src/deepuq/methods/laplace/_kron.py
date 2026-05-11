@@ -7,7 +7,11 @@ import torch
 from torch import nn
 from torch.nn.utils import parameters_to_vector
 
-from ._base import _NativeLaplaceBase, _ensure_iterable_train_loader, _find_last_linear_layer
+from ._base import (
+    _ensure_iterable_train_loader,
+    _find_last_linear_layer,
+    _NativeLaplaceBase,
+)
 
 
 class _KronLaplace(_NativeLaplaceBase):
@@ -279,7 +283,9 @@ class _KronLaplace(_NativeLaplaceBase):
     def _posterior_covariance(self) -> torch.Tensor:
         """Assemble block-diagonal Kronecker posterior covariance."""
         cov = torch.zeros(
-            self._param_dim, self._param_dim, device=self.device,
+            self._param_dim,
+            self._param_dim,
+            device=self.device,
             dtype=self.mean_vector.dtype,
         )
         for factor in self._factors:
@@ -301,7 +307,6 @@ class _KronLaplace(_NativeLaplaceBase):
             # Reconstruct full block covariance
             # Sigma_block[vec(W)] = (U_g kron U_a) diag(inv_denom_vec) (U_g kron U_a)^T
             # where W is (in_dim x out_dim), vec is column-major
-            in_dim = u_a.shape[0]
             out_dim = u_g.shape[0]
 
             # Build covariance in weight-space ordering matching the flattened params
@@ -319,20 +324,11 @@ class _KronLaplace(_NativeLaplaceBase):
 
             # Build block_size x block_size covariance
             block_size = end - start
-            block_cov = torch.zeros(block_size, block_size, device=self.device, dtype=cov.dtype)
+            block_cov = torch.zeros(
+                block_size, block_size, device=self.device, dtype=cov.dtype
+            )
 
-            # Weight part: stored as (out_features, in_features).reshape(-1)
-            # So param index = o * in_features + i corresponds to W[i, o] in our (in_dim, out_dim) notation
-            # Build via Kronecker product in the correct ordering
-            for k in range(in_dim):
-                for l in range(out_dim):
-                    # Outer product contribution scaled by inv_denom[k,l]
-                    # In param ordering: weight[o, i] -> index o*in_features + i
-                    # Our factor ordering: W[in_dim, out_dim], stored as W[:in_features,:].T.reshape(-1)
-                    # So index = o * in_features + i
-                    pass
-
-            # Simpler approach: construct directly via matrix operations
+            # Construct covariance via matrix operations
             # Sigma = (U_g ⊗ U_a[:in_features]) @ diag(inv_denom_reordered) @ (U_g ⊗ U_a[:in_features])^T
             # Reorder inv_denom to match vec(W^T) = vec(out x in) ordering
 
@@ -376,10 +372,14 @@ class _KronLaplace(_NativeLaplaceBase):
                 # Bias uses the last row of u_a (index in_features)
                 u_a_b = u_a[in_features, :]  # (in_dim,)
                 # Bias cov: sum_{k,l} u_a_b[k]^2 * u_g[o1,l]*u_g[o2,l] * inv_denom[k,l]
-                bias_G_weighted = torch.einsum("ol,kl,pl,k,k->op", u_g, inv_denom, u_g, u_a_b, u_a_b)
+                bias_G_weighted = torch.einsum(
+                    "ol,kl,pl,k,k->op", u_g, inv_denom, u_g, u_a_b, u_a_b
+                )
                 # Cross terms weight-bias:
                 # Cov[(o1,i1), bias_o2] = sum_{k,l} u_a_w[i1,k]*u_a_b[k] * u_g[o1,l]*u_g[o2,l] * inv_denom[k,l]
-                cross_cov = torch.einsum("ik,k,ol,kl,pl->oip", u_a_w, u_a_b, u_g, inv_denom, u_g)
+                cross_cov = torch.einsum(
+                    "ik,k,ol,kl,pl->oip", u_a_w, u_a_b, u_g, inv_denom, u_g
+                )
                 cross_cov = cross_cov.reshape(n_weight, out_dim)
 
                 block_cov[:n_weight, :n_weight] = weight_cov

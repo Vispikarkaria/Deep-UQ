@@ -7,7 +7,7 @@ import torch
 from torch import nn
 from torch.nn.utils import parameters_to_vector
 
-from ._base import _NativeLaplaceBase, _ensure_iterable_train_loader
+from ._base import _ensure_iterable_train_loader, _NativeLaplaceBase
 
 
 class _SimpleDiagonalLaplace(_NativeLaplaceBase):
@@ -70,7 +70,9 @@ class _SimpleDiagonalLaplace(_NativeLaplaceBase):
                 f_i_flat = f_i.reshape(-1)
                 for j in range(n_out):
                     grads = torch.autograd.grad(
-                        f_i_flat[j], params, retain_graph=(j < n_out - 1),
+                        f_i_flat[j],
+                        params,
+                        retain_graph=(j < n_out - 1),
                         create_graph=False,
                     )
                     j_vec = torch.cat([g.detach().reshape(-1) for g in grads])
@@ -191,7 +193,9 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
                 f_i_flat = f_i.reshape(-1)
                 for j in range(n_out):
                     grads = torch.autograd.grad(
-                        f_i_flat[j], params, retain_graph=(j < n_out - 1),
+                        f_i_flat[j],
+                        params,
+                        retain_graph=(j < n_out - 1),
                         create_graph=False,
                     )
                     j_vec = torch.cat([g.detach().reshape(-1) for g in grads])
@@ -211,7 +215,7 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
         sigma_sq = 1.0
 
         diag_total = (1.0 / sigma_sq) * ggn_diag
-        jac_matrix = torch.stack(jacobian_rows, dim=0) / (sigma_sq ** 0.5)
+        jac_matrix = torch.stack(jacobian_rows, dim=0) / (sigma_sq**0.5)
 
         rank_cap = min(self.lowrank_rank, jac_matrix.shape[0], jac_matrix.shape[1])
         if rank_cap <= 0:
@@ -275,11 +279,18 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
         # Use Woodbury: Sigma = D^{-1} - D^{-1} U (lam^{-1} + U^T D^{-1} U)^{-1} U^T D^{-1}
         d_inv = 1.0 / self.posterior_precision_diag.clamp_min(1e-12)
 
-        if self.lowrank_u is None or self.lowrank_lam is None or self.lowrank_lam.numel() == 0:
+        if (
+            self.lowrank_u is None
+            or self.lowrank_lam is None
+            or self.lowrank_lam.numel() == 0
+        ):
             return torch.diag(d_inv)
 
         D_inv_U = d_inv.unsqueeze(1) * self.lowrank_u  # (p, r)
-        inner = torch.diag(1.0 / self.lowrank_lam) + self.lowrank_u.transpose(0, 1) @ D_inv_U
+        inner = (
+            torch.diag(1.0 / self.lowrank_lam)
+            + self.lowrank_u.transpose(0, 1) @ D_inv_U
+        )
         inner_inv = torch.linalg.inv(inner)
         correction = D_inv_U @ inner_inv @ D_inv_U.transpose(0, 1)
         return torch.diag(d_inv) - correction

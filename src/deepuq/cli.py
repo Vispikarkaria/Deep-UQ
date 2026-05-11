@@ -9,14 +9,10 @@ def main() -> None:
         prog="deepuq",
         description="Deep-UQ: Unified deep learning uncertainty quantification toolkit",
     )
-    parser.add_argument(
-        "--version", action="store_true", help="Print version and exit"
-    )
+    parser.add_argument("--version", action="store_true", help="Print version and exit")
     subparsers = parser.add_subparsers(dest="command")
 
-    bench_parser = subparsers.add_parser(
-        "benchmark", help="Run the benchmark suite"
-    )
+    bench_parser = subparsers.add_parser("benchmark", help="Run the benchmark suite")
     bench_parser.add_argument(
         "--preset",
         default="quick",
@@ -29,7 +25,7 @@ def main() -> None:
         help="Output directory for results",
     )
 
-    info_parser = subparsers.add_parser("info", help="Show package information")
+    subparsers.add_parser("info", help="Show package information")
 
     args = parser.parse_args()
 
@@ -48,9 +44,9 @@ def main() -> None:
         from deepuq._version import __version__
 
         print(f"Deep-UQ v{__version__}")
-        print(f"PyPI: uqdeepnn")
-        print(f"Docs: https://vispikarkaria.github.io/Deep-UQ/")
-        print(f"Repo: https://github.com/Vispikarkaria/Deep-UQ")
+        print("PyPI: uqdeepnn")
+        print("Docs: https://vispikarkaria.github.io/Deep-UQ/")
+        print("Repo: https://github.com/Vispikarkaria/Deep-UQ")
     else:
         parser.print_help()
         sys.exit(0)

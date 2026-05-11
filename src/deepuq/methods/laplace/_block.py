@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from torch.nn.utils import parameters_to_vector
 
-from ._base import _NativeLaplaceBase, _ensure_iterable_train_loader, _safe_cholesky
+from ._base import _ensure_iterable_train_loader, _NativeLaplaceBase, _safe_cholesky
 
 
 class _BlockDiagonalLaplace(_NativeLaplaceBase):
@@ -87,7 +87,9 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
                 f_i_flat = f_i.reshape(-1)
                 for j in range(n_out):
                     grads = torch.autograd.grad(
-                        f_i_flat[j], params, retain_graph=(j < n_out - 1),
+                        f_i_flat[j],
+                        params,
+                        retain_graph=(j < n_out - 1),
                         create_graph=False,
                     )
                     full_jac = torch.cat([g.detach().reshape(-1) for g in grads])
@@ -129,7 +131,9 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
     def _posterior_covariance(self) -> torch.Tensor:
         """Assemble block-diagonal posterior covariance."""
         cov = torch.zeros(
-            self._param_dim, self._param_dim, device=self.device,
+            self._param_dim,
+            self._param_dim,
+            device=self.device,
             dtype=self.mean_vector.dtype,
         )
         for (start, end), chol in zip(

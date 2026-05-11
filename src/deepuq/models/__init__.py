@@ -1,6 +1,5 @@
 from .diffusion import ConditionalUNet2D, SinusoidalTimeEmbedding
 from .fno import FNO2D, FNO3D, FNOBlock2D, FNOBlock3D, SpectralConv2D, SpectralConv3D
-from .graph_operator import GraphNeuralOperator2D
 from .gaussian_process import (
     DeepKernelGaussianProcessRegressor,
     GaussianProcessClassifier,
@@ -19,6 +18,7 @@ from .gaussian_process import (
     SpectralMixtureKernel,
     SumKernel,
 )
+from .graph_operator import GraphNeuralOperator2D
 from .operator_learning import DeepONet1D, DeepONet2D
 from .pinn import PINN1D, PINN2D
 from .simple import MLP
