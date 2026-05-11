@@ -91,6 +91,10 @@ files = [
     "src/deepuq/models/gaussian_process.py",
     "src/deepuq/types.py",
 ]
+
+[[tool.mypy.overrides]]
+module = "deepuq.methods.laplace.*"
+disable_error_code = ["union-attr"]
 exclude = "(^examples/|^notebooks/|^docs/|^data/)"
 
 [project.scripts]
