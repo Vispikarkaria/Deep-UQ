@@ -22,7 +22,12 @@ def main() -> int:
     failures: list[str] = []
     for export in methods.__all__:
         obj = getattr(methods, export)
-        module_name = obj.__module__.split(".")[-1]
+        # Handle subpackages: deepuq.methods.laplace._wrapper -> laplace
+        module_parts = obj.__module__.split(".")
+        if "deepuq.methods." in obj.__module__ and len(module_parts) > 3:
+            module_name = module_parts[2]  # e.g., "laplace"
+        else:
+            module_name = module_parts[-1]
         page = DOCS_DIR / f"{module_name}.md"
         if not page.exists():
             failures.append(
