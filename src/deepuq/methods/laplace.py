@@ -184,6 +184,65 @@ class _NativeLaplaceBase:
 
         return prior_tensor
 
+    def _compute_jacobians(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """Compute Jacobians of model output w.r.t. selected parameters.
+
+        Returns (J, f_map) where J has shape (batch, n_outputs, n_params)
+        and f_map has shape (batch, n_outputs).
+        """
+        x = x.to(self.device)
+        self.model.eval()
+
+        params = self._parameter_modules
+        f_map = self.model(x)
+        original_shape = f_map.shape
+        # Flatten all output dims beyond batch into a single dim
+        f_map_flat = f_map.reshape(f_map.shape[0], -1)
+
+        n_batch = f_map_flat.shape[0]
+        n_out = f_map_flat.shape[1]
+
+        jacobians = torch.zeros(n_batch, n_out, self._param_dim, device=self.device)
+        for i in range(n_batch):
+            self.model.zero_grad(set_to_none=True)
+            f_i = self.model(x[i : i + 1])
+            f_i_flat = f_i.reshape(-1)
+            for j in range(n_out):
+                grads = torch.autograd.grad(
+                    f_i_flat[j], params, retain_graph=True, create_graph=False
+                )
+                jacobians[i, j] = torch.cat([g.detach().reshape(-1) for g in grads])
+
+        return jacobians, f_map_flat.detach()
+
+    def _glm_predictive(
+        self, x: torch.Tensor, posterior_covariance: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor | None]:
+        """GLM (linearized) predictive: Var[f] = J @ Sigma @ J^T."""
+        # Get original output shape for reshaping
+        with torch.no_grad():
+            f_orig = self.model(x.to(self.device))
+        output_shape = f_orig.shape
+
+        J, f_map = self._compute_jacobians(x)
+
+        # f_var: (batch, n_out_flat) = diag(J @ Sigma @ J^T)
+        f_var = torch.einsum("bop,pq,boq->bo", J, posterior_covariance, J)
+        f_var = f_var.clamp_min(0.0)
+
+        if self.likelihood == "regression":
+            if self.empirical_noise_variance is not None:
+                f_var = f_var + self.empirical_noise_variance
+            # Reshape back to original model output shape
+            f_map = f_map.reshape(output_shape)
+            f_var = f_var.reshape(output_shape)
+            return f_map, f_var
+
+        # Classification: probit approximation
+        kappa = 1.0 / torch.sqrt(1.0 + (torch.pi / 8.0) * f_var)
+        probs = torch.softmax(kappa * f_map, dim=-1)
+        return probs, None
+
     def _forward_parameter_samples(
         self, x: torch.Tensor, sample_vectors: torch.Tensor
     ) -> torch.Tensor:
@@ -279,12 +338,9 @@ class _SimpleDiagonalLaplace(_NativeLaplaceBase):
         if n_samples <= 0:
             raise ValueError("n_samples must be positive.")
 
-        std = torch.sqrt(self.posterior_variance_diag.clamp_min(1e-12))
-        noise = torch.randn(n_samples, std.numel(), device=self.device)
-        samples = self.mean_vector.unsqueeze(0) + noise * std.unsqueeze(0)
-
-        outputs = self._forward_parameter_samples(x, samples)
-        return self._predict_from_outputs(outputs)
+        # Use GLM (linearized) predictive for proper OOD uncertainty divergence
+        posterior_cov = torch.diag(self.posterior_variance_diag)
+        return self._glm_predictive(x, posterior_cov)
 
 
 class _EmpiricalFisherDiagonalLaplace(_SimpleDiagonalLaplace):
@@ -389,6 +445,21 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
         adjusted = z - (proj * coeff.unsqueeze(0)) @ u_b.transpose(0, 1)
         return cast(torch.Tensor, adjusted * inv_sqrt_d.unsqueeze(0))
 
+    def _posterior_covariance(self) -> torch.Tensor:
+        """Compute posterior covariance for low-rank + diagonal precision."""
+        # Precision = diag(d) + U @ diag(lam) @ U^T
+        # Use Woodbury: Sigma = D^{-1} - D^{-1} U (lam^{-1} + U^T D^{-1} U)^{-1} U^T D^{-1}
+        d_inv = 1.0 / self.posterior_precision_diag.clamp_min(1e-12)
+
+        if self.lowrank_u is None or self.lowrank_lam is None or self.lowrank_lam.numel() == 0:
+            return torch.diag(d_inv)
+
+        D_inv_U = d_inv.unsqueeze(1) * self.lowrank_u  # (p, r)
+        inner = torch.diag(1.0 / self.lowrank_lam) + self.lowrank_u.transpose(0, 1) @ D_inv_U
+        inner_inv = torch.linalg.inv(inner)
+        correction = D_inv_U @ inner_inv @ D_inv_U.transpose(0, 1)
+        return torch.diag(d_inv) - correction
+
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
@@ -397,11 +468,8 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
         if n_samples <= 0:
             raise ValueError("n_samples must be positive.")
 
-        noise = self._sample_lowrank_noise(n_samples)
-        samples = self.mean_vector.unsqueeze(0) + noise
-
-        outputs = self._forward_parameter_samples(x, samples)
-        return self._predict_from_outputs(outputs)
+        posterior_cov = self._posterior_covariance()
+        return self._glm_predictive(x, posterior_cov)
 
 
 class _BlockDiagonalLaplace(_NativeLaplaceBase):
@@ -514,6 +582,21 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
 
         return self
 
+    def _posterior_covariance(self) -> torch.Tensor:
+        """Assemble block-diagonal posterior covariance."""
+        cov = torch.zeros(
+            self._param_dim, self._param_dim, device=self.device,
+            dtype=self.mean_vector.dtype,
+        )
+        for (start, end), chol in zip(
+            self._block_offsets, self.block_precision_cholesky
+        ):
+            eye = torch.eye(chol.shape[0], device=self.device, dtype=chol.dtype)
+            L_inv = torch.linalg.solve_triangular(chol, eye, upper=False)
+            block_cov = L_inv.transpose(0, 1) @ L_inv
+            cov[start:end, start:end] = block_cov
+        return cov
+
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
@@ -522,24 +605,8 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
         if n_samples <= 0:
             raise ValueError("n_samples must be positive.")
 
-        samples = torch.zeros(
-            n_samples, self._param_dim, device=self.device, dtype=self.mean_vector.dtype
-        )
-        for (start, end), chol in zip(
-            self._block_offsets, self.block_precision_cholesky
-        ):
-            block_size = end - start
-            z = torch.randn(
-                block_size, n_samples, device=self.device, dtype=self.mean_vector.dtype
-            )
-            # Solve L^T x = z so Cov[x] = (L L^T)^-1.
-            x_block = torch.linalg.solve_triangular(
-                chol.transpose(-2, -1), z, upper=True
-            ).transpose(0, 1)
-            samples[:, start:end] = self.mean_vector[start:end].unsqueeze(0) + x_block
-
-        outputs = self._forward_parameter_samples(x, samples)
-        return self._predict_from_outputs(outputs)
+        posterior_cov = self._posterior_covariance()
+        return self._glm_predictive(x, posterior_cov)
 
 
 class _FullLaplace(_NativeLaplaceBase):
@@ -584,6 +651,13 @@ class _FullLaplace(_NativeLaplaceBase):
         self.posterior_precision_cholesky = _safe_cholesky(precision, self.damping)
         return self
 
+    def _posterior_covariance(self) -> torch.Tensor:
+        """Compute Sigma = P^{-1} from Cholesky L where P = L L^T."""
+        L = self.posterior_precision_cholesky
+        eye = torch.eye(L.shape[0], device=L.device, dtype=L.dtype)
+        L_inv = torch.linalg.solve_triangular(L, eye, upper=False)
+        return L_inv.transpose(0, 1) @ L_inv
+
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
@@ -592,19 +666,8 @@ class _FullLaplace(_NativeLaplaceBase):
         if n_samples <= 0:
             raise ValueError("n_samples must be positive.")
 
-        dim = self.posterior_precision_cholesky.shape[0]
-        z = torch.randn(
-            dim, n_samples, device=self.device, dtype=self.mean_vector.dtype
-        )
-        noise = torch.linalg.solve_triangular(
-            self.posterior_precision_cholesky.transpose(-2, -1),
-            z,
-            upper=True,
-        ).transpose(0, 1)
-        samples = self.mean_vector.unsqueeze(0) + noise
-
-        outputs = self._forward_parameter_samples(x, samples)
-        return self._predict_from_outputs(outputs)
+        posterior_cov = self._posterior_covariance()
+        return self._glm_predictive(x, posterior_cov)
 
 
 
@@ -864,6 +927,123 @@ class _KronLaplace(_NativeLaplaceBase):
 
         return torch.stack(block_samples, dim=0)
 
+    def _posterior_covariance(self) -> torch.Tensor:
+        """Assemble block-diagonal Kronecker posterior covariance."""
+        cov = torch.zeros(
+            self._param_dim, self._param_dim, device=self.device,
+            dtype=self.mean_vector.dtype,
+        )
+        for factor in self._factors:
+            start = int(factor["start"].item())
+            end = int(factor["end"].item())
+            u_a = factor["u_a"]
+            u_g = factor["u_g"]
+            eig_a = factor["eig_a"]
+            eig_g = factor["eig_g"]
+            has_bias = bool(int(factor["has_bias"].item()))
+            in_features = int(factor["in_features"].item())
+
+            # Kronecker eigenvalues: (eig_a_i * eig_g_j + prior + damping)^{-1}
+            denom = eig_a.unsqueeze(1) * eig_g.unsqueeze(0)
+            denom = denom + (self._prior_scalar + self.damping)
+            inv_denom = 1.0 / denom.clamp_min(1e-12)
+
+            # Covariance in Kronecker eigenbasis: Sigma = (U_a kron U_g) diag(1/denom) (U_a kron U_g)^T
+            # Reconstruct full block covariance
+            # Sigma_block[vec(W)] = (U_g kron U_a) diag(inv_denom_vec) (U_g kron U_a)^T
+            # where W is (in_dim x out_dim), vec is column-major
+            in_dim = u_a.shape[0]
+            out_dim = u_g.shape[0]
+
+            # Build covariance in weight-space ordering matching the flattened params
+            # Params are stored as: weight.T.reshape(-1) then bias
+            # i.e., (out_features, in_features).reshape(-1) then bias
+            # So we need Sigma for vec(W^T) where W is (in_dim x out_dim)
+
+            # Cov[vec(W)] where W is (in_dim, out_dim): (U_a @ diag(1/sqrt) @ U_a^T) kron (U_g @ diag(1/sqrt) @ U_g^T)
+            # But the Kron structure gives us: Cov = U_a Λ_cov U_a^T ⊗ U_g Λ_cov U_g^T
+            # More precisely: Cov[vec(W)] = sum over (i,j) of inv_denom[i,j] * (u_a_i u_a_i^T) ⊗ (u_g_j u_g_j^T)
+
+            # Efficient: Sigma = (U_a @ D_a @ U_a^T) where D_a depends on structure
+            # For Kronecker: Sigma_block = kron(Sigma_A_inv, Sigma_G_inv) is NOT exact
+            # Exact: Sigma[vec(W)]_{(i1,j1),(i2,j2)} = sum_k sum_l inv_denom[k,l] * u_a[i1,k]*u_a[i2,k] * u_g[j1,l]*u_g[j2,l]
+
+            # Build block_size x block_size covariance
+            block_size = end - start
+            block_cov = torch.zeros(block_size, block_size, device=self.device, dtype=cov.dtype)
+
+            # Weight part: stored as (out_features, in_features).reshape(-1)
+            # So param index = o * in_features + i corresponds to W[i, o] in our (in_dim, out_dim) notation
+            # Build via Kronecker product in the correct ordering
+            for k in range(in_dim):
+                for l in range(out_dim):
+                    # Outer product contribution scaled by inv_denom[k,l]
+                    # In param ordering: weight[o, i] -> index o*in_features + i
+                    # Our factor ordering: W[in_dim, out_dim], stored as W[:in_features,:].T.reshape(-1)
+                    # So index = o * in_features + i
+                    pass
+
+            # Simpler approach: construct directly via matrix operations
+            # Sigma = (U_g ⊗ U_a[:in_features]) @ diag(inv_denom_reordered) @ (U_g ⊗ U_a[:in_features])^T
+            # Reorder inv_denom to match vec(W^T) = vec(out x in) ordering
+
+            # Actually let's use the efficient formula:
+            # For weight params stored as (out, in).flatten():
+            # Cov[(o1,i1), (o2,i2)] = sum_k sum_l inv_denom[k,l] * u_a[i1,k]*u_a[i2,k] * u_g[o1,l]*u_g[o2,l]
+            # = (U_a @ inv_denom @ U_g^T) entry-wise... no.
+            # = [U_g diag_l(sum_k inv_denom[k,l] * <stuff>)]
+            # Efficient: Cov_weight = kron(U_g, U_a[:in_features]) @ diag(inv_denom_vec) @ kron(U_g, U_a[:in_features])^T
+            # where inv_denom_vec orders as (a_idx, g_idx) flattened matching kron ordering
+
+            u_a_w = u_a[:in_features, :]  # (in_features, in_dim)
+            # Kronecker: (U_g ⊗ U_a_w) has shape (out*in, out*in)
+            # This is block_size_weight x (in_dim * out_dim)
+            # inv_denom has shape (in_dim, out_dim), flatten to (in_dim*out_dim,)
+
+            # For the weight block:
+            n_weight = in_features * out_dim
+            # Build: K = kron(U_g, U_a_w) @ diag(inv_denom_flat) @ kron(U_g, U_a_w)^T
+            # Use: kron(A,B) @ diag(d) @ kron(A,B)^T = kron(A diag(d_g) A^T, B diag(d_a) B^T) only if d is separable
+            # Not separable here, so compute directly but efficiently:
+            # K_{(o1,i1),(o2,i2)} = sum_{k,l} u_a_w[i1,k]*u_a_w[i2,k] * u_g[o1,l]*u_g[o2,l] * inv_denom[k,l]
+
+            # Compute A_contrib[i1,i2,k] = u_a_w[i1,k]*u_a_w[i2,k]
+            # Compute G_contrib[o1,o2,l] = u_g[o1,l]*u_g[o2,l]
+            # K_{(o1,i1),(o2,i2)} = sum_{k,l} A_contrib[i1,i2,k] * G_contrib[o1,o2,l] * inv_denom[k,l]
+            #                     = sum_k A_contrib[i1,i2,k] * (sum_l G_contrib[o1,o2,l] * inv_denom[k,l])
+
+            # G_weighted[o1,o2,k] = sum_l u_g[o1,l]*u_g[o2,l]*inv_denom[k,l] = U_g @ diag(inv_denom[k,:]) @ U_g^T
+            # Then K_{(o1,i1),(o2,i2)} = sum_k u_a_w[i1,k]*u_a_w[i2,k] * G_weighted[o1,o2,k]
+
+            # G_weighted: (out, out, in_dim)
+            G_weighted = torch.einsum("ol,kl,pl->opk", u_g, inv_denom, u_g)
+            # K_{(o1,i1),(o2,i2)} = sum_k u_a_w[i1,k] * u_a_w[i2,k] * G_weighted[o1,o2,k]
+            # Reshape to (out*in, out*in)
+            # Use einsum: result[o1,i1,o2,i2] = sum_k A[i1,k]*A[i2,k]*G[o1,o2,k]
+            weight_cov_4d = torch.einsum("ik,jk,opk->oipj", u_a_w, u_a_w, G_weighted)
+            weight_cov = weight_cov_4d.reshape(n_weight, n_weight)
+
+            if has_bias:
+                # Bias uses the last row of u_a (index in_features)
+                u_a_b = u_a[in_features, :]  # (in_dim,)
+                # Bias cov: sum_{k,l} u_a_b[k]^2 * u_g[o1,l]*u_g[o2,l] * inv_denom[k,l]
+                bias_G_weighted = torch.einsum("ol,kl,pl,k,k->op", u_g, inv_denom, u_g, u_a_b, u_a_b)
+                # Cross terms weight-bias:
+                # Cov[(o1,i1), bias_o2] = sum_{k,l} u_a_w[i1,k]*u_a_b[k] * u_g[o1,l]*u_g[o2,l] * inv_denom[k,l]
+                cross_cov = torch.einsum("ik,k,ol,kl,pl->oip", u_a_w, u_a_b, u_g, inv_denom, u_g)
+                cross_cov = cross_cov.reshape(n_weight, out_dim)
+
+                block_cov[:n_weight, :n_weight] = weight_cov
+                block_cov[:n_weight, n_weight:] = cross_cov
+                block_cov[n_weight:, :n_weight] = cross_cov.transpose(0, 1)
+                block_cov[n_weight:, n_weight:] = bias_G_weighted
+            else:
+                block_cov[:, :] = weight_cov
+
+            cov[start:end, start:end] = block_cov
+
+        return cov
+
     def predictive(
         self, x: torch.Tensor, n_samples: int = 50
     ) -> tuple[torch.Tensor, torch.Tensor | None]:
@@ -872,16 +1052,8 @@ class _KronLaplace(_NativeLaplaceBase):
         if n_samples <= 0:
             raise ValueError("n_samples must be positive.")
 
-        samples = self.mean_vector.unsqueeze(0).repeat(n_samples, 1)
-        for factor in self._factors:
-            start = int(factor["start"].item())
-            end = int(factor["end"].item())
-            samples[:, start:end] = samples[:, start:end] + self._sample_layer_block(
-                factor, n_samples
-            )
-
-        outputs = self._forward_parameter_samples(x, samples)
-        return self._predict_from_outputs(outputs)
+        posterior_cov = self._posterior_covariance()
+        return self._glm_predictive(x, posterior_cov)
 
 
 class LaplaceWrapper:
