@@ -405,7 +405,12 @@ class _EmpiricalFisherDiagonalLaplace(_SimpleDiagonalLaplace):
             param_vector, prior_precision, residual_sum_squares, count_outputs
         )
 
-        hessian_diag = diag_accumulator / float(num_datapoints)
+        if self.likelihood == "regression" and count_outputs > 0:
+            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
+        else:
+            sigma_sq = 1.0
+
+        hessian_diag = (1.0 / sigma_sq) * diag_accumulator / float(num_datapoints)
         self.hessian_diag = hessian_diag
 
         self.posterior_precision_diag = hessian_diag + prior_tensor + self.damping
@@ -1015,6 +1020,12 @@ class _KronLaplace(_NativeLaplaceBase):
         )
         self._prior_scalar = float(prior_tensor[0].item())
 
+        if self.likelihood == "regression" and count_outputs > 0:
+            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
+        else:
+            sigma_sq = 1.0
+        self._sigma_sq = sigma_sq
+
         self._factors = []
         for group in self._layer_groups:
             layer = group["layer"]
@@ -1022,7 +1033,7 @@ class _KronLaplace(_NativeLaplaceBase):
             stats = layer_stats[layer]
 
             A = stats["A"] / float(batch_count)
-            G = stats["G"] / float(batch_count)
+            G = (1.0 / sigma_sq) * stats["G"] / float(batch_count)
 
             A = A + self.damping * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
             G = G + self.damping * torch.eye(G.shape[0], device=G.device, dtype=G.dtype)
