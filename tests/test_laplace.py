@@ -186,7 +186,14 @@ def test_full_backend_uses_native():
 
 
 def test_kron_backend_uses_native():
+    # Single-output last-layer falls back to block_diag (kron degenerates)
     model = MLP(4, [8], 1)
     wrapper = LaplaceWrapper(model, likelihood="regression", hessian_structure="kron")
     backend = wrapper._build_backend()
-    assert isinstance(backend, laplace_module._KronLaplace)
+    assert isinstance(backend, laplace_module._BlockDiagonalLaplace)
+
+    # Multi-output uses true KronLaplace
+    model_multi = MLP(4, [8], 3)
+    wrapper_multi = LaplaceWrapper(model_multi, likelihood="classification", hessian_structure="kron")
+    backend_multi = wrapper_multi._build_backend()
+    assert isinstance(backend_multi, laplace_module._KronLaplace)

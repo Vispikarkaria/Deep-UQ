@@ -1307,6 +1307,17 @@ class LaplaceWrapper:
             )
 
         if self.hessian_structure == "kron":
+            # For single-output last-layer, kron degenerates (G is 1x1).
+            # Fall back to block_diag which is mathematically equivalent and more stable.
+            if self.subset_of_weights == "last_layer":
+                last_linear = _find_last_linear_layer(self.model)
+                if last_linear.out_features == 1:
+                    return _BlockDiagonalLaplace(
+                        self.model,
+                        likelihood=self.likelihood,
+                        subset_of_weights=self.subset_of_weights,
+                        damping=self.damping,
+                    )
             return _KronLaplace(
                 self.model,
                 likelihood=self.likelihood,
