@@ -10,6 +10,8 @@ strict: true
 theme:
   name: material
   custom_dir: docs/overrides
+  logo: assets/images/logo.svg
+  favicon: assets/images/logo.svg
   font: false
   features:
     - navigation.sections
@@ -27,6 +29,11 @@ theme:
 plugins:
   - search
   - section-index
+  - mkdocs-jupyter:
+      include_source: true
+      execute: false
+      allow_errors: true
+      include: ["docs/gallery/*.ipynb"]
   - git-revision-date-localized:
       enable_creation_date: true
       type: date
@@ -138,5 +145,11 @@ nav:
           - Gaussian Process API: api/models/gaussian_process.md
       - Utils API: api/utils.md
       - Types API: api/types.md
+  - Gallery:
+      - gallery/index.md
+      - MC Dropout: gallery/MC_Dropout_Tutorial.ipynb
+      - SGLD: gallery/SGLD_Tutorial.ipynb
+      - Bayes by Backprop: gallery/BayesByBackprop_Tutorial.ipynb
+      - Laplace Comparison: gallery/Laplace_HessianComparison_Tutorial.ipynb
   - Changelog: changelog.md
   - Contributing: contributing.md

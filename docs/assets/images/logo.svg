@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#0c2944"/>
+  <!-- Uncertainty band (outer) -->
+  <path d="M40 120 Q70 80 100 100 Q130 120 160 90" stroke="#00b8d9" stroke-width="18" fill="none" opacity="0.3" stroke-linecap="round"/>
+  <!-- Uncertainty band (inner) -->
+  <path d="M40 120 Q70 80 100 100 Q130 120 160 90" stroke="#00b8d9" stroke-width="8" fill="none" opacity="0.6" stroke-linecap="round"/>
+  <!-- Mean prediction line -->
+  <path d="M40 120 Q70 80 100 100 Q130 120 160 90" stroke="#0b84f3" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Data points -->
+  <circle cx="55" cy="110" r="4" fill="#ffffff"/>
+  <circle cx="80" cy="88" r="4" fill="#ffffff"/>
+  <circle cx="100" cy="100" r="4" fill="#ffffff"/>
+  <circle cx="125" cy="112" r="4" fill="#ffffff"/>
+  <circle cx="148" cy="94" r="4" fill="#ffffff"/>
+  <!-- Text -->
+  <text x="100" y="160" text-anchor="middle" font-family="Source Sans Pro, sans-serif" font-weight="700" font-size="22" fill="#ffffff">Deep-UQ</text>
+</svg>

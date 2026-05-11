@@ -1,6 +1,12 @@
 # Deep-UQ
 
-Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.
+<p align="center">
+  <img src="docs/assets/images/logo.svg" alt="Deep-UQ Logo" width="150"/>
+</p>
+
+<p align="center">
+  <strong>Unified deep learning uncertainty quantification (UQ) toolkit in PyTorch.</strong>
+</p>
 
 ![tests](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/tests.yml/badge.svg)
 ![lint](https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/lint.yml/badge.svg)
