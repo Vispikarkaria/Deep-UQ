@@ -11,10 +11,21 @@ from deepuq.types import UQResult
 
 
 def _extract_data(cal_data) -> tuple[torch.Tensor, torch.Tensor]:
-    """Extract (x, y) tensors from DataLoader or tuple."""
+    """Extract (x, y) tensors from DataLoader, TensorDataset, or tuple."""
+    from torch.utils.data import Dataset, TensorDataset
+
     if isinstance(cal_data, DataLoader):
         xs, ys = [], []
         for batch in cal_data:
+            xs.append(batch[0])
+            ys.append(batch[1])
+        return torch.cat(xs, dim=0), torch.cat(ys, dim=0)
+    elif isinstance(cal_data, TensorDataset):
+        return cal_data.tensors[0], cal_data.tensors[1]
+    elif isinstance(cal_data, Dataset):
+        xs, ys = [], []
+        loader = DataLoader(cal_data, batch_size=len(cal_data))
+        for batch in loader:
             xs.append(batch[0])
             ys.append(batch[1])
         return torch.cat(xs, dim=0), torch.cat(ys, dim=0)

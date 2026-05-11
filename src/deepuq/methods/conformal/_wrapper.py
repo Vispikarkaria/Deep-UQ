@@ -27,24 +27,26 @@ class ConformalUQWrapper(BaseConformalPredictor):
 
     def _get_predictions(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Get mean and std from the wrapped UQ method."""
-        with torch.no_grad():
-            if hasattr(self.uq_method, "predict_uq"):
-                result = self.uq_method.predict_uq(x)
-                mean = result.mean.squeeze(-1)
-                var = (
-                    result.total_var
-                    if result.total_var is not None
-                    else result.epistemic_var
-                )
-                std = var.squeeze(-1).sqrt()
-            else:
+        if hasattr(self.uq_method, "predict_uq"):
+            result = self.uq_method.predict_uq(x)
+            mean = result.mean.squeeze(-1)
+            var = (
+                result.total_var
+                if result.total_var is not None
+                else result.epistemic_var
+            )
+            if var is None:
+                var = torch.ones_like(mean)
+            std = var.squeeze(-1).clamp_min(1e-12).sqrt()
+        else:
+            with torch.no_grad():
                 out = self.uq_method(x)
-                if isinstance(out, tuple):
-                    mean, var = out[0].squeeze(-1), out[1].squeeze(-1)
-                    std = var.sqrt()
-                else:
-                    mean = out.squeeze(-1)
-                    std = torch.ones_like(mean)
+            if isinstance(out, tuple):
+                mean, var = out[0].squeeze(-1), out[1].squeeze(-1)
+                std = var.clamp_min(1e-12).sqrt()
+            else:
+                mean = out.squeeze(-1)
+                std = torch.ones_like(mean)
         return mean, std
 
     def calibrate(self, cal_data) -> ConformalUQWrapper:
