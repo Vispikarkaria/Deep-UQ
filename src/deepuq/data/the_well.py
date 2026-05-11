@@ -88,7 +88,9 @@ def _pairs_from_states(
     repeats = states.size(1) - step
     feed = feed_rates.repeat_interleave(repeats)
     kill = kill_rates.repeat_interleave(repeats)
-    return GrayScottPairs(current_states=current, next_states=nxt, feed_rates=feed, kill_rates=kill)
+    return GrayScottPairs(
+        current_states=current, next_states=nxt, feed_rates=feed, kill_rates=kill
+    )
 
 
 def load_gray_scott_pairs(
@@ -153,15 +155,21 @@ def split_gray_scott_pairs_by_regime(
     atol: float = 1e-6,
 ) -> dict[str, GrayScottPairs]:
     """Split Gray-Scott pairs into train/val/test/OOD by ``(feed, kill)`` regime."""
-    if val_fraction <= 0.0 or test_fraction <= 0.0 or val_fraction + test_fraction >= 1.0:
-        raise ValueError("val_fraction and test_fraction must be positive and sum to less than 1.")
+    if (
+        val_fraction <= 0.0
+        or test_fraction <= 0.0
+        or val_fraction + test_fraction >= 1.0
+    ):
+        raise ValueError(
+            "val_fraction and test_fraction must be positive and sum to less than 1."
+        )
 
     def regime_mask(regimes: list[tuple[float, float]]) -> torch.Tensor:
         mask = torch.zeros_like(pairs.feed_rates, dtype=torch.bool)
         for feed, kill in regimes:
-            mask |= torch.isclose(pairs.feed_rates, torch.tensor(feed), atol=atol) & torch.isclose(
-                pairs.kill_rates, torch.tensor(kill), atol=atol
-            )
+            mask |= torch.isclose(
+                pairs.feed_rates, torch.tensor(feed), atol=atol
+            ) & torch.isclose(pairs.kill_rates, torch.tensor(kill), atol=atol)
         return mask
 
     train_mask = regime_mask(train_regimes)
@@ -173,7 +181,9 @@ def split_gray_scott_pairs_by_regime(
 
     generator = torch.Generator().manual_seed(seed)
     train_indices = torch.nonzero(train_mask, as_tuple=False).flatten()
-    train_indices = train_indices[torch.randperm(train_indices.numel(), generator=generator)]
+    train_indices = train_indices[
+        torch.randperm(train_indices.numel(), generator=generator)
+    ]
     n_train_total = train_indices.numel()
     n_val = max(int(round(val_fraction * n_train_total)), 1)
     n_test = max(int(round(test_fraction * n_train_total)), 1)

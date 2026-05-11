@@ -41,7 +41,9 @@ def main() -> int:
         if rel_path not in MKDOCS_YML:
             failures.append(f"{export}: {rel_path} missing from mkdocs.yml nav")
         if f"methods/{module_name}.md" not in API_INDEX:
-            failures.append(f"{export}: methods/{module_name}.md missing from docs/api/index.md")
+            failures.append(
+                f"{export}: methods/{module_name}.md missing from docs/api/index.md"
+            )
 
     if failures:
         print("API documentation coverage check failed:\n")

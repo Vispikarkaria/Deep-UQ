@@ -17,9 +17,13 @@ def _make_graph_field_dataset(
     for _ in range(n_samples):
         a = 0.6 + 0.3 * torch.rand(1, generator=generator)
         b = 0.04 + 0.02 * torch.rand(1, generator=generator)
-        field_a = 1.0 - 0.2 * torch.exp(-((xx - 0.5) ** 2 + (yy - 0.5) ** 2) / (0.02 + b))
+        field_a = 1.0 - 0.2 * torch.exp(
+            -((xx - 0.5) ** 2 + (yy - 0.5) ** 2) / (0.02 + b)
+        )
         field_b = 0.25 * torch.exp(-((xx - 0.35) ** 2 + (yy - 0.65) ** 2) / (0.01 + b))
-        field_b = field_b + 0.02 * torch.randn((resolution, resolution), generator=generator)
+        field_b = field_b + 0.02 * torch.randn(
+            (resolution, resolution), generator=generator
+        )
         current = torch.stack((field_a, field_b.clamp_min(0.0)), dim=-1)
         lap_a = (
             torch.roll(current[..., 0], 1, 0)
@@ -35,8 +39,14 @@ def _make_graph_field_dataset(
             + torch.roll(current[..., 1], -1, 1)
             - 4.0 * current[..., 1]
         )
-        next_a = current[..., 0] + b * lap_a - a * current[..., 0] * current[..., 1] ** 2
-        next_b = current[..., 1] + 0.5 * b * lap_b + a * current[..., 0] * current[..., 1] ** 2
+        next_a = (
+            current[..., 0] + b * lap_a - a * current[..., 0] * current[..., 1] ** 2
+        )
+        next_b = (
+            current[..., 1]
+            + 0.5 * b * lap_b
+            + a * current[..., 0] * current[..., 1] ** 2
+        )
         target = torch.stack((next_a, next_b), dim=-1)
         fields.append(current)
         targets.append(target)
@@ -47,7 +57,9 @@ def test_graph_operator_deep_ensemble_predict_uq() -> None:
     x, y = _make_graph_field_dataset(n_samples=12, resolution=8)
     loader = DataLoader(TensorDataset(x, y), batch_size=4, shuffle=True)
     models = [
-        GraphNeuralOperator2D(in_channels=2, hidden_dim=10, message_dim=8, n_message_passing_steps=2)
+        GraphNeuralOperator2D(
+            in_channels=2, hidden_dim=10, message_dim=8, n_message_passing_steps=2
+        )
         for _ in range(2)
     ]
     ensemble = DeepEnsembleWrapper(models)

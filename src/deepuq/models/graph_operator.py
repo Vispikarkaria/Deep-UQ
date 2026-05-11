@@ -241,14 +241,18 @@ class GraphNeuralOperator2D(nn.Module):
         dst = torch.tensor(dst_list, device=device, dtype=torch.long)
         edge_attr = torch.tensor(edge_features, device=device, dtype=dtype)
         coords = self._coordinate_grid(height, width, device, dtype)
-        entry = _GridGraphCacheEntry(src=src, dst=dst, edge_attr=edge_attr, coords=coords)
+        entry = _GridGraphCacheEntry(
+            src=src, dst=dst, edge_attr=edge_attr, coords=coords
+        )
         self._graph_cache[key] = entry
         return entry
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Map a channels-last 2D input field to a channels-last output field."""
         if x.dim() != 4:
-            raise ValueError("GraphNeuralOperator2D expects inputs with shape [B, H, W, C].")
+            raise ValueError(
+                "GraphNeuralOperator2D expects inputs with shape [B, H, W, C]."
+            )
         if x.size(-1) != self.in_channels:
             raise ValueError(
                 f"Expected {self.in_channels} input channel(s), got {x.size(-1)}."
