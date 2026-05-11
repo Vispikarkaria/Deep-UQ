@@ -194,24 +194,24 @@ class _NativeLaplaceBase:
         self.model.eval()
 
         params = self._parameter_modules
-        f_map = self.model(x)
-        original_shape = f_map.shape
-        # Flatten all output dims beyond batch into a single dim
-        f_map_flat = f_map.reshape(f_map.shape[0], -1)
 
-        n_batch = f_map_flat.shape[0]
-        n_out = f_map_flat.shape[1]
+        with torch.enable_grad():
+            f_map = self.model(x)
+            f_map_flat = f_map.reshape(f_map.shape[0], -1)
 
-        jacobians = torch.zeros(n_batch, n_out, self._param_dim, device=self.device)
-        for i in range(n_batch):
-            self.model.zero_grad(set_to_none=True)
-            f_i = self.model(x[i : i + 1])
-            f_i_flat = f_i.reshape(-1)
-            for j in range(n_out):
-                grads = torch.autograd.grad(
-                    f_i_flat[j], params, retain_graph=True, create_graph=False
-                )
-                jacobians[i, j] = torch.cat([g.detach().reshape(-1) for g in grads])
+            n_batch = f_map_flat.shape[0]
+            n_out = f_map_flat.shape[1]
+
+            jacobians = torch.zeros(n_batch, n_out, self._param_dim, device=self.device)
+            for i in range(n_batch):
+                self.model.zero_grad(set_to_none=True)
+                f_i = self.model(x[i : i + 1])
+                f_i_flat = f_i.reshape(-1)
+                for j in range(n_out):
+                    grads = torch.autograd.grad(
+                        f_i_flat[j], params, retain_graph=True, create_graph=False
+                    )
+                    jacobians[i, j] = torch.cat([g.detach().reshape(-1) for g in grads])
 
         return jacobians, f_map_flat.detach()
 
