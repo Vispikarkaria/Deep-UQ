@@ -347,7 +347,12 @@ class _SimpleDiagonalLaplace(_NativeLaplaceBase):
             param_vector, prior_precision, residual_sum_squares, count_outputs
         )
 
-        hessian_diag = ggn_diag / float(n_data)
+        if self.likelihood == "regression" and count_outputs > 0:
+            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
+        else:
+            sigma_sq = 1.0
+
+        hessian_diag = (1.0 / sigma_sq) * ggn_diag
         self.hessian_diag = hessian_diag
 
         self.posterior_precision_diag = hessian_diag + prior_tensor + self.damping
@@ -489,8 +494,13 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
             param_vector, prior_precision, residual_sum_squares, count_outputs
         )
 
-        diag_total = ggn_diag / float(n_data)
-        jac_matrix = torch.stack(jacobian_rows, dim=0) / float(n_data) ** 0.5
+        if self.likelihood == "regression" and count_outputs > 0:
+            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
+        else:
+            sigma_sq = 1.0
+
+        diag_total = (1.0 / sigma_sq) * ggn_diag
+        jac_matrix = torch.stack(jacobian_rows, dim=0) / (sigma_sq ** 0.5)
 
         rank_cap = min(self.lowrank_rank, jac_matrix.shape[0], jac_matrix.shape[1])
         if rank_cap <= 0:
@@ -676,9 +686,15 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
         )
 
         prior_scalar = float(prior_tensor[0].item())
+
+        if self.likelihood == "regression" and count_outputs > 0:
+            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
+        else:
+            sigma_sq = 1.0
+
         self.block_precision_cholesky = []
         for acc in block_accumulators:
-            curvature = acc / float(n_data)
+            curvature = (1.0 / sigma_sq) * acc
             precision = curvature + (prior_scalar + self.damping) * torch.eye(
                 curvature.shape[0], device=self.device, dtype=curvature.dtype
             )
@@ -788,9 +804,13 @@ class _FullLaplace(_NativeLaplaceBase):
         )
         prior_scalar = float(prior_tensor[0].item())
 
-        # GGN scaled by 1/sigma^2 (for regression) + prior
-        # laplace-torch uses H_factor = 1/sigma^2, we estimate sigma^2 from residuals
-        precision = ggn / float(n_data) + (prior_scalar + self.damping) * torch.eye(
+        # laplace-torch: P = (1/sigma^2) * sum(J^T J) + prior * I
+        if self.likelihood == "regression" and count_outputs > 0:
+            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
+        else:
+            sigma_sq = 1.0
+
+        precision = (1.0 / sigma_sq) * ggn + (prior_scalar + self.damping) * torch.eye(
             self._param_dim, device=self.device, dtype=ggn.dtype,
         )
         self.posterior_precision_cholesky = _safe_cholesky(precision, self.damping)
