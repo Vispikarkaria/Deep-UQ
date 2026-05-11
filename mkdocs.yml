@@ -96,6 +96,7 @@ nav:
       - MCMC (SGLD): methods/mcmc-sgld.md
       - MC Dropout: methods/mc-dropout.md
       - Gaussian Processes: methods/gaussian-processes.md
+      - Conformal Prediction: methods/conformal.md
   - Models:
       - Model Architectures: models/architectures.md
   - Tutorials:
@@ -114,6 +115,7 @@ nav:
       - Laplace Comparison: tutorials/laplace-comparison.md
       - MC Dropout: tutorials/mc-dropout.md
       - SGLD: tutorials/sgld.md
+      - Conformal Prediction: tutorials/conformal.md
       - Gaussian Processes: tutorials/gp.md
       - Scientific ML (DeepONet + Burgers): tutorials/sciml-deeponet-burgers.md
       - Scientific ML (DeepONet + 1D Poisson): tutorials/sciml-deeponet-poisson1d.md
@@ -134,6 +136,7 @@ nav:
           - Laplace API: api/methods/laplace.md
           - MCMC API: api/methods/mcmc.md
           - MC Dropout API: api/methods/mc_dropout.md
+          - Conformal Prediction API: api/methods/conformal.md
       - Models:
           - MLP API: api/models/simple.md
           - FNO Models API: api/models/fno.md

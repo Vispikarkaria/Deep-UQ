@@ -1,3 +1,9 @@
+from .conformal import (
+    ConformalClassifier,
+    ConformalUQWrapper,
+    CQRPredictor,
+    SplitConformalRegressor,
+)
 from .ensembles import (
     DeepEnsembleClassifier,
     DeepEnsembleRegressor,
@@ -48,4 +54,8 @@ __all__ = [
     "collect_posterior_samples",
     "predict_with_samples",
     "predict_with_samples_uq",
+    "SplitConformalRegressor",
+    "ConformalClassifier",
+    "CQRPredictor",
+    "ConformalUQWrapper",
 ]

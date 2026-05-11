@@ -15,6 +15,7 @@ Auto-generated API docs from source code and docstrings, with handwritten guides
   - [Laplace API](methods/laplace.md)
   - [MCMC API](methods/mcmc.md)
   - [MC Dropout API](methods/mc_dropout.md)
+  - [Conformal Prediction API](methods/conformal.md)
 - Models
   - [MLP API](models/simple.md)
   - [FNO Models API](models/fno.md)
