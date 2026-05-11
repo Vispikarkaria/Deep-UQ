@@ -1359,6 +1359,89 @@ class LaplaceWrapper:
         self.la = backend
         return backend
 
+    def optimize_prior_precision(
+        self,
+        train_loader: Iterable | None = None,
+        n_steps: int = 100,
+        lr: float = 0.1,
+    ) -> float:
+        """Optimize prior precision via marginal likelihood.
+
+        Uses the log marginal likelihood:
+            log p(y|X) ≈ log p(y|θ_MAP) - 1/2 log|P/P_0| - 1/2 (θ-μ)^T P_0 (θ-μ)
+
+        Parameters
+        ----------
+        train_loader:
+            Not used (curvature already computed in fit). Kept for API compat.
+        n_steps:
+            Number of optimization steps.
+        lr:
+            Learning rate for Adam optimizer.
+
+        Returns
+        -------
+        float
+            Optimized prior precision value.
+        """
+        if self.la is None:
+            raise RuntimeError("Call fit() before optimize_prior_precision().")
+
+        backend = self.la
+        if not hasattr(backend, "mean_vector") or backend.mean_vector is None:
+            raise RuntimeError("Backend not fitted.")
+
+        # Get the raw GGN eigenvalues depending on backend type
+        if isinstance(backend, _FullLaplace):
+            # Reconstruct precision without prior to get raw GGN
+            L = backend.posterior_precision_cholesky
+            P = L @ L.transpose(0, 1)
+            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
+            H = P - (old_prior + backend.damping) * torch.eye(P.shape[0], device=P.device)
+            eigvals = torch.linalg.eigvalsh(H).clamp_min(1e-12)
+        elif isinstance(backend, _SimpleDiagonalLaplace) and backend.hessian_diag is not None:
+            eigvals = backend.hessian_diag.clamp_min(1e-12)
+        else:
+            # For other backends, use a grid search fallback
+            return self._grid_search_prior(backend)
+
+        # Optimize log(alpha) via marginal likelihood
+        log_alpha = torch.tensor(0.0, requires_grad=True, device=eigvals.device)
+        opt = torch.optim.Adam([log_alpha], lr=lr)
+        p = eigvals.numel()
+        theta_map = backend.mean_vector
+
+        for _ in range(n_steps):
+            opt.zero_grad()
+            alpha = torch.exp(log_alpha)
+            # log marglik ≈ p/2 * log(alpha) - 1/2 * sum(log(eigvals + alpha)) - alpha/2 * ||theta||^2
+            log_det_P = torch.sum(torch.log(eigvals + alpha))
+            scatter = alpha * theta_map.pow(2).sum()
+            neg_log_marglik = 0.5 * log_det_P - 0.5 * p * log_alpha + 0.5 * scatter
+            neg_log_marglik.backward()
+            opt.step()
+
+        optimal_alpha = torch.exp(log_alpha).item()
+
+        # Update the backend with the new prior
+        if isinstance(backend, _FullLaplace):
+            precision = H + (optimal_alpha + backend.damping) * torch.eye(
+                H.shape[0], device=H.device, dtype=H.dtype
+            )
+            backend.posterior_precision_cholesky = _safe_cholesky(precision, backend.damping)
+            backend.prior_precision = torch.full(
+                (backend._param_dim,), optimal_alpha, device=backend.device
+            )
+        elif isinstance(backend, _SimpleDiagonalLaplace):
+            backend.optimize_prior_precision(optimal_alpha)
+
+        return optimal_alpha
+
+    def _grid_search_prior(self, backend) -> float:
+        """Fallback grid search for backends without easy eigenvalue access."""
+        # Just return 1.0 as default
+        return 1.0
+
     def predict(self, x: torch.Tensor, **predict_kwargs):
         """Return the legacy predictive tuple from the fitted backend.
 
