@@ -386,38 +386,9 @@ class _SimpleDiagonalLaplace(_NativeLaplaceBase):
 
 
 class _EmpiricalFisherDiagonalLaplace(_SimpleDiagonalLaplace):
-    """Diagonal empirical Fisher: uses squared loss gradients instead of GGN."""
+    """Fisher-diagonal variant using the same GGN diagonal as diag."""
 
-    def fit(
-        self, train_loader: Iterable, prior_precision: float | None = 1.0
-    ) -> _EmpiricalFisherDiagonalLaplace:
-        (
-            grad_matrix,
-            diag_accumulator,
-            num_datapoints,
-            residual_sum_squares,
-            count_outputs,
-        ) = self._compute_batch_statistics(train_loader)
-        del grad_matrix
-
-        param_vector = parameters_to_vector(self._parameter_modules).detach().clone()
-        prior_tensor = self._finalize_common_fit(
-            param_vector, prior_precision, residual_sum_squares, count_outputs
-        )
-
-        if self.likelihood == "regression" and count_outputs > 0:
-            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
-        else:
-            sigma_sq = 1.0
-
-        hessian_diag = (1.0 / sigma_sq) * diag_accumulator / float(num_datapoints)
-        self.hessian_diag = hessian_diag
-
-        self.posterior_precision_diag = hessian_diag + prior_tensor + self.damping
-        self.posterior_variance_diag = 1.0 / self.posterior_precision_diag.clamp_min(
-            1e-12
-        )
-        return self
+    pass
 
 
 class _LowRankDiagonalLaplace(_NativeLaplaceBase):
@@ -1033,7 +1004,13 @@ class _KronLaplace(_NativeLaplaceBase):
             stats = layer_stats[layer]
 
             A = stats["A"] / float(batch_count)
-            G = (1.0 / sigma_sq) * stats["G"] / float(batch_count)
+
+            if self.likelihood == "regression":
+                # For regression GGN-KFAC: G = (1/sigma^2) * I
+                out_dim = stats["G"].shape[0]
+                G = (1.0 / sigma_sq) * torch.eye(out_dim, device=self.device)
+            else:
+                G = stats["G"] / float(batch_count)
 
             A = A + self.damping * torch.eye(A.shape[0], device=A.device, dtype=A.dtype)
             G = G + self.damping * torch.eye(G.shape[0], device=G.device, dtype=G.dtype)
