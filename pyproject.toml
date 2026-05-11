@@ -32,9 +32,6 @@ Repository = "https://github.com/Vispikarkaria/Deep-UQ"
 Documentation = "https://vispikarkaria.github.io/Deep-UQ/"
 
 [project.optional-dependencies]
-laplace = [
-    "laplace-torch>=0.1.7",
-]
 dev = [
     "black>=24,<25",
     "mypy>=1.11,<2",

@@ -178,30 +178,15 @@ def test_backward_compatible_diag_path():
     assert var.shape == (6, 1)
 
 
-def test_full_backend_prefers_laplace_torch_when_available(monkeypatch):
-    class FakeLaplace:
-        def __init__(self, *args, **kwargs):
-            self.prior_precision = None
-
-        def fit(self, _train_loader):
-            return None
-
-        def predictive_samples(self, x, n_samples=10):
-            return x.unsqueeze(0).expand(n_samples, *x.shape)
-
-    monkeypatch.setattr(laplace_module, "_get_laplace_class", lambda: FakeLaplace)
-    model = MLP(4, [8], 1)
-    wrapper = LaplaceWrapper(model, likelihood="regression", hessian_structure="full")
-    backend = wrapper._build_backend()
-    assert isinstance(backend, laplace_module._LaplaceTorchBackend)
-
-
-def test_full_backend_falls_back_to_native_without_laplace_torch(monkeypatch):
-    def _missing():
-        raise ImportError("laplace-torch missing")
-
-    monkeypatch.setattr(laplace_module, "_get_laplace_class", _missing)
+def test_full_backend_uses_native():
     model = MLP(4, [8], 1)
     wrapper = LaplaceWrapper(model, likelihood="regression", hessian_structure="full")
     backend = wrapper._build_backend()
     assert isinstance(backend, laplace_module._FullLaplace)
+
+
+def test_kron_backend_uses_native():
+    model = MLP(4, [8], 1)
+    wrapper = LaplaceWrapper(model, likelihood="regression", hessian_structure="kron")
+    backend = wrapper._build_backend()
+    assert isinstance(backend, laplace_module._KronLaplace)

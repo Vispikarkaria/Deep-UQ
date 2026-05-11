@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import inspect
 from collections.abc import Iterable
 from typing import cast
 
@@ -59,16 +58,6 @@ def _ensure_iterable_train_loader(train_loader: Iterable) -> None:
         raise TypeError("train_loader must be an iterable over (input, target) pairs.")
 
 
-def _get_laplace_class():
-    try:
-        from laplace import Laplace  # type: ignore
-    except Exception as exc:
-        raise ImportError(
-            'laplace-torch is required for this Laplace backend. '
-            'Install it via: pip install "uqdeepnn[laplace]" or '
-            "pip install laplace-torch>=0.1.7"
-        ) from exc
-    return Laplace
 
 
 class _NativeLaplaceBase:
@@ -618,103 +607,6 @@ class _FullLaplace(_NativeLaplaceBase):
         return self._predict_from_outputs(outputs)
 
 
-class _LaplaceTorchBackend:
-    """Adapter around optional ``laplace-torch`` backends for kron/full structures.
-
-    This preserves the legacy Deep-UQ behavior for ``hessian_structure`` values
-    that were previously delegated to ``laplace-torch``. When the optional
-    dependency is available, ``LaplaceWrapper`` prefers this backend for
-    ``"kron"`` and ``"full"`` so published package behavior remains aligned
-    with earlier releases.
-    """
-
-    def __init__(
-        self,
-        model: nn.Module,
-        likelihood: str,
-        hessian_structure: str,
-        subset_of_weights: str,
-    ) -> None:
-        self.model = model
-        self.likelihood = likelihood
-        self.hessian_structure = hessian_structure
-        self.subset_of_weights = subset_of_weights
-        self.device = next(model.parameters()).device
-        self._laplace = None
-
-    def fit(
-        self, train_loader: Iterable, prior_precision: float | None = 1.0
-    ) -> _LaplaceTorchBackend:
-        Laplace = _get_laplace_class()
-
-        self.model.eval()
-        self._laplace = Laplace(
-            self.model,
-            likelihood=self.likelihood,
-            subset_of_weights=self.subset_of_weights,
-            hessian_structure=self.hessian_structure,
-        )
-        self._laplace.fit(train_loader)
-
-        if prior_precision is not None:
-            updated = False
-            if hasattr(self._laplace, "optimize_prior_precision"):
-                optimize = self._laplace.optimize_prior_precision
-                try:
-                    sig = inspect.signature(optimize)
-                    if "prior_precision" in sig.parameters:
-                        optimize(prior_precision=prior_precision)
-                    elif len(sig.parameters) == 0:
-                        optimize()
-                    else:
-                        optimize(prior_precision)
-                    updated = True
-                except Exception:
-                    updated = False
-            if not updated and hasattr(self._laplace, "prior_precision"):
-                try:
-                    self._laplace.prior_precision = float(prior_precision)
-                except Exception:
-                    pass
-
-        return self
-
-    def predictive(
-        self, x: torch.Tensor, n_samples: int = 50
-    ) -> tuple[torch.Tensor, torch.Tensor | None]:
-        if self._laplace is None:
-            raise RuntimeError("Laplace approximation not fitted yet.")
-        if n_samples <= 0:
-            raise ValueError("n_samples must be positive.")
-
-        x = x.to(self.device)
-
-        if hasattr(self._laplace, "predictive_samples"):
-            samples = self._laplace.predictive_samples(x, n_samples=n_samples)
-            if self.likelihood == "regression":
-                mean = samples.mean(dim=0)
-                var = samples.var(dim=0, unbiased=False).clamp_min(0.0)
-                return mean, var
-            probs = torch.softmax(samples, dim=-1).mean(dim=0)
-            return probs, None
-
-        try:
-            out = self._laplace(x, n_samples=n_samples)
-        except TypeError:
-            out = self._laplace(x)
-
-        if isinstance(out, tuple) and len(out) == 2:
-            mean, var = out
-            if self.likelihood == "classification":
-                return mean, None
-            return mean, var
-
-        if isinstance(out, torch.Tensor):
-            if self.likelihood == "classification":
-                return torch.softmax(out, dim=-1), None
-            return out, torch.zeros_like(out)
-
-        raise RuntimeError("Unsupported prediction output from laplace-torch backend.")
 
 
 class _KronLaplace(_NativeLaplaceBase):
@@ -1096,33 +988,11 @@ class LaplaceWrapper:
             )
 
         if self.hessian_structure == "kron":
-            try:
-                _get_laplace_class()
-            except ImportError:
-                pass
-            else:
-                return _LaplaceTorchBackend(
-                    self.model,
-                    likelihood=self.likelihood,
-                    hessian_structure=self.hessian_structure,
-                    subset_of_weights=self.subset_of_weights,
-                )
             return _KronLaplace(
                 self.model,
                 likelihood=self.likelihood,
                 subset_of_weights=self.subset_of_weights,
                 damping=self.damping,
-            )
-        try:
-            _get_laplace_class()
-        except ImportError:
-            pass
-        else:
-            return _LaplaceTorchBackend(
-                self.model,
-                likelihood=self.likelihood,
-                hessian_structure=self.hessian_structure,
-                subset_of_weights=self.subset_of_weights,
             )
         return _FullLaplace(
             self.model,
