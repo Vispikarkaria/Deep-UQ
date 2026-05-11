@@ -231,9 +231,8 @@ class _NativeLaplaceBase:
         f_var = f_var.clamp_min(0.0)
 
         if self.likelihood == "regression":
-            if self.empirical_noise_variance is not None:
-                f_var = f_var + self.empirical_noise_variance
-            # Reshape back to original model output shape
+            # Return epistemic (functional) variance only, matching laplace-torch.
+            # Observation noise can be added externally if needed.
             f_map = f_map.reshape(output_shape)
             f_var = f_var.reshape(output_shape)
             return f_map, f_var
@@ -347,10 +346,9 @@ class _SimpleDiagonalLaplace(_NativeLaplaceBase):
             param_vector, prior_precision, residual_sum_squares, count_outputs
         )
 
-        if self.likelihood == "regression" and count_outputs > 0:
-            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
-        else:
-            sigma_sq = 1.0
+        # sigma_noise = 1.0 by default, matching laplace-torch convention.
+        # The GGN H = sum(J^T J) and P = (1/sigma^2)*H + prior = H + prior.
+        sigma_sq = 1.0
 
         hessian_diag = (1.0 / sigma_sq) * ggn_diag
         self.hessian_diag = hessian_diag
@@ -470,10 +468,9 @@ class _LowRankDiagonalLaplace(_NativeLaplaceBase):
             param_vector, prior_precision, residual_sum_squares, count_outputs
         )
 
-        if self.likelihood == "regression" and count_outputs > 0:
-            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
-        else:
-            sigma_sq = 1.0
+        # sigma_noise = 1.0 by default, matching laplace-torch convention.
+        # The GGN H = sum(J^T J) and P = (1/sigma^2)*H + prior = H + prior.
+        sigma_sq = 1.0
 
         diag_total = (1.0 / sigma_sq) * ggn_diag
         jac_matrix = torch.stack(jacobian_rows, dim=0) / (sigma_sq ** 0.5)
@@ -663,10 +660,9 @@ class _BlockDiagonalLaplace(_NativeLaplaceBase):
 
         prior_scalar = float(prior_tensor[0].item())
 
-        if self.likelihood == "regression" and count_outputs > 0:
-            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
-        else:
-            sigma_sq = 1.0
+        # sigma_noise = 1.0 by default, matching laplace-torch convention.
+        # The GGN H = sum(J^T J) and P = (1/sigma^2)*H + prior = H + prior.
+        sigma_sq = 1.0
 
         self.block_precision_cholesky = []
         for acc in block_accumulators:
@@ -781,10 +777,9 @@ class _FullLaplace(_NativeLaplaceBase):
         prior_scalar = float(prior_tensor[0].item())
 
         # laplace-torch: P = (1/sigma^2) * sum(J^T J) + prior * I
-        if self.likelihood == "regression" and count_outputs > 0:
-            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
-        else:
-            sigma_sq = 1.0
+        # sigma_noise = 1.0 by default, matching laplace-torch convention.
+        # The GGN H = sum(J^T J) and P = (1/sigma^2)*H + prior = H + prior.
+        sigma_sq = 1.0
 
         precision = (1.0 / sigma_sq) * ggn + (prior_scalar + self.damping) * torch.eye(
             self._param_dim, device=self.device, dtype=ggn.dtype,
@@ -991,10 +986,9 @@ class _KronLaplace(_NativeLaplaceBase):
         )
         self._prior_scalar = float(prior_tensor[0].item())
 
-        if self.likelihood == "regression" and count_outputs > 0:
-            sigma_sq = max(residual_sum_squares / count_outputs, 1e-6)
-        else:
-            sigma_sq = 1.0
+        # sigma_noise = 1.0 by default, matching laplace-torch convention.
+        # The GGN H = sum(J^T J) and P = (1/sigma^2)*H + prior = H + prior.
+        sigma_sq = 1.0
         self._sigma_sq = sigma_sq
 
         self._factors = []
