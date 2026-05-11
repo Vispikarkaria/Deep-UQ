@@ -1413,7 +1413,6 @@ class LaplaceWrapper:
 
         # Get the raw GGN eigenvalues depending on backend type
         if isinstance(backend, _FullLaplace):
-            # Reconstruct precision without prior to get raw GGN
             L = backend.posterior_precision_cholesky
             P = L @ L.transpose(0, 1)
             old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
@@ -1421,8 +1420,28 @@ class LaplaceWrapper:
             eigvals = torch.linalg.eigvalsh(H).clamp_min(1e-12)
         elif isinstance(backend, _SimpleDiagonalLaplace) and backend.hessian_diag is not None:
             eigvals = backend.hessian_diag.clamp_min(1e-12)
+        elif isinstance(backend, _BlockDiagonalLaplace):
+            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
+            all_eigvals = []
+            for chol in backend.block_precision_cholesky:
+                P_block = chol @ chol.transpose(0, 1)
+                H_block = P_block - (old_prior + backend.damping) * torch.eye(
+                    P_block.shape[0], device=P_block.device
+                )
+                all_eigvals.append(torch.linalg.eigvalsh(H_block).clamp_min(1e-12))
+            eigvals = torch.cat(all_eigvals)
+        elif isinstance(backend, _KronLaplace) and len(backend._factors) > 0:
+            all_eigvals = []
+            for factor in backend._factors:
+                eig_a = factor["eig_a"]
+                eig_g = factor["eig_g"]
+                kron_eigs = (eig_a.unsqueeze(1) * eig_g.unsqueeze(0)).reshape(-1)
+                all_eigvals.append(kron_eigs.clamp_min(1e-12))
+            eigvals = torch.cat(all_eigvals)
+        elif isinstance(backend, _LowRankDiagonalLaplace) and backend.posterior_precision_diag is not None:
+            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
+            eigvals = (backend.posterior_precision_diag - old_prior - backend.damping).clamp_min(1e-12)
         else:
-            # For other backends, use a grid search fallback
             return self._grid_search_prior(backend)
 
         # Optimize log(alpha) via marginal likelihood
@@ -1454,6 +1473,35 @@ class LaplaceWrapper:
             )
         elif isinstance(backend, _SimpleDiagonalLaplace):
             backend.optimize_prior_precision(optimal_alpha)
+        elif isinstance(backend, _BlockDiagonalLaplace):
+            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
+            new_chols = []
+            for chol_old in backend.block_precision_cholesky:
+                P_block = chol_old @ chol_old.transpose(0, 1)
+                H_block = P_block - (old_prior + backend.damping) * torch.eye(
+                    P_block.shape[0], device=P_block.device
+                )
+                new_P = H_block + (optimal_alpha + backend.damping) * torch.eye(
+                    H_block.shape[0], device=H_block.device
+                )
+                new_chols.append(_safe_cholesky(new_P, backend.damping))
+            backend.block_precision_cholesky = new_chols
+            backend.prior_precision = torch.full(
+                (backend._param_dim,), optimal_alpha, device=backend.device
+            )
+        elif isinstance(backend, _KronLaplace):
+            backend._prior_scalar = optimal_alpha
+            backend.prior_precision = torch.full(
+                (backend._param_dim,), optimal_alpha, device=backend.device
+            )
+        elif isinstance(backend, _LowRankDiagonalLaplace):
+            old_prior = backend.prior_precision[0].item() if backend.prior_precision is not None else 1.0
+            hessian_contrib = backend.posterior_precision_diag - old_prior - backend.damping
+            backend.posterior_precision_diag = hessian_contrib + optimal_alpha + backend.damping
+            backend.posterior_variance_diag = 1.0 / backend.posterior_precision_diag.clamp_min(1e-12)
+            backend.prior_precision = torch.full(
+                (backend._param_dim,), optimal_alpha, device=backend.device
+            )
 
         return optimal_alpha
 
