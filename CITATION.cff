@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Deep-UQ: Unified Deep Learning Uncertainty Quantification Toolkit"
+type: software
+authors:
+  - family-names: Karkaria
+    given-names: Vispi Nevile
+repository-code: "https://github.com/Vispikarkaria/Deep-UQ"
+url: "https://vispikarkaria.github.io/Deep-UQ/"
+license: MIT
+keywords:
+  - uncertainty-quantification
+  - bayesian-deep-learning
+  - pytorch
+  - scientific-machine-learning
+  - gaussian-processes
+  - neural-operators
