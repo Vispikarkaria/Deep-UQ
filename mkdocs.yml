@@ -219,6 +219,7 @@ nav:
       - SGLD: gallery/SGLD_Tutorial.ipynb
       - Bayes by Backprop: gallery/BayesByBackprop_Tutorial.ipynb
       - Laplace Comparison: gallery/Laplace_HessianComparison_Tutorial.ipynb
+  - Roadmap: roadmap.md
   - Citation: citation.md
   - Changelog: changelog.md
   - Contributing: contributing.md
