@@ -198,6 +198,9 @@ class BatchEnsembleWrapper(nn.Module):
 class PackedLinear(nn.Module):
     """Grouped linear layer for Packed Ensemble.
 
+    Each pack independently maps the full input to its output slice.
+    This creates num_packs independent sub-networks that share no weights.
+
     Parameters
     ----------
     in_features:
@@ -207,7 +210,7 @@ class PackedLinear(nn.Module):
     num_packs:
         Number of ensemble members (groups).
     alpha:
-        Width multiplier applied before grouping.
+        Width multiplier (scales hidden dimension per pack).
     """
 
     def __init__(
@@ -223,30 +226,25 @@ class PackedLinear(nn.Module):
         self.num_packs = num_packs
         self.alpha = alpha
 
-        # Effective dimensions after alpha scaling, rounded up to be divisible
-        self.effective_in = in_features * alpha
-        # Ensure effective_out is divisible by num_packs
-        raw_out = out_features * alpha
-        self.effective_out = ((raw_out + num_packs - 1) // num_packs) * num_packs
+        # Each pack: in_features -> out_features * alpha // num_packs
+        # Total output: num_packs * (out_features * alpha // num_packs)
+        self.out_per_pack = max(1, (out_features * alpha) // num_packs)
+        self.effective_out = self.out_per_pack * num_packs
 
-        # Ensure effective_in is divisible by num_packs
-        raw_in = self.effective_in
-        self.effective_in = ((raw_in + num_packs - 1) // num_packs) * num_packs
-
-        # Grouped weight: each pack gets its own slice
+        # Independent weight per pack: (num_packs, out_per_pack, in_features)
         self.weight = nn.Parameter(
-            torch.empty(self.effective_out, self.effective_in // num_packs)
+            torch.empty(num_packs, self.out_per_pack, in_features)
         )
-        self.bias = nn.Parameter(torch.zeros(self.effective_out))
+        self.bias = nn.Parameter(torch.zeros(num_packs, self.out_per_pack))
         nn.init.kaiming_uniform_(self.weight)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass with grouped computation.
+        """Forward pass: each pack sees the full input independently.
 
         Parameters
         ----------
         x:
-            Input of shape ``(batch, effective_in)`` or ``(batch, in_features)``.
+            Input of shape ``(batch, in_features)`` or ``(batch, effective_out_prev)``.
 
         Returns
         -------
@@ -254,37 +252,26 @@ class PackedLinear(nn.Module):
         """
         batch_size = x.shape[0]
 
-        # If input is original size, expand by repeating channels
-        if x.shape[-1] == self.in_features:
-            x = x.repeat(1, self.alpha)
+        # For intermediate layers, input dim = effective_out of previous layer
+        # Each pack should only see its own slice of the previous output
+        if x.shape[-1] == self.effective_out or x.shape[-1] == self.in_features:
+            pass  # handled below
 
-        # Pad if needed to match effective_in
-        if x.shape[-1] < self.effective_in:
-            pad_size = self.effective_in - x.shape[-1]
-            x = F.pad(x, (0, pad_size))
+        if x.shape[-1] != self.in_features:
+            # Input is from previous packed layer: (B, prev_effective_out)
+            # Split into packs and each pack processes its own slice
+            in_per_pack = x.shape[-1] // self.num_packs
+            x_packed = x.view(batch_size, self.num_packs, in_per_pack)
+            # Adjust weight if needed (only use first in_per_pack columns)
+            w = self.weight[:, :, :in_per_pack]
+            out = torch.einsum("bpi,poi->bpo", x_packed, w)
+        else:
+            # First layer or matching input: each pack sees the full input
+            # x: (B, in_features) -> (B, 1, in_features) -> broadcast with (P, O, I)
+            out = torch.einsum("bi,poi->bpo", x, self.weight)
 
-        # Grouped linear via conv1d trick
-        # x: (batch, effective_in) -> (batch, 1, effective_in) for groups
-        x = x.unsqueeze(1)  # (B, 1, effective_in)
-
-        # Reshape for grouped matmul: (B, num_packs, effective_in // num_packs)
-        x = x.view(batch_size, self.num_packs, self.effective_in // self.num_packs)
-
-        # Weight: (effective_out, effective_in // num_packs)
-        # Reshape to (num_packs, effective_out // num_packs, effective_in // num_packs)
-        w = self.weight.view(
-            self.num_packs,
-            self.effective_out // self.num_packs,
-            self.effective_in // self.num_packs,
-        )
-
-        # Grouped matmul via einsum
-        # (B, P, I_p) x (P, O_p, I_p) -> (B, P, O_p)
-        out = torch.einsum("bpi,poi->bpo", x, w)
-
-        # Reshape to (B, effective_out)
+        out = out + self.bias.unsqueeze(0)
         out = out.reshape(batch_size, self.effective_out)
-        out = out + self.bias
         return out
 
 
