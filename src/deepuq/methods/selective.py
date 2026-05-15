@@ -113,7 +113,7 @@ class SelectivePredictor:
         else:
             # Accept top-coverage% most certain (lowest uncertainty)
             n = len(uncertainties)
-            k = max(1, int(round(coverage * n)))
+            k = max(1, int(round(coverage * n)))  # type: ignore[operator]
             # Find the k-th smallest uncertainty as threshold
             sorted_unc, _ = uncertainties.sort()
             thresh = sorted_unc[min(k - 1, n - 1)]
