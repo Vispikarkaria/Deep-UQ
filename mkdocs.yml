@@ -84,8 +84,8 @@ plugins:
       minify_html: true
   - social:
       cards_layout_options:
-        background_color: "#0c2944"
-        color: "#f5faff"
+        background_color: "#1a1f36"
+        color: "#ffffff"
 
 markdown_extensions:
   - admonition
