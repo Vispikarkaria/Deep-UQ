@@ -35,8 +35,7 @@ class TestSVGDOptimizer:
 
         # Record initial params
         params_before = [
-            torch.cat([p.flatten() for p in m.parameters()]).clone()
-            for m in particles
+            torch.cat([p.flatten() for p in m.parameters()]).clone() for m in particles
         ]
 
         x = torch.randn(8, 2)
@@ -44,8 +43,7 @@ class TestSVGDOptimizer:
         opt.step(torch.nn.functional.mse_loss, x, y)
 
         params_after = [
-            torch.cat([p.flatten() for p in m.parameters()])
-            for m in particles
+            torch.cat([p.flatten() for p in m.parameters()]) for m in particles
         ]
 
         # At least one particle should have changed
@@ -68,10 +66,7 @@ class TestSVGDOptimizer:
             opt.step(torch.nn.functional.mse_loss, x, y)
 
         # Check particles are not all identical
-        params = [
-            torch.cat([p.flatten() for p in m.parameters()])
-            for m in particles
-        ]
+        params = [torch.cat([p.flatten() for p in m.parameters()]) for m in particles]
         diffs = []
         for i in range(len(params)):
             for j in range(i + 1, len(params)):

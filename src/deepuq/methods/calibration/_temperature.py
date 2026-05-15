@@ -31,7 +31,7 @@ class TemperatureScaling(nn.Module):
         val_loader: torch.utils.data.DataLoader,
         max_iter: int = 100,
         lr: float = 0.01,
-    ) -> "TemperatureScaling":
+    ) -> TemperatureScaling:
         """Optimize temperature on a validation set using LBFGS.
 
         Parameters
@@ -106,7 +106,10 @@ class TemperatureScaling(nn.Module):
             mean=probs,
             epistemic_var=entropy,
             probs=probs,
-            metadata={"method": "temperature_scaling", "temperature": self.temperature.item()},
+            metadata={
+                "method": "temperature_scaling",
+                "temperature": self.temperature.item(),
+            },
         )
 
 
@@ -138,7 +141,7 @@ class VectorScaling(nn.Module):
         val_loader: torch.utils.data.DataLoader,
         max_iter: int = 100,
         lr: float = 0.01,
-    ) -> "VectorScaling":
+    ) -> VectorScaling:
         """Optimize per-class parameters on a validation set using LBFGS.
 
         Parameters

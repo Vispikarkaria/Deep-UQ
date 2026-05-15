@@ -26,7 +26,9 @@ class EvidentialRegression(nn.Module):
         beta = F.softplus(beta_raw) + 1e-6
         return {"gamma": gamma, "nu": nu, "alpha": alpha, "beta": beta}
 
-    def loss(self, x: torch.Tensor, y: torch.Tensor, coeff: float = 1.0) -> torch.Tensor:
+    def loss(
+        self, x: torch.Tensor, y: torch.Tensor, coeff: float = 1.0
+    ) -> torch.Tensor:
         params = self.forward(x)
         gamma = params["gamma"]
         nu = params["nu"]
@@ -91,7 +93,9 @@ class EvidentialClassification(nn.Module):
         alpha = F.softplus(raw) + 1.0
         return alpha
 
-    def loss(self, x: torch.Tensor, y: torch.Tensor, kl_coeff: float = 1.0) -> torch.Tensor:
+    def loss(
+        self, x: torch.Tensor, y: torch.Tensor, kl_coeff: float = 1.0
+    ) -> torch.Tensor:
         alpha = self.forward(x)
         S = alpha.sum(dim=-1, keepdim=True)
 
@@ -111,9 +115,13 @@ class EvidentialClassification(nn.Module):
         S_ones = ones.sum(dim=-1, keepdim=True)
 
         kl = (
-            torch.lgamma(S_tilde) - torch.lgamma(S_ones)
+            torch.lgamma(S_tilde)
+            - torch.lgamma(S_ones)
             - (torch.lgamma(alpha_tilde) - torch.lgamma(ones)).sum(dim=-1, keepdim=True)
-            + ((alpha_tilde - ones) * (torch.digamma(alpha_tilde) - torch.digamma(S_tilde))).sum(dim=-1, keepdim=True)
+            + (
+                (alpha_tilde - ones)
+                * (torch.digamma(alpha_tilde) - torch.digamma(S_tilde))
+            ).sum(dim=-1, keepdim=True)
         ).squeeze(-1)
 
         total_loss = (bayes_risk + kl_coeff * kl).mean()

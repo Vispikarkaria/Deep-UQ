@@ -16,9 +16,9 @@ _EPS = 1e-8
 
 
 def negative_log_likelihood(
-    mean: "np.ndarray | torch.Tensor",
-    var: "np.ndarray | torch.Tensor",
-    y_true: "np.ndarray | torch.Tensor",
+    mean: np.ndarray | torch.Tensor,
+    var: np.ndarray | torch.Tensor,
+    y_true: np.ndarray | torch.Tensor,
 ) -> float:
     """Compute mean Gaussian negative log-likelihood.
 
@@ -39,9 +39,9 @@ def negative_log_likelihood(
 
 
 def continuous_ranked_probability_score(
-    mean: "np.ndarray | torch.Tensor",
-    std: "np.ndarray | torch.Tensor",
-    y_true: "np.ndarray | torch.Tensor",
+    mean: np.ndarray | torch.Tensor,
+    std: np.ndarray | torch.Tensor,
+    y_true: np.ndarray | torch.Tensor,
 ) -> float:
     """Compute mean CRPS for Gaussian predictive distributions.
 
@@ -67,8 +67,8 @@ def continuous_ranked_probability_score(
 
 
 def brier_score(
-    probs: "np.ndarray | torch.Tensor",
-    labels: "np.ndarray | torch.Tensor",
+    probs: np.ndarray | torch.Tensor,
+    labels: np.ndarray | torch.Tensor,
 ) -> float:
     """Compute mean Brier score for binary classification.
 
@@ -85,9 +85,9 @@ def brier_score(
 
 
 def interval_score(
-    lower: "np.ndarray | torch.Tensor",
-    upper: "np.ndarray | torch.Tensor",
-    y_true: "np.ndarray | torch.Tensor",
+    lower: np.ndarray | torch.Tensor,
+    upper: np.ndarray | torch.Tensor,
+    y_true: np.ndarray | torch.Tensor,
     alpha: float = 0.1,
 ) -> float:
     """Compute mean interval score.

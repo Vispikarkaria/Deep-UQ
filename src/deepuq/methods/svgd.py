@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 from typing import Callable
 
 import torch
@@ -75,7 +74,11 @@ class SVGDOptimizer:
         for m in self.particles:
             g = torch.cat(
                 [
-                    p.grad.flatten() if p.grad is not None else torch.zeros_like(p).flatten()
+                    (
+                        p.grad.flatten()
+                        if p.grad is not None
+                        else torch.zeros_like(p).flatten()
+                    )
                     for p in m.parameters()
                 ]
             )

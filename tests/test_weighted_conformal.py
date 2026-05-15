@@ -3,7 +3,10 @@
 import torch
 import torch.nn as nn
 
-from deepuq.methods.conformal import AdaptiveConformalPredictor, WeightedConformalPredictor
+from deepuq.methods.conformal import (
+    AdaptiveConformalPredictor,
+    WeightedConformalPredictor,
+)
 
 
 class LinearModel(nn.Module):

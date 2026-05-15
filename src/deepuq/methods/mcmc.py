@@ -286,13 +286,12 @@ class CyclicalSGMCMC:
         base_lr = optimizer.param_groups[0]["lr"]
 
         samples: list[dict[str, torch.Tensor]] = []
-        total_steps = self.cycle_length * self.n_cycles
         # Steps within each cycle where we collect samples
         collect_start = self.cycle_length - self.samples_per_cycle
 
         step = 0
         data_iter = iter(train_loader)
-        for cycle in range(self.n_cycles):
+        for _cycle in range(self.n_cycles):
             for t in range(self.cycle_length):
                 # Cosine annealing within cycle
                 lr = base_lr * 0.5 * (1 + math.cos(math.pi * t / self.cycle_length))
@@ -315,7 +314,10 @@ class CyclicalSGMCMC:
                 # Collect at end of cycle (low LR region)
                 if t >= collect_start:
                     samples.append(
-                        {k: v.detach().cpu().clone() for k, v in self.model.state_dict().items()}
+                        {
+                            k: v.detach().cpu().clone()
+                            for k, v in self.model.state_dict().items()
+                        }
                     )
 
                 step += 1

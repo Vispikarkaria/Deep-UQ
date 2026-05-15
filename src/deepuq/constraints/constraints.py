@@ -20,7 +20,9 @@ def _adjust_variance(
         ratio = torch.where(
             mean.abs() > 1e-12,
             (new_mean / mean).clamp(0.0, 1.0),
-            torch.where(new_mean == mean, torch.ones_like(mean), torch.zeros_like(mean)),
+            torch.where(
+                new_mean == mean, torch.ones_like(mean), torch.zeros_like(mean)
+            ),
         )
     return (original_var * ratio.square()).clamp(min=0.0)
 
@@ -64,7 +66,9 @@ class BoundConstraint:
 class ConservationConstraint:
     """Adjusts mean so that weighted integral equals conserved_quantity."""
 
-    def __init__(self, integration_weights: torch.Tensor, conserved_quantity: float = 1.0):
+    def __init__(
+        self, integration_weights: torch.Tensor, conserved_quantity: float = 1.0
+    ):
         self.weights = integration_weights
         self.conserved_quantity = conserved_quantity
 
@@ -114,7 +118,10 @@ class MonotonicityConstraint:
         while i < n - 1:
             if block_val[i] > block_val[i + 1]:
                 # Merge blocks
-                total = block_val[i] * blocks_size[i] + block_val[i + 1] * blocks_size[i + 1]
+                total = (
+                    block_val[i] * blocks_size[i]
+                    + block_val[i + 1] * blocks_size[i + 1]
+                )
                 new_size = blocks_size[i] + blocks_size[i + 1]
                 block_val[i] = total / new_size
                 blocks_size[i] = new_size

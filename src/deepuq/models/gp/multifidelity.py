@@ -128,9 +128,7 @@ class MultiFidelityGP(nn.Module):
 
         return self
 
-    def predict_uq(
-        self, X_new: torch.Tensor, fidelity: str = "high"
-    ) -> UQResult:
+    def predict_uq(self, X_new: torch.Tensor, fidelity: str = "high") -> UQResult:
         """Predict with uncertainty quantification."""
         X_new = X_new.float()
         if X_new.ndim == 1:

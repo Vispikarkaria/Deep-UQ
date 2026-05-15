@@ -11,7 +11,6 @@ from typing import Callable
 
 import torch
 import torch.nn as nn
-import numpy as np
 
 from deepuq.types import UQResult
 
@@ -179,7 +178,7 @@ class SelectivePredictor:
 
         # Sort by uncertainty (ascending = most certain first)
         sorted_indices = uncertainties.argsort()
-        sorted_errors = ((predictions[sorted_indices] - test_y[sorted_indices]) ** 2)
+        sorted_errors = (predictions[sorted_indices] - test_y[sorted_indices]) ** 2
 
         n = len(test_y)
 

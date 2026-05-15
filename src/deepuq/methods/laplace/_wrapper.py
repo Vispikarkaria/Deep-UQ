@@ -397,7 +397,10 @@ class LaplaceWrapper:
         params = [p for p in backend._parameter_modules if p.requires_grad]
 
         # Get posterior variance (diagonal)
-        if hasattr(backend, "posterior_variance_diag") and backend.posterior_variance_diag is not None:
+        if (
+            hasattr(backend, "posterior_variance_diag")
+            and backend.posterior_variance_diag is not None
+        ):
             post_var_diag = backend.posterior_variance_diag
         elif hasattr(backend, "posterior_precision_cholesky"):
             # Full covariance: invert precision
@@ -407,7 +410,10 @@ class LaplaceWrapper:
             post_var_diag = cov.diag()
         else:
             # Fallback: use 1/precision_diag
-            if hasattr(backend, "posterior_precision_diag") and backend.posterior_precision_diag is not None:
+            if (
+                hasattr(backend, "posterior_precision_diag")
+                and backend.posterior_precision_diag is not None
+            ):
                 post_var_diag = 1.0 / backend.posterior_precision_diag.clamp_min(1e-12)
             else:
                 raise RuntimeError("Cannot extract posterior covariance from backend.")
@@ -434,7 +440,9 @@ class LaplaceWrapper:
                     out_scalar = out.squeeze()
                 else:
                     out_scalar = out[0, d]
-                grads = torch.autograd.grad(out_scalar, params, retain_graph=(d < out_dim - 1))
+                grads = torch.autograd.grad(
+                    out_scalar, params, retain_graph=(d < out_dim - 1)
+                )
                 # Flatten Jacobian row
                 j_row = torch.cat([g.reshape(-1) for g in grads])
                 # var_d = j_row^T @ diag(post_var) @ j_row = sum(j_row^2 * post_var)
@@ -475,7 +483,9 @@ class LaplaceWrapper:
             },
         )
 
-    def predict_uq(self, x: torch.Tensor, method: str = "sampling", **predict_kwargs) -> UQResult:
+    def predict_uq(
+        self, x: torch.Tensor, method: str = "sampling", **predict_kwargs
+    ) -> UQResult:
         """Return predictive moments in standardized ``UQResult`` form.
 
         Parameters

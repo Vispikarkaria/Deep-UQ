@@ -1,7 +1,5 @@
 """Tests for SWAG implementation."""
 
-import copy
-
 import torch
 from torch import nn
 

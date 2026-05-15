@@ -84,11 +84,7 @@ class TestEvidentialClassification:
 
     def test_epistemic_var_decreases_with_evidence(self):
         """Higher evidence (larger alpha) should yield lower epistemic uncertainty."""
-        model = self._make_model()
-        x_low = torch.zeros(4, 3)  # will produce some baseline evidence
-        x_high = torch.ones(4, 3) * 10.0  # different input, may differ
-
-        # Instead, directly test the math: higher S means lower uncertainty
+        # Directly test the math: higher S means lower uncertainty
         # Manually create alphas
         alpha_low = torch.tensor([[2.0, 2.0, 2.0, 2.0]])  # S=8
         alpha_high = torch.tensor([[10.0, 10.0, 10.0, 10.0]])  # S=40

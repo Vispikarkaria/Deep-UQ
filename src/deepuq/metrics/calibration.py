@@ -13,8 +13,8 @@ def _to_numpy(x) -> np.ndarray:
 
 
 def expected_calibration_error(
-    probs: "np.ndarray | torch.Tensor",
-    labels: "np.ndarray | torch.Tensor",
+    probs: np.ndarray | torch.Tensor,
+    labels: np.ndarray | torch.Tensor,
     n_bins: int = 15,
 ) -> float:
     """Compute Expected Calibration Error (ECE) for classification.
@@ -50,8 +50,8 @@ def expected_calibration_error(
 
 
 def maximum_calibration_error(
-    probs: "np.ndarray | torch.Tensor",
-    labels: "np.ndarray | torch.Tensor",
+    probs: np.ndarray | torch.Tensor,
+    labels: np.ndarray | torch.Tensor,
     n_bins: int = 15,
 ) -> float:
     """Compute Maximum Calibration Error (MCE).
@@ -85,9 +85,9 @@ def maximum_calibration_error(
 
 
 def prediction_interval_coverage(
-    lower: "np.ndarray | torch.Tensor",
-    upper: "np.ndarray | torch.Tensor",
-    y_true: "np.ndarray | torch.Tensor",
+    lower: np.ndarray | torch.Tensor,
+    upper: np.ndarray | torch.Tensor,
+    y_true: np.ndarray | torch.Tensor,
 ) -> float:
     """Compute Prediction Interval Coverage Probability (PICP).
 
@@ -109,9 +109,9 @@ def prediction_interval_coverage(
 
 
 def calibration_curve_regression(
-    predicted_std: "np.ndarray | torch.Tensor",
-    residuals: "np.ndarray | torch.Tensor",
-    quantiles: "np.ndarray | torch.Tensor | None" = None,
+    predicted_std: np.ndarray | torch.Tensor,
+    residuals: np.ndarray | torch.Tensor,
+    quantiles: np.ndarray | torch.Tensor | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Compute calibration curve for regression (expected vs observed coverage).
 

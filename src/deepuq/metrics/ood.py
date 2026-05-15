@@ -13,8 +13,8 @@ def _to_numpy(x) -> np.ndarray:
 
 
 def auroc_ood(
-    in_scores: "np.ndarray | torch.Tensor",
-    out_scores: "np.ndarray | torch.Tensor",
+    in_scores: np.ndarray | torch.Tensor,
+    out_scores: np.ndarray | torch.Tensor,
 ) -> float:
     """Compute AUROC for OOD detection.
 
@@ -39,8 +39,8 @@ def auroc_ood(
 
 
 def fpr_at_tpr(
-    in_scores: "np.ndarray | torch.Tensor",
-    out_scores: "np.ndarray | torch.Tensor",
+    in_scores: np.ndarray | torch.Tensor,
+    out_scores: np.ndarray | torch.Tensor,
     tpr: float = 0.95,
 ) -> float:
     """Compute FPR at a given TPR threshold for OOD detection.

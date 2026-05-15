@@ -23,7 +23,9 @@ class MomentMatchingPropagator:
         self.model = model
         self.eps = eps
 
-    def step(self, mean: torch.Tensor, var: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def step(
+        self, mean: torch.Tensor, var: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Propagate one step: (mean, var) -> (new_mean, new_var).
 
         Uses linearization: new_var = J @ diag(var) @ J^T + model_var

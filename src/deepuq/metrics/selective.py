@@ -13,8 +13,8 @@ def _to_numpy(x) -> np.ndarray:
 
 
 def risk_coverage_curve(
-    uncertainties: "np.ndarray | torch.Tensor",
-    errors: "np.ndarray | torch.Tensor",
+    uncertainties: np.ndarray | torch.Tensor,
+    errors: np.ndarray | torch.Tensor,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Compute risk-coverage curve.
 
@@ -43,8 +43,8 @@ def risk_coverage_curve(
 
 
 def aurc(
-    uncertainties: "np.ndarray | torch.Tensor",
-    errors: "np.ndarray | torch.Tensor",
+    uncertainties: np.ndarray | torch.Tensor,
+    errors: np.ndarray | torch.Tensor,
 ) -> float:
     """Compute Area Under the Risk-Coverage curve (AURC).
 

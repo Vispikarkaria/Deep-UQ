@@ -1,17 +1,14 @@
 """Tests for deepuq.metrics module."""
 
 import numpy as np
-import pytest
 import torch
 
 from deepuq.metrics import (
+    aurc,
     auroc_ood,
     continuous_ranked_probability_score,
     expected_calibration_error,
-    fpr_at_tpr,
     prediction_interval_coverage,
-    risk_coverage_curve,
-    aurc,
 )
 
 

@@ -81,7 +81,11 @@ class BALDSampling:
 
         samples = []
         for _ in range(self.n_mc_samples):
-            out = self.model.model(pool_X) if hasattr(self.model, "model") else self.model(pool_X)
+            out = (
+                self.model.model(pool_X)
+                if hasattr(self.model, "model")
+                else self.model(pool_X)
+            )
             samples.append(out.unsqueeze(0))
 
         preds = torch.cat(samples, dim=0)  # [K, B, D]
@@ -94,7 +98,9 @@ class BALDSampling:
 
         # Collapse to per-sample score
         if var_across_samples.dim() > 1:
-            scores = var_across_samples.sum(dim=tuple(range(1, var_across_samples.dim())))
+            scores = var_across_samples.sum(
+                dim=tuple(range(1, var_across_samples.dim()))
+            )
         else:
             scores = var_across_samples
 

@@ -27,7 +27,7 @@ class IsotonicCalibration:
         self.model = model
         self._regressors: list[IsotonicRegression] | None = None
 
-    def fit(self, val_loader: torch.utils.data.DataLoader) -> "IsotonicCalibration":
+    def fit(self, val_loader: torch.utils.data.DataLoader) -> IsotonicCalibration:
         """Fit isotonic regression per class on validation data.
 
         Parameters

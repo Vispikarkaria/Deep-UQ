@@ -29,7 +29,9 @@ class TestSGHMCOptimizer:
         opt.step()
 
         for name, p in model.named_parameters():
-            assert not torch.equal(p.data, initial_params[name]), f"{name} did not change"
+            assert not torch.equal(
+                p.data, initial_params[name]
+            ), f"{name} did not change"
 
     def test_velocity_maintained(self):
         model = _simple_model()

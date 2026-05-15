@@ -52,20 +52,14 @@ class SpectralNormGP(nn.Module):
         self.register_buffer(
             "rff_weights", torch.randn(in_features, num_random_features)
         )
-        self.register_buffer(
-            "rff_bias", torch.rand(num_random_features) * 2 * math.pi
-        )
+        self.register_buffer("rff_bias", torch.rand(num_random_features) * 2 * math.pi)
 
         # Output linear layer on top of random features
         self.beta = nn.Linear(num_random_features, num_classes)
 
         # Precision matrix (running average)
-        self.register_buffer(
-            "precision", torch.eye(num_random_features)
-        )
-        self.register_buffer(
-            "is_fitted", torch.tensor(False)
-        )
+        self.register_buffer("precision", torch.eye(num_random_features))
+        self.register_buffer("is_fitted", torch.tensor(False))
 
     def _compute_random_features(self, features: torch.Tensor) -> torch.Tensor:
         """Compute Φ(x) = sqrt(2/D) * cos(Wx + b)."""
@@ -75,7 +69,9 @@ class SpectralNormGP(nn.Module):
 
     def reset_covariance(self) -> None:
         """Reset precision matrix accumulator. Call at the start of each epoch."""
-        self.precision.copy_(torch.eye(self.num_random_features, device=self.precision.device))
+        self.precision.copy_(
+            torch.eye(self.num_random_features, device=self.precision.device)
+        )
         self.is_fitted.fill_(False)
 
     def update_covariance(self, features: torch.Tensor) -> None:

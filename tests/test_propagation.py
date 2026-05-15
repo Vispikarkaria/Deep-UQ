@@ -4,7 +4,11 @@ import torch
 import torch.nn as nn
 
 from deepuq.methods.mc_dropout import MCDropoutWrapper
-from deepuq.propagation import MomentMatchingPropagator, SamplingPropagator, UncertaintyRollout
+from deepuq.propagation import (
+    MomentMatchingPropagator,
+    SamplingPropagator,
+    UncertaintyRollout,
+)
 
 
 class SimpleMLP(nn.Module):
@@ -91,7 +95,9 @@ class TestUncertaintyRollout:
         traj = rollout.predict_trajectory(x0, n_steps=3)
         # Variance should grow: last step > first step
         # (first step has only model variance, subsequent steps accumulate)
-        assert traj[-1].epistemic_var.mean().item() > traj[0].epistemic_var.mean().item()
+        assert (
+            traj[-1].epistemic_var.mean().item() > traj[0].epistemic_var.mean().item()
+        )
 
     def test_uncertainty_growth_rate_positive(self):
         model = _make_model(4)

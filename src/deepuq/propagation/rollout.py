@@ -23,7 +23,12 @@ class UncertaintyRollout:
         Number of samples for sampling propagation.
     """
 
-    def __init__(self, model: nn.Module, propagation: str = "moment_matching", n_samples: int = 50):
+    def __init__(
+        self,
+        model: nn.Module,
+        propagation: str = "moment_matching",
+        n_samples: int = 50,
+    ):
         self.model = model
         if propagation == "moment_matching":
             self.propagator = MomentMatchingPropagator(model)

@@ -88,7 +88,8 @@ class TestApplyConstraints:
     def test_chains_multiple(self):
         result = _make_result([-1.0, 3.0, 2.0, 5.0], [1.0] * 4)
         out = apply_constraints(
-            result, [PositivityConstraint(), MonotonicityConstraint(direction="increasing")]
+            result,
+            [PositivityConstraint(), MonotonicityConstraint(direction="increasing")],
         )
         assert (out.mean >= 0).all()
         for i in range(len(out.mean) - 1):

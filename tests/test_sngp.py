@@ -50,7 +50,9 @@ def test_spectral_norm_applied():
     """Spectral norm is applied and weight norm is bounded."""
     model = SimpleMLP()
     bound = 3.0
-    wrapper = SNGPWrapper(model, last_layer_name="head", num_random_features=128, spec_norm_bound=bound)
+    wrapper = SNGPWrapper(
+        model, last_layer_name="head", num_random_features=128, spec_norm_bound=bound
+    )
 
     # Check that spectral_norm is applied to linear layers in feature extractor
     for module in wrapper.feature_extractor.modules():

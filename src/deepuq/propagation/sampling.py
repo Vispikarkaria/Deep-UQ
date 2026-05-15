@@ -23,7 +23,9 @@ class SamplingPropagator:
         self.model = model
         self.n_samples = n_samples
 
-    def step(self, mean: torch.Tensor, var: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def step(
+        self, mean: torch.Tensor, var: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """Propagate one step: (mean, var) -> (new_mean, new_var).
 
         Draws samples from N(mean, diag(var)), passes them through the model,
@@ -36,12 +38,18 @@ class SamplingPropagator:
 
         # Draw samples: (n_samples, D)
         std = torch.sqrt(var + 1e-12)  # avoid sqrt(0)
-        eps = torch.randn(self.n_samples, mean.shape[-1], device=mean.device, dtype=mean.dtype)
+        eps = torch.randn(
+            self.n_samples, mean.shape[-1], device=mean.device, dtype=mean.dtype
+        )
         samples = mean + eps * std  # (n_samples, D)
 
         # Batch forward pass - get point predictions
         with torch.no_grad():
-            outputs = self.model.model(samples) if hasattr(self.model, 'model') else self.model(samples)
+            outputs = (
+                self.model.model(samples)
+                if hasattr(self.model, "model")
+                else self.model(samples)
+            )
 
         # Compute statistics of outputs
         new_mean = outputs.mean(dim=0, keepdim=True)  # (1, D)

@@ -5,7 +5,6 @@ from .conformal import (
     CQRPredictor,
     SplitConformalRegressor,
 )
-from .evidential import EvidentialClassification, EvidentialRegression
 from .ensembles import (
     DeepEnsembleClassifier,
     DeepEnsembleRegressor,
@@ -14,6 +13,7 @@ from .ensembles import (
     HeteroscedasticMultiOutputDeepEnsembleRegressor,
     MultiOutputDeepEnsembleRegressor,
 )
+from .evidential import EvidentialClassification, EvidentialRegression
 from .laplace import LaplaceWrapper
 from .mc_dropout import MCDropoutWrapper
 from .mcmc import (
