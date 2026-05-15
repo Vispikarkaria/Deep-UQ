@@ -16,6 +16,8 @@ Auto-generated API docs from source code and docstrings, with handwritten guides
   - [MCMC API](methods/mcmc.md)
   - [MC Dropout API](methods/mc_dropout.md)
   - [Conformal Prediction API](methods/conformal.md)
+  - [Calibration API](methods/calibration.md)
+  - [Evidential DL API](methods/evidential.md)
 - Models
   - [MLP API](models/simple.md)
   - [FNO Models API](models/fno.md)
