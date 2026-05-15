@@ -93,7 +93,7 @@ files = [
 ]
 
 [[tool.mypy.overrides]]
-module = "deepuq.methods.laplace.*"
+module = ["deepuq.methods.laplace.*", "deepuq.methods.conformal.*"]
 disable_error_code = ["union-attr"]
 exclude = "(^examples/|^notebooks/|^docs/|^data/)"
 
