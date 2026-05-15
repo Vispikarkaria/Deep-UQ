@@ -120,13 +120,27 @@ cd Deep-UQ && pip install -e ".[dev,tests]"
 
 ---
 
+## Beyond Prediction
+
+| Module | What it does |
+|--------|-------------|
+| `deepuq.metrics` | ECE, CRPS, AUROC, PICP, Brier, AURC — evaluate UQ quality |
+| `deepuq.active` | Uncertainty-guided data acquisition (BALD, uncertainty sampling) |
+| `deepuq.constraints` | Physics constraints: positivity, conservation, monotonicity |
+| `deepuq.propagation` | Uncertainty growth tracking for autoregressive rollouts |
+
+---
+
 ## Tutorials
 
-**36 executable notebooks** covering every method and architecture:
+**50+ executable notebooks** covering every method and architecture:
 
-- [Core UQ methods](tutorials/index.md) — MC Dropout, SGLD, Laplace, VI, Ensembles
+- [Core UQ methods](tutorials/index.md) — SWAG, SNGP, Evidential, Calibration, Selective Prediction
+- [Ensembles](tutorials/index.md) — Deep, Batch, Packed Ensembles
+- [MCMC](tutorials/index.md) — SGLD, SGHMC, Cyclical SGMCMC, SVGD
 - [Scientific ML](tutorials/index.md) — DeepONet, FNO, PINNs, CNNs, U-Nets, Graph Operators
-- [Gaussian Processes](tutorials/gp.md) — Exact, Sparse, Classification, Multi-task, Deep Kernel
+- [Gaussian Processes](tutorials/gp.md) — Exact, Sparse, Multi-Fidelity, Deep Kernel
+- [Evaluation](tutorials/index.md) — Metrics, Active Learning, Uncertainty Propagation
 
 ---
 
