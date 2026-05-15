@@ -10,6 +10,7 @@ from ._scores import (
 )
 from ._split import SplitConformalRegressor
 from ._utils import check_coverage, conformal_quantile
+from ._weighted import AdaptiveConformalPredictor, WeightedConformalPredictor
 from ._wrapper import ConformalUQWrapper
 
 __all__ = [
@@ -23,4 +24,6 @@ __all__ = [
     "quantile_score",
     "conformal_quantile",
     "check_coverage",
+    "WeightedConformalPredictor",
+    "AdaptiveConformalPredictor",
 ]
