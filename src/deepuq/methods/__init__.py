@@ -1,3 +1,4 @@
+from .calibration import IsotonicCalibration, TemperatureScaling, VectorScaling
 from .conformal import (
     ConformalClassifier,
     ConformalUQWrapper,
@@ -58,4 +59,7 @@ __all__ = [
     "ConformalClassifier",
     "CQRPredictor",
     "ConformalUQWrapper",
+    "TemperatureScaling",
+    "VectorScaling",
+    "IsotonicCalibration",
 ]
