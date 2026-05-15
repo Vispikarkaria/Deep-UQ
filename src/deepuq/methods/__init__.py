@@ -5,6 +5,7 @@ from .conformal import (
     CQRPredictor,
     SplitConformalRegressor,
 )
+from .evidential import EvidentialClassification, EvidentialRegression
 from .ensembles import (
     DeepEnsembleClassifier,
     DeepEnsembleRegressor,
@@ -66,4 +67,6 @@ __all__ = [
     "TemperatureScaling",
     "VectorScaling",
     "IsotonicCalibration",
+    "EvidentialRegression",
+    "EvidentialClassification",
 ]
