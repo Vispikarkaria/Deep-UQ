@@ -16,6 +16,8 @@ from .ensembles import (
 from .laplace import LaplaceWrapper
 from .mc_dropout import MCDropoutWrapper
 from .mcmc import (
+    CyclicalSGMCMC,
+    SGHMCOptimizer,
     SGLDOptimizer,
     collect_posterior_samples,
     predict_with_samples,
@@ -52,6 +54,8 @@ __all__ = [
     "vi_elbo_step",
     "LaplaceWrapper",
     "SGLDOptimizer",
+    "SGHMCOptimizer",
+    "CyclicalSGMCMC",
     "collect_posterior_samples",
     "predict_with_samples",
     "predict_with_samples_uq",

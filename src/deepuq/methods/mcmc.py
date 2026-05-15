@@ -1,4 +1,6 @@
-"""MCMC utilities based on Stochastic Gradient Langevin Dynamics (SGLD)."""
+"""MCMC utilities based on Stochastic Gradient Langevin Dynamics (SGLD) and HMC."""
+
+import math
 
 import torch
 from torch import nn
@@ -171,3 +173,151 @@ def predict_with_samples_uq(
             "apply_softmax": bool(apply_softmax),
         },
     )
+
+
+class SGHMCOptimizer(torch.optim.Optimizer):
+    """Stochastic Gradient Hamiltonian Monte Carlo optimizer.
+
+    Maintains a velocity buffer per parameter and applies the SGHMC update:
+        v = (1 - momentum_decay) * v - lr * grad + N(0, 2*momentum_decay*lr) * noise_scale
+        theta = theta + v
+
+    Parameters
+    ----------
+    params:
+        Iterable of parameters to optimize.
+    lr:
+        Step size.
+    momentum_decay:
+        Friction coefficient for the velocity.
+    noise_scale:
+        Scaling factor for the injected noise.
+    num_training_samples:
+        Number of training samples (used for gradient scaling context).
+    """
+
+    def __init__(
+        self,
+        params,
+        lr=1e-4,
+        momentum_decay=0.01,
+        noise_scale=1.0,
+        num_training_samples=1000,
+    ):
+        defaults = dict(
+            lr=lr,
+            momentum_decay=momentum_decay,
+            noise_scale=noise_scale,
+            num_training_samples=num_training_samples,
+        )
+        super().__init__(params, defaults)
+
+    @torch.no_grad()
+    def step(self):
+        """Apply one SGHMC parameter update in-place."""
+        for group in self.param_groups:
+            lr = group["lr"]
+            alpha = group["momentum_decay"]
+            noise_scale = group["noise_scale"]
+            for p in group["params"]:
+                if p.grad is None:
+                    continue
+                state = self.state[p]
+                if "velocity" not in state:
+                    state["velocity"] = torch.zeros_like(p)
+                v = state["velocity"]
+                noise_std = math.sqrt(2 * alpha * lr) * noise_scale
+                noise = torch.randn_like(p) * noise_std
+                v.mul_(1 - alpha).add_(-lr * p.grad + noise)
+                p.add_(v)
+
+
+class CyclicalSGMCMC:
+    """Cyclical Stochastic Gradient MCMC for posterior sampling.
+
+    Uses cosine annealing within each cycle and collects samples at the end
+    of each cycle (low LR region).
+
+    Parameters
+    ----------
+    model:
+        Neural network to sample from.
+    base_optimizer_cls:
+        Optimizer class (e.g. SGHMCOptimizer or SGLDOptimizer).
+    cycle_length:
+        Number of training steps per cycle.
+    n_cycles:
+        Number of full cycles to run.
+    samples_per_cycle:
+        Number of posterior samples to collect at the end of each cycle.
+    """
+
+    def __init__(
+        self,
+        model: nn.Module,
+        base_optimizer_cls,
+        cycle_length: int = 50,
+        n_cycles: int = 4,
+        samples_per_cycle: int = 3,
+    ):
+        self.model = model
+        self.base_optimizer_cls = base_optimizer_cls
+        self.cycle_length = cycle_length
+        self.n_cycles = n_cycles
+        self.samples_per_cycle = samples_per_cycle
+
+    def run(self, train_loader, loss_fn) -> list[dict[str, torch.Tensor]]:
+        """Execute cyclical SGMCMC and return collected posterior samples.
+
+        Parameters
+        ----------
+        train_loader:
+            Iterable of (inputs, targets) mini-batches.
+        loss_fn:
+            Loss function for computing gradients.
+
+        Returns
+        -------
+        list[dict[str, torch.Tensor]]
+            Collected state-dict snapshots.
+        """
+        self.model.train()
+        optimizer = self.base_optimizer_cls(self.model.parameters())
+        base_lr = optimizer.param_groups[0]["lr"]
+
+        samples: list[dict[str, torch.Tensor]] = []
+        total_steps = self.cycle_length * self.n_cycles
+        # Steps within each cycle where we collect samples
+        collect_start = self.cycle_length - self.samples_per_cycle
+
+        step = 0
+        data_iter = iter(train_loader)
+        for cycle in range(self.n_cycles):
+            for t in range(self.cycle_length):
+                # Cosine annealing within cycle
+                lr = base_lr * 0.5 * (1 + math.cos(math.pi * t / self.cycle_length))
+                for pg in optimizer.param_groups:
+                    pg["lr"] = lr
+
+                # Get batch
+                try:
+                    x, y = next(data_iter)
+                except StopIteration:
+                    data_iter = iter(train_loader)
+                    x, y = next(data_iter)
+
+                optimizer.zero_grad(set_to_none=True)
+                logits = self.model(x)
+                loss = loss_fn(logits, y)
+                loss.backward()
+                optimizer.step()
+
+                # Collect at end of cycle (low LR region)
+                if t >= collect_start:
+                    samples.append(
+                        {k: v.detach().cpu().clone() for k, v in self.model.state_dict().items()}
+                    )
+
+                step += 1
+
+        return samples

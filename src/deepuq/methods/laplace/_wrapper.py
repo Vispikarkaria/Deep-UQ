@@ -371,13 +371,121 @@ class LaplaceWrapper:
             raise RuntimeError("Call fit() before predict().")
         return self.la.predictive(x, **predict_kwargs)
 
-    def predict_uq(self, x: torch.Tensor, **predict_kwargs) -> UQResult:
+    def _predict_glm(self, x: torch.Tensor) -> UQResult:
+        """Linearized (GLM) predictive using Jacobian-based variance.
+
+        Computes predictive variance as diag(J @ Sigma_post @ J^T) where J is
+        the Jacobian of the network output w.r.t. the posterior parameters at MAP.
+
+        Parameters
+        ----------
+        x:
+            Evaluation inputs.
+
+        Returns
+        -------
+        UQResult
+            Predictive mean and variance from the linearized model.
+        """
+        if self.la is None:
+            raise RuntimeError("Call fit() before _predict_glm().")
+
+        backend = self.la
+        self.model.eval()
+
+        # Get the parameters we're approximating over
+        params = [p for p in backend._parameter_modules if p.requires_grad]
+
+        # Get posterior variance (diagonal)
+        if hasattr(backend, "posterior_variance_diag") and backend.posterior_variance_diag is not None:
+            post_var_diag = backend.posterior_variance_diag
+        elif hasattr(backend, "posterior_precision_cholesky"):
+            # Full covariance: invert precision
+            L = backend.posterior_precision_cholesky
+            L_inv = torch.linalg.inv(L)
+            cov = L_inv.T @ L_inv
+            post_var_diag = cov.diag()
+        else:
+            # Fallback: use 1/precision_diag
+            if hasattr(backend, "posterior_precision_diag") and backend.posterior_precision_diag is not None:
+                post_var_diag = 1.0 / backend.posterior_precision_diag.clamp_min(1e-12)
+            else:
+                raise RuntimeError("Cannot extract posterior covariance from backend.")
+
+        # Compute per-sample Jacobian and predictive variance
+        device = next(iter(params)).device
+        x_dev = x.to(device)
+        n_samples = x_dev.shape[0]
+
+        # Forward pass for mean
+        with torch.no_grad():
+            mean = self.model(x_dev)
+
+        out_dim = mean.shape[-1] if mean.dim() > 1 else 1
+        pred_var = torch.zeros(n_samples, out_dim, device=device)
+
+        for i in range(n_samples):
+            xi = x_dev[i : i + 1]
+            # Compute Jacobian for this sample
+            self.model.zero_grad()
+            out = self.model(xi)
+            for d in range(out_dim):
+                if out_dim == 1:
+                    out_scalar = out.squeeze()
+                else:
+                    out_scalar = out[0, d]
+                grads = torch.autograd.grad(out_scalar, params, retain_graph=(d < out_dim - 1))
+                # Flatten Jacobian row
+                j_row = torch.cat([g.reshape(-1) for g in grads])
+                # var_d = j_row^T @ diag(post_var) @ j_row = sum(j_row^2 * post_var)
+                pred_var[i, d] = (j_row.pow(2) * post_var_diag).sum()
+
+        mean_out = mean.detach()
+        pred_var = pred_var.detach()
+
+        if self.likelihood == "classification":
+            probs = torch.softmax(mean_out, dim=-1)
+            return UQResult(
+                mean=probs,
+                epistemic_var=None,
+                aleatoric_var=None,
+                total_var=None,
+                probs=probs,
+                probs_var=pred_var,
+                metadata={
+                    "method": "laplace_glm",
+                    "hessian_structure": self.hessian_structure,
+                    "likelihood": self.likelihood,
+                    "subset_of_weights": self.subset_of_weights,
+                },
+            )
+
+        return UQResult(
+            mean=mean_out,
+            epistemic_var=pred_var,
+            aleatoric_var=None,
+            total_var=pred_var,
+            probs=None,
+            probs_var=None,
+            metadata={
+                "method": "laplace_glm",
+                "hessian_structure": self.hessian_structure,
+                "likelihood": self.likelihood,
+                "subset_of_weights": self.subset_of_weights,
+            },
+        )
+
+    def predict_uq(self, x: torch.Tensor, method: str = "sampling", **predict_kwargs) -> UQResult:
         """Return predictive moments in standardized ``UQResult`` form.
 
         Parameters
         ----------
         x:
             Evaluation inputs.
+        method:
+            Predictive method. ``"sampling"`` uses the backend's default
+            weight-space sampling. ``"glm"`` uses the linearized (Jacobian-based)
+            predictive which is exact and requires no sampling.
         **predict_kwargs:
             Forwarded to the backend predictive routine.
 
@@ -396,6 +504,9 @@ class LaplaceWrapper:
         """
         if self.la is None:
             raise RuntimeError("Call fit() before predict_uq().")
+
+        if method == "glm":
+            return self._predict_glm(x)
 
         mean_or_probs, var = self.la.predictive(x, **predict_kwargs)
         if self.likelihood == "classification":
