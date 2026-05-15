@@ -1,15 +1,22 @@
 ---
 hide:
   - title
+  - navigation
 ---
 
 <div class="hero-panel reveal">
   <h1>Deep-UQ</h1>
-  <p class="hero-tagline">Uncertainty quantification for deep learning. One package, six methods, any PyTorch model.</p>
+  <p class="hero-tagline">Uncertainty quantification for deep learning. One package, seven method families, any PyTorch model.</p>
   <p>
     <a href="getting-started/installation/" class="md-button md-button--primary">Get Started</a>
     <a href="tutorials/" class="md-button">Tutorials</a>
     <a href="api/" class="md-button">API Reference</a>
+  </p>
+  <p style="margin-top: 1rem; position: relative;">
+    <a href="https://pypi.org/project/uqdeepnn/"><img src="https://img.shields.io/pypi/v/uqdeepnn?style=flat-square&color=0b84f3" alt="PyPI"></a>
+    <a href="https://github.com/Vispikarkaria/Deep-UQ/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Vispikarkaria/Deep-UQ/tests.yml?style=flat-square&label=tests" alt="Tests"></a>
+    <a href="https://github.com/Vispikarkaria/Deep-UQ/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License"></a>
+    <a href="https://github.com/Vispikarkaria/Deep-UQ"><img src="https://img.shields.io/github/stars/Vispikarkaria/Deep-UQ?style=flat-square" alt="GitHub Stars"></a>
   </p>
 </div>
 

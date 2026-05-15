@@ -1,0 +1,12 @@
+{% extends "main.html" %}
+
+{% block content %}
+<div style="text-align: center; padding: 4rem 1rem;">
+  <h1 style="font-size: 4rem; margin-bottom: 0.5rem; color: var(--md-accent-fg-color);">404</h1>
+  <p style="font-size: 1.2rem; color: var(--uq-muted); margin-bottom: 2rem;">
+    This page doesn't exist — perhaps the uncertainty was too high.
+  </p>
+  <a href="{{ config.site_url }}" class="md-button md-button--primary">Back to Home</a>
+  <a href="{{ config.site_url }}getting-started/quickstart/" class="md-button">Quickstart</a>
+</div>
+{% endblock %}

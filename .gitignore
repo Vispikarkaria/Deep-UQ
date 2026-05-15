@@ -26,3 +26,4 @@ benchmarks/cache/
 # Scientific ML notebook artifacts
 notebooks/sciml/artifacts/
 notebooks/**/artifacts/
+.cache/

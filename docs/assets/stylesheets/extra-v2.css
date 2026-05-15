@@ -1,91 +1,189 @@
-:root {
-  --uq-bg-1: #f4f8fb;
-  --uq-bg-2: #e9f1f8;
+/* === Deep-UQ Theme — Light Mode === */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: #0c2944;
+  --md-primary-fg-color--light: #1a4a6e;
+  --md-primary-fg-color--dark: #071a2c;
+  --md-accent-fg-color: #0b84f3;
+  --md-accent-fg-color--transparent: rgba(11, 132, 243, 0.1);
+
+  --uq-bg-1: #f8fafb;
+  --uq-bg-2: #eef4f9;
   --uq-accent: #0b84f3;
   --uq-accent-2: #00b8d9;
   --uq-ink: #0f2438;
   --uq-muted: #506476;
+  --uq-surface: #ffffff;
+  --uq-border: rgba(15, 36, 56, 0.1);
+  --uq-card-shadow: 0 2px 12px rgba(10, 38, 62, 0.06);
 }
 
-body,
+/* === Dark Mode === */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #0d3a5c;
+  --md-primary-fg-color--light: #145080;
+  --md-primary-fg-color--dark: #081f33;
+  --md-accent-fg-color: #4da6f7;
+  --md-accent-fg-color--transparent: rgba(77, 166, 247, 0.1);
+  --md-default-bg-color: #0d1b2a;
+  --md-default-fg-color: #e0e8f0;
+  --md-default-fg-color--light: #a8baca;
+  --md-code-bg-color: #0a1520;
+
+  --uq-bg-1: #0d1b2a;
+  --uq-bg-2: #132636;
+  --uq-accent: #4da6f7;
+  --uq-accent-2: #38d9f5;
+  --uq-ink: #e0e8f0;
+  --uq-muted: #8ea3b5;
+  --uq-surface: #132636;
+  --uq-border: rgba(200, 220, 240, 0.1);
+  --uq-card-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* === Typography === */
 .md-typeset {
-  font-family: "Source Sans 3", "Segoe UI", sans-serif;
-  color: var(--uq-ink);
+  font-size: 0.82rem;
+  line-height: 1.7;
 }
 
-code,
-pre,
-.md-typeset code {
-  font-family: "JetBrains Mono", "SFMono-Regular", monospace;
-}
-
+/* === Header === */
 .md-header,
 .md-tabs {
   background: linear-gradient(135deg, #0c2944 0%, #0d406a 60%, #0b84f3 100%);
 }
 
-.md-main {
-  background:
-    radial-gradient(circle at 90% 5%, rgba(11, 132, 243, 0.12), transparent 30%),
-    radial-gradient(circle at 10% 10%, rgba(0, 184, 217, 0.10), transparent 35%),
-    linear-gradient(180deg, var(--uq-bg-1) 0%, #ffffff 32%);
+[data-md-color-scheme="slate"] .md-header,
+[data-md-color-scheme="slate"] .md-tabs {
+  background: linear-gradient(135deg, #071a2c 0%, #0a2e4a 60%, #0b5eb0 100%);
 }
 
+/* === Main background === */
+.md-main {
+  background:
+    radial-gradient(ellipse at 85% 5%, rgba(11, 132, 243, 0.08), transparent 35%),
+    radial-gradient(ellipse at 15% 10%, rgba(0, 184, 217, 0.06), transparent 30%),
+    linear-gradient(180deg, var(--uq-bg-1) 0%, var(--uq-surface) 28%);
+}
+
+[data-md-color-scheme="slate"] .md-main {
+  background:
+    radial-gradient(ellipse at 85% 5%, rgba(11, 132, 243, 0.06), transparent 35%),
+    radial-gradient(ellipse at 15% 10%, rgba(0, 184, 217, 0.04), transparent 30%),
+    linear-gradient(180deg, var(--uq-bg-1) 0%, #0f2030 28%);
+}
+
+/* === Announcement bar === */
+.md-banner {
+  background: var(--md-accent-fg-color);
+  color: #ffffff;
+}
+
+.md-banner a {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* === Hero panel === */
 .hero-panel {
   position: relative;
   overflow: hidden;
-  border-radius: 18px;
-  padding: 2rem 1.6rem;
-  background: linear-gradient(120deg, #0f2e4a 0%, #0d406a 60%, #0b84f3 100%);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  background: linear-gradient(135deg, #0c2944 0%, #0d406a 50%, #0b84f3 100%);
   color: #f5faff;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
-.hero-panel::after {
+.hero-panel::before {
   content: "";
   position: absolute;
-  width: 320px;
-  height: 320px;
-  right: -90px;
-  top: -120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+  inset: 0;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.12), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(0, 184, 217, 0.1), transparent 40%);
+  pointer-events: none;
 }
 
-.hero-panel h1,
-.hero-panel h2,
-.hero-panel p {
+.hero-panel h1 {
   position: relative;
-  z-index: 2;
-  color: inherit;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
 }
 
+.hero-tagline {
+  position: relative;
+  font-size: 1.15rem;
+  opacity: 0.92;
+  margin-bottom: 1.5rem;
+  max-width: 600px;
+}
+
+.hero-panel .md-button {
+  position: relative;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.6rem 1.4rem;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  transition: all 0.2s ease;
+}
+
+.hero-panel .md-button--primary {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.hero-panel .md-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* === Card grid === */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.9rem;
-  margin: 1rem 0;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
 }
 
 .card {
-  border: 1px solid rgba(15, 36, 56, 0.12);
-  background: #ffffff;
+  border: 1px solid var(--uq-border);
+  background: var(--uq-surface);
   border-radius: 12px;
-  padding: 0.9rem 1rem;
-  box-shadow: 0 8px 24px rgba(10, 38, 62, 0.06);
+  padding: 1.2rem 1.3rem;
+  box-shadow: var(--uq-card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(10, 38, 62, 0.1);
+}
+
+[data-md-color-scheme="slate"] .card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .card h3 {
-  margin-top: 0.2rem;
+  margin-top: 0;
+  color: var(--uq-ink);
 }
 
+/* === Family tables === */
 .family-table-block {
   margin: 1.2rem 0 1.5rem;
   padding: 1rem 1rem 0.7rem;
-  border: 1px solid rgba(15, 36, 56, 0.12);
+  border: 1px solid var(--uq-border);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 248, 251, 0.92));
-  box-shadow: 0 10px 28px rgba(10, 38, 62, 0.06);
+  background: var(--uq-surface);
+  box-shadow: var(--uq-card-shadow);
   overflow-x: auto;
 }
 
@@ -95,6 +193,10 @@ pre,
   padding: 0.55rem 0.8rem;
   border-radius: 10px;
   background: linear-gradient(135deg, rgba(12, 41, 68, 0.06), rgba(11, 132, 243, 0.08));
+}
+
+[data-md-color-scheme="slate"] .family-table-block h3 {
+  background: linear-gradient(135deg, rgba(77, 166, 247, 0.08), rgba(56, 217, 245, 0.06));
 }
 
 .family-table-readmore {
@@ -107,13 +209,13 @@ pre,
   min-width: 860px;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .family-table-block thead th {
   padding: 0.8rem 0.9rem;
-  border-bottom: 1px solid rgba(15, 36, 56, 0.12);
-  background: rgba(12, 41, 68, 0.92);
+  border-bottom: 1px solid var(--uq-border);
+  background: var(--md-primary-fg-color);
   color: #f5faff;
   text-align: left;
   vertical-align: top;
@@ -121,16 +223,16 @@ pre,
 
 .family-table-block tbody td {
   padding: 0.8rem 0.9rem;
-  border-bottom: 1px solid rgba(15, 36, 56, 0.08);
+  border-bottom: 1px solid var(--uq-border);
   vertical-align: top;
 }
 
 .family-table-block tbody tr:nth-child(odd) td {
-  background: rgba(11, 132, 243, 0.035);
+  background: var(--md-accent-fg-color--transparent);
 }
 
 .family-table-block tbody tr:nth-child(even) td {
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--uq-surface);
 }
 
 .family-table-block tbody td:first-child,
@@ -191,14 +293,15 @@ pre,
   min-width: 14rem;
 }
 
+/* === Chips and marks === */
 .family-chip {
   display: inline-block;
   margin: 0 0.35rem 0.2rem 0;
   padding: 0.12rem 0.5rem;
   border-radius: 999px;
-  border: 1px solid rgba(15, 36, 56, 0.14);
-  background: rgba(12, 41, 68, 0.05);
-  color: #23405a;
+  border: 1px solid var(--uq-border);
+  background: var(--md-accent-fg-color--transparent);
+  color: var(--uq-ink);
   font-size: 0.82rem;
   line-height: 1.4;
   white-space: nowrap;
@@ -207,7 +310,7 @@ pre,
 .family-chip--accent {
   border-color: rgba(11, 132, 243, 0.28);
   background: rgba(11, 132, 243, 0.1);
-  color: #0a67b3;
+  color: var(--md-accent-fg-color);
 }
 
 .family-mark {
@@ -220,7 +323,6 @@ pre,
   line-height: 1;
   font-size: 0.92rem;
   border: 1px solid transparent;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .family-mark--yes {
@@ -228,9 +330,7 @@ pre,
   border-radius: 0.32rem;
   background: linear-gradient(180deg, #33d25e, #11b832);
   border-color: rgba(10, 120, 32, 0.7);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    0 1px 2px rgba(10, 120, 32, 0.22);
+  box-shadow: 0 1px 2px rgba(10, 120, 32, 0.22);
 }
 
 .family-mark--no {
@@ -238,22 +338,21 @@ pre,
   border-radius: 999px;
   background: linear-gradient(180deg, #ff5b5b, #d91c1c);
   border-color: rgba(150, 17, 17, 0.72);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 1px 2px rgba(150, 17, 17, 0.2);
+  box-shadow: 0 1px 2px rgba(150, 17, 17, 0.2);
 }
 
 .uq-chip {
   display: inline-block;
   border-radius: 999px;
   padding: 0.15rem 0.55rem;
-  background: rgba(11, 132, 243, 0.1);
+  background: var(--md-accent-fg-color--transparent);
   border: 1px solid rgba(11, 132, 243, 0.3);
-  color: #0a67b3;
+  color: var(--md-accent-fg-color);
   font-size: 0.83rem;
   margin-right: 0.35rem;
 }
 
+/* === Reveal animation === */
 .reveal {
   opacity: 1;
   transform: translateY(0);
@@ -270,6 +369,7 @@ pre,
   transform: translateY(0);
 }
 
+/* === Math fallback === */
 .arithmatex.math-fallback {
   font-family: "STIX Two Text", "Times New Roman", serif;
   color: var(--uq-ink);
@@ -278,9 +378,9 @@ pre,
 div.arithmatex.math-fallback {
   margin: 1rem 0;
   padding: 0.85rem 1rem;
-  border-left: 3px solid rgba(11, 132, 243, 0.45);
+  border-left: 3px solid var(--md-accent-fg-color);
   border-radius: 10px;
-  background: rgba(12, 41, 68, 0.04);
+  background: var(--md-accent-fg-color--transparent);
   font-size: 1.02rem;
   line-height: 1.6;
   text-align: center;
@@ -292,14 +392,62 @@ span.arithmatex.math-fallback {
   font-style: italic;
 }
 
-.journal-inline {
-  font-family: "STIX Two Text", "Times New Roman", serif;
-  font-style: italic;
+/* === Version selector (mike) === */
+.md-version {
+  font-size: 0.8rem;
 }
 
+/* === Footer === */
+.md-footer {
+  border-top: 1px solid var(--uq-border);
+}
+
+/* === Navigation improvements === */
+.md-nav__link--active {
+  font-weight: 600;
+}
+
+/* === Code blocks === */
+.md-typeset pre > code {
+  border-radius: 8px;
+}
+
+/* === Admonitions === */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+  box-shadow: var(--uq-card-shadow);
+}
+
+/* === Badge styles for stability indicators === */
+.md-typeset .badge-stable {
+  background: #11b832;
+  color: #ffffff;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.md-typeset .badge-experimental {
+  background: #f59e0b;
+  color: #ffffff;
+  padding: 0.1rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* === Responsive === */
 @media (max-width: 900px) {
   .hero-panel {
-    padding: 1.4rem 1rem;
+    padding: 1.6rem 1.2rem;
+  }
+
+  .hero-panel h1 {
+    font-size: 1.8rem;
   }
 
   .family-table-block {
@@ -309,7 +457,7 @@ span.arithmatex.math-fallback {
 
 @media (min-width: 1220px) {
   .md-grid {
-    max-width: 96rem;
+    max-width: 90rem;
   }
 
   .md-content {

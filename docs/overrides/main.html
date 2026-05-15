@@ -2,7 +2,19 @@
 
 {% block extrahead %}
   {{ super() }}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ page.title }} - Deep-UQ">
+  <meta property="og:description" content="Unified uncertainty quantification toolkit for deep learning in PyTorch.">
+  <meta property="og:image" content="https://vispikarkaria.github.io/Deep-UQ/assets/images/social-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block announce %}
+  <a href="https://github.com/Vispikarkaria/Deep-UQ/releases">
+    Deep-UQ v0.1.20 released — Conformal Prediction support added!
+  </a>
+{% endblock %}
+
+{% block content %}
+  {{ super() }}
 {% endblock %}
