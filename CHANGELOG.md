@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-05-15
+
+### Added
+- **SWAG & MultiSWAG** — single-run Bayesian approximation via SWA trajectory moments.
+- **SNGP** — spectral-normalized neural Gaussian process for single-pass distance-aware UQ.
+- **Batch Ensemble** — rank-1 perturbation ensembles in ~1x memory.
+- **Packed Ensemble** — channel-grouped sub-network ensembles.
+- **SVGD** — Stein Variational Gradient Descent particle-based inference.
+- **Evidential Deep Learning** — NIG regression and Dirichlet classification for single-forward-pass UQ.
+- **Test-Time Augmentation UQ** — uncertainty from augmented predictions on any model.
+- **SGHMC** — momentum-based stochastic gradient MCMC.
+- **Cyclical SGMCMC** — cosine-annealed cycles for better posterior coverage.
+- **Linearized Laplace (GLM predictive)** — exact Gaussian predictive via Jacobians, no sampling.
+- **Post-hoc calibration** — Temperature Scaling, Vector Scaling, Isotonic Calibration.
+- **Selective Prediction** — reject uncertain predictions with AURC evaluation.
+- **Weighted Conformal Prediction** — importance-weighted conformal for distribution shift.
+- **Adaptive Conformal Prediction** — online threshold adjustment for streaming coverage.
+- **Multi-Fidelity GP** — Kennedy-O'Hagan autoregressive model for multi-resolution data.
+- **Physics Constraints** — Positivity, Bound, Conservation, Monotonicity constraints for UQResult.
+- **Uncertainty Propagation** — moment matching and sampling-based autoregressive rollout.
+- **Active Learning module** (`deepuq.active`) — UncertaintySampling, BALDSampling, ActiveLearningLoop.
+- **Metrics module** (`deepuq.metrics`) — ECE, MCE, CRPS, Brier, NLL, interval score, PICP, AUROC, FPR@TPR, AURC, risk-coverage curves.
+
+### Changed
+- Upgraded docs site: dark mode, social cards, analytics, announcement bar, versioned docs support.
+- New premium theme with deep navy + indigo color system.
+- Added Benchmarks and Citation pages to documentation.
+
 ## [0.1.19] - 2026-04-01
 
 ### Fixed

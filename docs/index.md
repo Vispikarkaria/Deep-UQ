@@ -6,7 +6,7 @@ hide:
 
 <div class="hero-panel reveal">
   <h1>Deep-UQ</h1>
-  <p class="hero-tagline">Uncertainty quantification for deep learning. One package, seven method families, any PyTorch model.</p>
+  <p class="hero-tagline">Uncertainty quantification for deep learning. One package, 20+ methods, any PyTorch model.</p>
   <p>
     <a href="getting-started/installation/" class="md-button md-button--primary">Get Started</a>
     <a href="tutorials/" class="md-button">Tutorials</a>
@@ -62,12 +62,18 @@ result = la.predict_uq(x_test)
 
 | If you need... | Use | Effort |
 |---|---|---|
-| Quick baseline, no retraining | **MC Dropout** | Minimal |
-| Post-hoc uncertainty on a trained model | **Laplace Approximation** | Low |
+| Quick baseline, no retraining | **MC Dropout** or **Test-Time Augmentation** | Minimal |
+| Post-hoc uncertainty on a trained model | **Laplace** or **Temperature Scaling** | Low |
+| Single forward pass, distance-aware | **SNGP** or **Evidential DL** | Low |
+| Single-run Bayesian approximation | **SWAG / MultiSWAG** | Low |
 | Calibrated multi-model uncertainty | **Deep Ensembles** | Medium |
-| Full Bayesian weight posteriors | **Variational Inference** | Medium |
-| Posterior samples via MCMC | **SGLD** | Medium |
+| Memory-efficient ensembles | **Batch Ensemble** or **Packed Ensemble** | Medium |
+| Full Bayesian weight posteriors | **Variational Inference** or **Flipout** | Medium |
+| Posterior samples via MCMC | **SGLD / SGHMC / Cyclical SGMCMC** | Medium |
+| Particle-based inference | **SVGD** | Medium |
 | Nonparametric with kernel priors | **Gaussian Processes** | Varies |
+| Distribution-free coverage | **Conformal Prediction** (split, weighted, adaptive) | Low |
+| Reject uncertain predictions | **Selective Prediction** | Low |
 
 <p><a href="methods/deep-ensembles/">Detailed method guides →</a></p>
 
