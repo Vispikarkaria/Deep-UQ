@@ -202,6 +202,8 @@ nav:
           - MCMC API: api/methods/mcmc.md
           - MC Dropout API: api/methods/mc_dropout.md
           - Conformal Prediction API: api/methods/conformal.md
+          - Calibration API: api/methods/calibration.md
+          - Evidential DL API: api/methods/evidential.md
       - Models:
           - MLP API: api/models/simple.md
           - FNO Models API: api/models/fno.md
